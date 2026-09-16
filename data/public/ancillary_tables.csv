@@ -1,0 +1,298 @@
+table,field
+CSPM IOA (cloud attack indicator),account
+CSPM IOA (cloud attack indicator),attack_types
+CSPM IOA (cloud attack indicator),aws_account_id
+CSPM IOA (cloud attack indicator),cid
+CSPM IOA (cloud attack indicator),cloud_provider
+CSPM IOA (cloud attack indicator),cloud_region
+CSPM IOA (cloud attack indicator),cloud_service_friendly
+CSPM IOA (cloud attack indicator),cloudplatform
+CSPM IOA (cloud attack indicator),event-type
+CSPM IOA (cloud attack indicator),event_category
+CSPM IOA (cloud attack indicator),event_created
+CSPM IOA (cloud attack indicator),event_id
+CSPM IOA (cloud attack indicator),event_name
+CSPM IOA (cloud attack indicator),event_source
+CSPM IOA (cloud attack indicator),event_type
+CSPM IOA (cloud attack indicator),management_event
+CSPM IOA (cloud attack indicator),mitre_attack_tactic
+CSPM IOA (cloud attack indicator),mitre_attack_technique
+CSPM IOA (cloud attack indicator),policy_description
+CSPM IOA (cloud attack indicator),policy_id
+CSPM IOA (cloud attack indicator),policy_severity
+CSPM IOA (cloud attack indicator),policy_statement
+CSPM IOA (cloud attack indicator),read_only
+CSPM IOA (cloud attack indicator),request_id
+CSPM IOA (cloud attack indicator),request_parameters
+CSPM IOA (cloud attack indicator),response_elements
+CSPM IOA (cloud attack indicator),service
+CSPM IOA (cloud attack indicator),source_ip_address
+CSPM IOA (cloud attack indicator),user_agent
+CSPM IOA (cloud attack indicator),user_identity_access_key_id
+CSPM IOA (cloud attack indicator),user_identity_account_id
+CSPM IOA (cloud attack indicator),user_identity_arn
+CSPM IOA (cloud attack indicator),user_identity_mfa_authenticated
+CSPM IOA (cloud attack indicator),user_identity_principal_id
+CSPM IOA (cloud attack indicator),user_identity_user_name
+CSPM IOA (cloud attack indicator),vertex_id
+CSPM IOA (cloud attack indicator),vertex_type
+CSPM IOM (cloud misconfiguration),AccountId
+CSPM IOM (cloud misconfiguration),CloudPlatform
+CSPM IOM (cloud misconfiguration),CloudService
+CSPM IOM (cloud misconfiguration),Disposition
+CSPM IOM (cloud misconfiguration),Finding
+CSPM IOM (cloud misconfiguration),PolicyId
+CSPM IOM (cloud misconfiguration),PolicyStatement
+CSPM IOM (cloud misconfiguration),Region
+CSPM IOM (cloud misconfiguration),ResourceAttributes
+CSPM IOM (cloud misconfiguration),ResourceAttributes.Enable Resource Name A Record
+CSPM IOM (cloud misconfiguration),ResourceAttributes.IPv6 Native
+CSPM IOM (cloud misconfiguration),ResourceCreateTime
+CSPM IOM (cloud misconfiguration),ResourceId
+CSPM IOM (cloud misconfiguration),ResourceIdType
+CSPM IOM (cloud misconfiguration),ResourceUrl
+CSPM IOM (cloud misconfiguration),Severity
+CSPM IOM (cloud misconfiguration),Tags
+CSPM IOM (cloud misconfiguration),aws_account_id
+CSPM IOM (cloud misconfiguration),cid
+CSPM IOM (cloud misconfiguration),cis_benchmark_ids
+CSPM IOM (cloud misconfiguration),cisa_benchmark_ids
+CSPM IOM (cloud misconfiguration),cloud_asset_type
+CSPM IOM (cloud misconfiguration),cloudplatform
+CSPM IOM (cloud misconfiguration),disposition
+CSPM IOM (cloud misconfiguration),event-type
+CSPM IOM (cloud misconfiguration),finding
+CSPM IOM (cloud misconfiguration),internal_only
+CSPM IOM (cloud misconfiguration),iso_benchmark_ids
+CSPM IOM (cloud misconfiguration),mitre_attack_tactics_name
+CSPM IOM (cloud misconfiguration),mitre_attack_tactics_url
+CSPM IOM (cloud misconfiguration),mitre_attack_techniques_name
+CSPM IOM (cloud misconfiguration),mitre_attack_techniques_url
+CSPM IOM (cloud misconfiguration),nist_benchmark_ids
+CSPM IOM (cloud misconfiguration),pci_benchmark_ids
+CSPM IOM (cloud misconfiguration),policy_id
+CSPM IOM (cloud misconfiguration),policy_severity
+CSPM IOM (cloud misconfiguration),policy_statement
+CSPM IOM (cloud misconfiguration),region
+CSPM IOM (cloud misconfiguration),resource_url
+CSPM IOM (cloud misconfiguration),service
+CSPM IOM (cloud misconfiguration),soc2_benchmark_ids
+CSPM IOM (cloud misconfiguration),tags
+ZTA assessment scores,FileContent
+ZTA assessment scores,aid
+ZTA assessment scores,assessments
+ZTA assessment scores,assessments.analytics_and_improvements_mac
+ZTA assessment scores,assessments.application_firewall_mac
+ZTA assessment scores,assessments.crendential_dumping_hash_mac
+ZTA assessment scores,assessments.crendential_dumping_kcpassword_mac
+ZTA assessment scores,assessments.crowdstrike_full_disk_access
+ZTA assessment scores,assessments.execution_blocking_custom_blocking_enabled_mac
+ZTA assessment scores,assessments.execution_blocking_intel_threats_enabled_mac
+ZTA assessment scores,assessments.execution_blocking_suspicious_processes_enabled_mac
+ZTA assessment scores,assessments.file_vault_enabled_mac
+ZTA assessment scores,assessments.gatekeeper_mac
+ZTA assessment scores,assessments.internet_sharing_mac
+ZTA assessment scores,assessments.mac_os_version
+ZTA assessment scores,assessments.ml_adware_detection_mac
+ZTA assessment scores,assessments.ml_adware_prevention_mac
+ZTA assessment scores,assessments.ml_cloud_antimalware_detection_mac
+ZTA assessment scores,assessments.ml_cloud_antimalware_prevention_mac
+ZTA assessment scores,assessments.ml_sensor_adware_and_pup_detection_mac
+ZTA assessment scores,assessments.ml_sensor_adware_and_pup_prevention_mac
+ZTA assessment scores,assessments.ml_sensor_antimalware_detection_mac
+ZTA assessment scores,assessments.ml_sensor_antimalware_prevention_mac
+ZTA assessment scores,assessments.quarantine_mac
+ZTA assessment scores,assessments.real_time_response_enabled_mac
+ZTA assessment scores,assessments.remote_login_mac
+ZTA assessment scores,assessments.script_based_execution_monitoring_mac
+ZTA assessment scores,assessments.sip_enabled_mac
+ZTA assessment scores,assessments.stealth_mode_mac
+ZTA assessment scores,assessments.system_full_disk_access_mac
+ZTA assessment scores,assessments.unauthorized_remote_access_chopper_mac
+ZTA assessment scores,assessments.unauthorized_remote_access_empyre_mac
+ZTA assessment scores,assessments.unauthorized_remote_access_xpcom_mac
+ZTA assessment scores,cid
+ZTA assessment scores,event_platform
+ZTA assessment scores,event_type
+ZTA assessment scores,host_hidden_status
+ZTA assessment scores,hostname
+ZTA assessment scores,os_version
+ZTA assessment scores,product_name
+ZTA assessment scores,product_type_desc
+ZTA assessment scores,scores
+ZTA assessment scores,scores.modified_time
+ZTA assessment scores,scores.os
+ZTA assessment scores,scores.overall
+ZTA assessment scores,scores.sensor
+ZTA assessment scores,scores.version
+ZTA assessment scores,timestamp
+aidmaster (host inventory),ActiveDirectoryAuthenticationMethod
+aidmaster (host inventory),ActivityId
+aidmaster (host inventory),AgentLoadFlags
+aidmaster (host inventory),AgentLocalTime
+aidmaster (host inventory),AgentTimeOffset
+aidmaster (host inventory),AgentVersion
+aidmaster (host inventory),AuthenticationActivityId
+aidmaster (host inventory),AuthenticationId
+aidmaster (host inventory),BiosManufacturer
+aidmaster (host inventory),BiosVersion
+aidmaster (host inventory),ChassisType
+aidmaster (host inventory),City
+aidmaster (host inventory),ComputerName
+aidmaster (host inventory),ConfigBuild
+aidmaster (host inventory),ConfigIDBuild
+aidmaster (host inventory),ConfigStateHash
+aidmaster (host inventory),ContextTimeStamp
+aidmaster (host inventory),Continent
+aidmaster (host inventory),Country
+aidmaster (host inventory),CurrentLocalIP
+aidmaster (host inventory),EffectiveTransmissionClass
+aidmaster (host inventory),Entitlements
+aidmaster (host inventory),FalconGroupingTags
+aidmaster (host inventory),FirstDiscoveredDate
+aidmaster (host inventory),FirstSeen
+aidmaster (host inventory),HostHiddenStatus
+aidmaster (host inventory),LastDiscoveredBy
+aidmaster (host inventory),LocalAddressIP4
+aidmaster (host inventory),LogonTime
+aidmaster (host inventory),LogonType
+aidmaster (host inventory),MAC
+aidmaster (host inventory),MACPrefix
+aidmaster (host inventory),MachineDomain
+aidmaster (host inventory),NeighborName
+aidmaster (host inventory),OU
+aidmaster (host inventory),PasswordLastSet
+aidmaster (host inventory),PointerSize
+aidmaster (host inventory),ProductType
+aidmaster (host inventory),SensorGroupingTags
+aidmaster (host inventory),ServicePackMajor
+aidmaster (host inventory),SiteName
+aidmaster (host inventory),SourceAccountDomain
+aidmaster (host inventory),SourceAccountObjectGuid
+aidmaster (host inventory),SourceAccountObjectSid
+aidmaster (host inventory),SourceAccountSamAccountName
+aidmaster (host inventory),SourceEndpointAccountObjectGuid
+aidmaster (host inventory),SourceEndpointAccountObjectSid
+aidmaster (host inventory),SourceEndpointAddressIP4
+aidmaster (host inventory),SourceEndpointHostName
+aidmaster (host inventory),SourceEndpointNetworkTag
+aidmaster (host inventory),SourceEndpointNetworkType
+aidmaster (host inventory),SystemManufacturer
+aidmaster (host inventory),SystemProductName
+aidmaster (host inventory),TargetDomainControllerObjectGuid
+aidmaster (host inventory),TargetDomainControllerObjectSid
+aidmaster (host inventory),Time
+aidmaster (host inventory),Timezone
+aidmaster (host inventory),UserGroupsBitmask
+aidmaster (host inventory),UserIsAdmin
+aidmaster (host inventory),UserLogonFlags
+aidmaster (host inventory),UserName
+aidmaster (host inventory),UserPrincipal
+aidmaster (host inventory),UserSid
+aidmaster (host inventory),Version
+aidmaster (host inventory),__mv_LocalAddressIP4
+aidmaster (host inventory),__mv_aip
+aidmaster (host inventory),__mv_discoverer_aid
+aidmaster (host inventory),__mv_discoverer_devicetype
+aidmaster (host inventory),_time
+aidmaster (host inventory),aid
+aidmaster (host inventory),aip
+aidmaster (host inventory),aipCount
+aidmaster (host inventory),cid
+aidmaster (host inventory),discovererCount
+aidmaster (host inventory),discoverer_aid
+aidmaster (host inventory),discoverer_devicetype
+aidmaster (host inventory),event_platform
+aidmaster (host inventory),info
+aidmaster (host inventory),info.host
+aidmaster (host inventory),info.host.AgentLoadFlags
+aidmaster (host inventory),info.host.AgentLocalTime
+aidmaster (host inventory),info.host.AgentTimeOffset
+aidmaster (host inventory),info.host.AgentVersion
+aidmaster (host inventory),info.host.BiosManufacturer
+aidmaster (host inventory),info.host.BiosVersion
+aidmaster (host inventory),info.host.ChassisType
+aidmaster (host inventory),info.host.City
+aidmaster (host inventory),info.host.ConfigBuild
+aidmaster (host inventory),info.host.ConfigIDBuild
+aidmaster (host inventory),info.host.Continent
+aidmaster (host inventory),info.host.Country
+aidmaster (host inventory),info.host.FalconGroupingTags
+aidmaster (host inventory),info.host.FirstSeen
+aidmaster (host inventory),info.host.HostHiddenStatus
+aidmaster (host inventory),info.host.MachineDomain
+aidmaster (host inventory),info.host.OU
+aidmaster (host inventory),info.host.PointerSize
+aidmaster (host inventory),info.host.ProductType
+aidmaster (host inventory),info.host.SensorGroupingTags
+aidmaster (host inventory),info.host.ServicePackMajor
+aidmaster (host inventory),info.host.SiteName
+aidmaster (host inventory),info.host.SystemManufacturer
+aidmaster (host inventory),info.host.SystemProductName
+aidmaster (host inventory),info.host.Time
+aidmaster (host inventory),info.host.Timezone
+aidmaster (host inventory),info.host.Version
+aidmaster (host inventory),info.host.cid
+aidmaster (host inventory),info.host.event_platform
+aidmaster (host inventory),info.user
+aidmaster (host inventory),info.user.AccountType
+aidmaster (host inventory),info.user.LastLoggedOnHost
+aidmaster (host inventory),info.user.LogonTime
+aidmaster (host inventory),info.user.LogonType
+aidmaster (host inventory),info.user.PasswordLastSet
+aidmaster (host inventory),info.user.User
+aidmaster (host inventory),info.user.UserIsAdmin
+aidmaster (host inventory),info.user._time
+aidmaster (host inventory),info.user.cid
+aidmaster (host inventory),info.user.monthsincereset
+aidmaster (host inventory),localipCount
+aidmaster (host inventory),name
+aidmaster (host inventory),subnet
+aidmaster (host inventory),timestamp
+fdrv2/notmanaged (unmanaged asset discovery),ComputerName
+fdrv2/notmanaged (unmanaged asset discovery),CurrentLocalIP
+fdrv2/notmanaged (unmanaged asset discovery),FirstDiscoveredDate
+fdrv2/notmanaged (unmanaged asset discovery),LastDiscoveredBy
+fdrv2/notmanaged (unmanaged asset discovery),LocalAddressIP4
+fdrv2/notmanaged (unmanaged asset discovery),MAC
+fdrv2/notmanaged (unmanaged asset discovery),MACPrefix
+fdrv2/notmanaged (unmanaged asset discovery),NeighborName
+fdrv2/notmanaged (unmanaged asset discovery),__mv_LocalAddressIP4
+fdrv2/notmanaged (unmanaged asset discovery),__mv_aip
+fdrv2/notmanaged (unmanaged asset discovery),__mv_discoverer_aid
+fdrv2/notmanaged (unmanaged asset discovery),_time
+fdrv2/notmanaged (unmanaged asset discovery),aip
+fdrv2/notmanaged (unmanaged asset discovery),aipCount
+fdrv2/notmanaged (unmanaged asset discovery),cid
+fdrv2/notmanaged (unmanaged asset discovery),discovererCount
+fdrv2/notmanaged (unmanaged asset discovery),discoverer_aid
+fdrv2/notmanaged (unmanaged asset discovery),localipCount
+fdrv2/notmanaged (unmanaged asset discovery),subnet
+tags-only fixture,Tags
+tags-only fixture,Tags.Costcenter
+tags-only fixture,Tags.Email
+tags-only fixture,Tags.Environment
+tags-only fixture,Tags.Key
+tags-only fixture,Tags.Name
+tags-only fixture,Tags.Owner
+tags-only fixture,Tags.Partition
+tags-only fixture,Tags.Service
+tags-only fixture,Tags.Subcluster
+tags-only fixture,Tags.ValueString
+userinfo / user map,AccountType
+userinfo / user map,LastLoggedOnHost
+userinfo / user map,LocalAdminAccess
+userinfo / user map,LogonInfo
+userinfo / user map,LogonTime
+userinfo / user map,LogonType
+userinfo / user map,PasswordLastSet
+userinfo / user map,User
+userinfo / user map,User.ID
+userinfo / user map,User.Name
+userinfo / user map,UserIsAdmin
+userinfo / user map,UserLogonFlags_decimal
+userinfo / user map,UserSid_readable
+userinfo / user map,_time
+userinfo / user map,cid
+userinfo / user map,event_platform
+userinfo / user map,monthsincereset

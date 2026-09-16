@@ -1,0 +1,778 @@
+[
+  {
+    "field": "DeviceProtocol",
+    "description": "The USB protocol code of a connected device (part of the USB device descriptor's bDeviceProtocol field).",
+    "semantic_role": "enum",
+    "data_format": "keyword (small integer code)",
+    "hunting_notes": "Combine with DeviceUsbClass/DeviceUsbSubclass to identify the exact USB device class (e.g. mass storage, HID) for removable-media/peripheral hunting.",
+    "join_candidates": [
+      {
+        "to": "DeviceUsbSubclass",
+        "why": "sibling USB class-hierarchy fields captured on the same device-connect/interface-descriptor events",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (DcUsbDeviceConnected, DcUsbInterfaceDescriptor), co-occurring with DeviceUsbClass/DeviceUsbSubclass \u2014 standard USB descriptor terminology (bDeviceProtocol)."
+  },
+  {
+    "field": "DeviceUsbSubclass",
+    "description": "The USB subclass code of a connected device (bDeviceSubClass in the USB device descriptor), refining DeviceUsbClass.",
+    "semantic_role": "enum",
+    "data_format": "keyword (small integer code)",
+    "hunting_notes": "Same use as DeviceProtocol \u2014 narrows device identification for USB/removable-media monitoring.",
+    "join_candidates": [
+      {
+        "to": "DeviceProtocol",
+        "why": "sibling USB class-hierarchy fields on the same events",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events as DeviceProtocol, always co-occurring with it and DeviceUsbClass \u2014 standard USB descriptor terminology."
+  },
+  {
+    "field": "ErrorText",
+    "description": "A human-readable error message accompanying CloudErrorCode on cloud channel/config-download completion events.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (error message)",
+    "hunting_notes": "Useful for diagnosing sensor content-delivery failures rather than direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "CloudErrorCode",
+        "why": "text description of the same error condition represented numerically by CloudErrorCode",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 2 events (ChannelDataDownloadComplete, ConfigDownloadComplete), co-occurring with CloudErrorCode/Status \u2014 name is generic but context (paired with an error-code field) is clear."
+  },
+  {
+    "field": "File",
+    "description": "A container/object field on DataEgressEnriched grouping detailed file metadata (File.AbsolutePath, File.Extension, File.FileTypeCategoryName, etc.) for the file involved in a data-egress event.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference the File.* child fields directly for the actual path/type details.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword in fields.json but appears only as a parent for File.AbsolutePath/File.Extension/File.FileTypeCategoryName/etc. on DataEgressEnriched; unrelated on ErrorEvent (different, generic error-parameter fields), so this record specifically concerns its DataEgressEnriched usage."
+  },
+  {
+    "field": "GcpName",
+    "description": "A name field on GCP cloud-asset inventory events (GcpComputeInstance, GcpIamServiceAccount) \u2014 likely the resource's display name or the service account's name, depending on event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Use alongside GcpProjectId/GcpZone/GcpId to identify a specific GCP resource in cloud-asset hunting.",
+    "join_candidates": [
+      {
+        "to": "GcpProjectId",
+        "why": "scopes the same GCP resource within its project, co-occurring on both events",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 2 events (GcpComputeInstance, GcpIamServiceAccount), co-occurring with GcpProjectId/GcpId/GcpZone/GcpDisplayName/GcpEmail \u2014 clearly GCP resource-naming, though whether it names a VM instance or the IAM service account differs by event."
+  },
+  {
+    "field": "HostGroups",
+    "description": "The Falcon host-group(s) that the affected endpoint belongs to, on cloud detection-summary events.",
+    "semantic_role": "other",
+    "data_format": "keyword (string or list of group names/IDs)",
+    "hunting_notes": "Useful for scoping detection triage/prioritization by asset criticality (e.g. servers vs. workstations) using the Falcon console's host-group assignments.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (Event_DetectionSummaryEvent, Event_EppDetectionSummaryEvent), name directly matches the Falcon console's 'Host Groups' asset-organization feature."
+  },
+  {
+    "field": "Hostname",
+    "description": "The hostname of the affected endpoint on cloud-generated detection-summary events (DataProtection, Epp) \u2014 a parallel field to ComputerName used on raw sensor telemetry.",
+    "semantic_role": "identifier",
+    "data_format": "UTF-8 string (hostname)",
+    "hunting_notes": "Same pivot value as ComputerName; note the schema uses 'Hostname' on cloud detection events and 'ComputerName' on raw telemetry \u2014 normalize both when joining across the two.",
+    "join_candidates": [
+      {
+        "to": "ComputerName",
+        "why": "same concept (host's name) expressed under a different field name on cloud detection-summary events vs. raw sensor telemetry",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank in fields.json, 2 events (Event_DataProtectionDetectionSummaryEvent, Event_EppDetectionSummaryEvent), both cloud detection-summary types where ComputerName is notably absent \u2014 name is unambiguous."
+  },
+  {
+    "field": "IOCValue",
+    "description": "The literal value of an indicator of compromise (IOC) that matched, on cloud detection-summary events, paired with IOCType (which describes what kind of indicator it is, e.g. hash, domain, IP).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (value varies by IOCType)",
+    "hunting_notes": "High-value pivot for IOC-based hunting/enrichment \u2014 cross-reference against threat-intel feeds; always interpret together with IOCType since the value's format depends on it.",
+    "join_candidates": [
+      {
+        "to": "IOCType",
+        "why": "IOCValue's format and meaning are only interpretable together with the indicator type named by IOCType",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (Event_DetectionSummaryEvent, Event_EppDetectionSummaryEvent), always co-occurring with IOCType \u2014 standard IOC terminology."
+  },
+  {
+    "field": "ImageCheckSum",
+    "description": "The PE header checksum (IMAGE_OPTIONAL_HEADER.CheckSum) of a loaded driver or written PE file.",
+    "semantic_role": "hash",
+    "data_format": "keyword (hex/integer checksum)",
+    "hunting_notes": "A checksum of 0 or one that doesn't match the actual file content can indicate a hand-crafted/modified PE, though this is a weak signal compared to cryptographic hashes.",
+    "join_candidates": [
+      {
+        "to": "SHA256HashData",
+        "why": "both identify the same PE image, one via header checksum and one via cryptographic hash",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (DriverLoad, PeFileWritten), co-occurring with ImageEntryPoint/ImageTimeStamp \u2014 standard PE header field naming (IMAGE_OPTIONAL_HEADER.CheckSum)."
+  },
+  {
+    "field": "ImageEntryPoint",
+    "description": "The PE entry point address (IMAGE_OPTIONAL_HEADER.AddressOfEntryPoint) of a loaded driver or written PE file.",
+    "semantic_role": "other",
+    "data_format": "hex address (keyword)",
+    "hunting_notes": "An entry point outside the expected code section, or one shared unexpectedly across unrelated files, is a useful packer/malware indicator when combined with section-level analysis (not directly available in FDR).",
+    "join_candidates": [
+      {
+        "to": "ImageCheckSum",
+        "why": "sibling PE header field captured on the same events",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events as ImageCheckSum, always co-occurring with it \u2014 standard PE header terminology."
+  },
+  {
+    "field": "InDiscards",
+    "description": "A network interface counter: the number of inbound packets discarded (e.g. due to buffer exhaustion), part of standard SNMP-style interface statistics on LocalIpAddressIP4/IP6 snapshot events.",
+    "semantic_role": "count",
+    "data_format": "keyword (integer counter)",
+    "hunting_notes": "Primarily a network-health/performance metric; a hunter would rarely use this alone, but a sudden spike alongside other anomalies could indicate flooding/DoS activity on the interface.",
+    "join_candidates": [
+      {
+        "to": "InErrors",
+        "why": "sibling interface-statistics counter reported alongside it",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (LocalIpAddressIP4, LocalIpAddressIP6), part of the same In*/Out* counter cluster (InErrors, InOctets, InUcastPkts, etc.) \u2014 standard IF-MIB/SNMP interface-statistics naming."
+  },
+  {
+    "field": "InErrors",
+    "description": "A network interface counter: the number of inbound packets that contained errors, part of standard interface statistics.",
+    "semantic_role": "count",
+    "data_format": "keyword (integer counter)",
+    "hunting_notes": "Same limited direct hunting value as InDiscards \u2014 a health/performance metric rather than a security signal on its own.",
+    "join_candidates": [
+      {
+        "to": "InDiscards",
+        "why": "sibling interface-statistics counter",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events as InDiscards, same IF-MIB-style counter cluster."
+  },
+  {
+    "field": "InMulticastPkts",
+    "description": "A network interface counter: the number of inbound multicast packets received, part of standard interface statistics.",
+    "semantic_role": "count",
+    "data_format": "keyword (integer counter)",
+    "hunting_notes": "",
+    "join_candidates": [
+      {
+        "to": "InUcastPkts",
+        "why": "sibling counter distinguishing multicast from unicast inbound traffic on the same interface",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events (LocalIpAddressIP4/IP6) and counter cluster as InDiscards/InErrors."
+  },
+  {
+    "field": "InOctets",
+    "description": "A network interface counter: the total number of octets (bytes) received inbound, part of standard interface statistics.",
+    "semantic_role": "size",
+    "data_format": "keyword (integer byte counter)",
+    "hunting_notes": "Could support coarse bandwidth-anomaly detection at the interface level, though FDR's per-connection network events are typically more useful for that.",
+    "join_candidates": [
+      {
+        "to": "OutOctets",
+        "why": "sibling counter for the same interface's outbound byte total",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events and IF-MIB-style counter cluster as the other In*/Out* fields."
+  },
+  {
+    "field": "InUcastPkts",
+    "description": "A network interface counter: the number of inbound unicast packets received, part of standard interface statistics.",
+    "semantic_role": "count",
+    "data_format": "keyword (integer counter)",
+    "hunting_notes": "",
+    "join_candidates": [
+      {
+        "to": "InMulticastPkts",
+        "why": "sibling counter distinguishing unicast from multicast inbound traffic",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events and counter cluster as the other In*/Out* fields."
+  },
+  {
+    "field": "InUnknownProtos",
+    "description": "A network interface counter: the number of inbound packets discarded because they used an unrecognized protocol, part of standard interface statistics.",
+    "semantic_role": "count",
+    "data_format": "keyword (integer counter)",
+    "hunting_notes": "An unusual value could hint at unrecognized/non-standard protocol traffic reaching the interface, but is a weak, host-level-only signal.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "Same 2 events and IF-MIB-style counter cluster as InDiscards/InErrors \u2014 'InUnknownProtos' directly matches the standard SNMP IF-MIB counter name ifInUnknownProtos."
+  },
+  {
+    "field": "InterfaceAlias",
+    "description": "The friendly/alias name of a network interface (e.g. 'Ethernet0'), used both on adapter-state snapshots and on firewall rule events to name the interface a rule applies to.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (interface name)",
+    "hunting_notes": "Useful to identify which physical/virtual adapter a firewall rule or traffic statistic applies to, especially on multi-homed or VPN-connected hosts.",
+    "join_candidates": [
+      {
+        "to": "InterfaceIndex",
+        "why": "both identify the same network adapter, by name vs. numeric index, and co-occur on LocalIpAddressIP4/IP6",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "cim_reachable=True (mapped to 'interface'), 4 events (FirewallSetRuleIP4, FirewallSetRuleIP6, LocalIpAddressIP4, LocalIpAddressIP6) \u2014 standard Windows network-adapter naming."
+  },
+  {
+    "field": "MACAddress",
+    "description": "The MAC address of the affected endpoint's network interface, on cloud detection-summary events.",
+    "semantic_role": "mac",
+    "data_format": "MAC address string (colon/hyphen-delimited hex)",
+    "hunting_notes": "Useful for host identification/tracking even when IP addresses change (DHCP), and for correlating with network-level logs (DHCP, switch port security) outside FDR.",
+    "join_candidates": [
+      {
+        "to": "PhysicalAddress",
+        "why": "likely the same MAC-address concept captured under a different field name on raw sensor adapter-state telemetry (LocalIpAddressIP4/IP6)",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (Event_DetectionSummaryEvent, Event_EppDetectionSummaryEvent) \u2014 name and format are unambiguous."
+  },
+  {
+    "field": "MD5String",
+    "description": "The MD5 hash (as a string) of the file associated with a cloud detection, paired with SHA1String/SHA256String on the same detection-summary events.",
+    "semantic_role": "hash",
+    "data_format": "hex string (MD5, 32 chars)",
+    "hunting_notes": "Standard hash-based IOC pivot; prefer SHA256String where available since MD5 is not collision-resistant.",
+    "join_candidates": [
+      {
+        "to": "SHA256String",
+        "why": "same file identified by a stronger hash algorithm on the same detection event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (Event_DetectionSummaryEvent, Event_EppDetectionSummaryEvent), name and 'String' suffix (distinguishing from the sensor-side *HashData binary fields) are unambiguous."
+  },
+  {
+    "field": "MemoryTotal",
+    "description": "The total physical memory (RAM) of the host, part of hardware/capacity inventory.",
+    "semantic_role": "size",
+    "data_format": "keyword (integer, likely bytes or MB)",
+    "hunting_notes": "Asset-inventory/capacity-planning field rather than a direct hunting signal.",
+    "join_candidates": [
+      {
+        "to": "CpuSignature",
+        "why": "sibling hardware-inventory attribute on the SystemCapacity event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 2 events (BillingInfo, SystemCapacity), co-occurring with CpuFeaturesMask/LogicalCoreCount/PhysicalCoreCount on SystemCapacity \u2014 clearly a memory-capacity field, though exact unit (bytes vs MB) is not confirmed by a conversions entry."
+  },
+  {
+    "field": "MitreAttack.PatternID",
+    "description": "A CrowdStrike-internal detection pattern ID associated with the ATT&CK-mapped detection, sibling to MitreAttack.Tactic/Technique on lead/detection-summary events.",
+    "semantic_role": "identifier",
+    "data_format": "keyword (opaque pattern ID)",
+    "hunting_notes": "Distinct from the MITRE ATT&CK IDs (TacticID/TechniqueID) \u2014 this is CrowdStrike's own internal detection-logic identifier, useful for grouping detections generated by the exact same detection rule.",
+    "join_candidates": [
+      {
+        "to": "PatternId",
+        "why": "likely the same CrowdStrike detection-pattern identifier concept used elsewhere in the schema (e.g. FalconProcessHandleOpDetectInfo.PatternId)",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, 2 events (Event_AutomatedLeadSummaryEvent, Event_EppDetectionSummaryEvent), always co-occurring with MitreAttack.Tactic/TacticID/Technique/TechniqueID \u2014 'PatternID' matches CrowdStrike's PatternId naming convention used throughout the raw-telemetry schema, suggesting it's the same kind of internal ID rather than a MITRE-defined one."
+  },
+  {
+    "field": "ModuleCharacteristics",
+    "description": "A bitmask of PE/module characteristics flags (from IMAGE_FILE_HEADER.Characteristics, e.g. DLL, executable, large-address-aware) for a loaded or written module.",
+    "semantic_role": "flag",
+    "data_format": "keyword (bitmask, CIM-decoded via ModuleCharacteristics_meaning)",
+    "hunting_notes": "CrowdStrike's own TA provides a decode lookup for this bitmask (ModuleCharacteristics_meaning); useful for filtering module-load telemetry by characteristics like whether a module is a DLL vs. an EXE.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "cim_reachable=True via LOOKUP-type CIM mapping 'ModuleCharacteristics_meaning', confirming it's a decodable bitmask; 4 events (ClassifiedModuleLoad, ImageHash, PeFileWritten, UnsignedModuleLoad) all module-load/PE-write related."
+  },
+  {
+    "field": "NegateInterface",
+    "description": "A firewall rule flag indicating the rule's interface match should be negated (i.e. 'applies to all interfaces except the specified one'), on FirewallSetRuleIP4/IP6.",
+    "semantic_role": "bool",
+    "data_format": "keyword (boolean-like value)",
+    "hunting_notes": "Necessary to correctly interpret InterfaceAlias on the same firewall rule \u2014 without checking this negation flag, a rule's actual interface scope could be misread as its opposite.",
+    "join_candidates": [
+      {
+        "to": "InterfaceAlias",
+        "why": "NegateInterface determines whether InterfaceAlias is an inclusion or exclusion match for the same firewall rule",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (FirewallSetRuleIP4, FirewallSetRuleIP6), always co-occurring with InterfaceAlias and the sibling NegateLocalAddress/NegateRemoteAddress flags \u2014 'Negate' naming convention is unambiguous."
+  },
+  {
+    "field": "NegateLocalAddress",
+    "description": "A firewall rule flag indicating the rule's local-address match should be negated, on FirewallSetRuleIP4/IP6.",
+    "semantic_role": "bool",
+    "data_format": "keyword (boolean-like value)",
+    "hunting_notes": "Same interpretive necessity as NegateInterface \u2014 check before reading LocalAddressIP4/IP6/LocalAddressMaskIP4/IP6 on the same rule.",
+    "join_candidates": [
+      {
+        "to": "LocalAddressIP4",
+        "why": "NegateLocalAddress determines whether the local address match on the same firewall rule is inclusive or exclusive",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events as NegateInterface, always co-occurring with it."
+  },
+  {
+    "field": "NegateRemoteAddress",
+    "description": "A firewall rule flag indicating the rule's remote-address match should be negated, on FirewallSetRuleIP4/IP6.",
+    "semantic_role": "bool",
+    "data_format": "keyword (boolean-like value)",
+    "hunting_notes": "Same interpretive necessity as NegateInterface/NegateLocalAddress \u2014 check before reading RemoteAddressIP4/IP6/RemoteAddressMaskIP4/IP6.",
+    "join_candidates": [
+      {
+        "to": "RemoteAddressIP4",
+        "why": "NegateRemoteAddress determines whether the remote address match on the same firewall rule is inclusive or exclusive",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events as NegateInterface/NegateLocalAddress, always co-occurring with them."
+  },
+  {
+    "field": "NeighborList",
+    "description": "A list of network neighbors (ARP/NDP-style neighbor-table entries) for a given interface, reported on NeighborListIP4/IP6 snapshot events.",
+    "semantic_role": "other",
+    "data_format": "keyword (list, structure unconfirmed)",
+    "hunting_notes": "Could support local-network reconnaissance detection (e.g. spotting hosts discovering unusually many neighbors) but the internal structure of each list entry isn't visible in this KB.",
+    "join_candidates": [
+      {
+        "to": "InterfaceIndex",
+        "why": "scopes the neighbor list to the specific adapter it was observed on",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 2 events (NeighborListIP4, NeighborListIP6) whose only other field is InterfaceIndex \u2014 name is unambiguous (ARP/NDP neighbor table) but internal record structure isn't visible from field co-occurrence alone."
+  },
+  {
+    "field": "Object1Name",
+    "description": "The name of the target object (e.g. the LSASS process or a privileged process) whose handle was opened, on unsigned-module handle-access detection events, paired with Object1Type.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Identifies exactly what sensitive object an unsigned/unverified module attempted to access \u2014 key context for triaging credential-theft-adjacent detections.",
+    "join_candidates": [
+      {
+        "to": "Object1Type",
+        "why": "sibling field naming the type of the object identified by Object1Name",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, 2 events (LsassHandleFromUnsignedModule, PrivilegedProcessHandleFromUnsignedModule), always co-occurring with Object1Type/TargetProcessId/DesiredAccess \u2014 the numbered 'Object1' naming and context make the target-object reading likely, though the exact value format isn't confirmed."
+  },
+  {
+    "field": "Objective",
+    "description": "A short label describing the adversary objective/goal category (e.g. 'Keep Access', 'Falcon Detection Method') that CrowdStrike's detection taxonomy assigns to a detection, on cloud detection-summary events.",
+    "semantic_role": "enum",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Higher-level grouping than Tactic/Technique in CrowdStrike's own detection taxonomy (distinct from MITRE ATT&CK) \u2014 useful for objective-based triage dashboards.",
+    "join_candidates": [
+      {
+        "to": "Tactic",
+        "why": "both categorize the same detection at different levels of CrowdStrike's/MITRE's taxonomy",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 2 events (Event_DetectionSummaryEvent, Event_EppDetectionSummaryEvent), co-occurring with Tactic/Technique/PatternDispositionDescription \u2014 'Objective' is a term CrowdStrike's own detection taxonomy is publicly known to use, though not independently confirmed by a decode table in this KB."
+  },
+  {
+    "field": "OriginalUserName",
+    "description": "The username of the process/token's original (pre-substitution) user identity, on user-impersonation/substitution events (ProcessSubstituteUser, TokenImpersonated), before a UID/token swap occurred.",
+    "semantic_role": "user_id",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Core privilege-escalation/impersonation hunting field \u2014 compare against NewUsername/ImpersonatedUserName to spot unauthorized user-context switches (e.g. su/sudo abuse, token theft).",
+    "join_candidates": [
+      {
+        "to": "NewUsername",
+        "why": "before/after pair describing the same user-substitution event on ProcessSubstituteUser",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (ProcessSubstituteUser, TokenImpersonated), co-occurring with NewUserID/NewUsername/OriginalUserID on the former and ImpersonatedUserName/OriginalUserSid on the latter \u2014 clear before/after impersonation field pairing."
+  },
+  {
+    "field": "OutErrors",
+    "description": "A network interface counter: the number of outbound packets that contained errors, part of standard interface statistics.",
+    "semantic_role": "count",
+    "data_format": "keyword (integer counter)",
+    "hunting_notes": "",
+    "join_candidates": [
+      {
+        "to": "InErrors",
+        "why": "sibling counter for the same interface's inbound errors",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (LocalIpAddressIP4, LocalIpAddressIP6), part of the same IF-MIB-style In*/Out* counter cluster."
+  },
+  {
+    "field": "OutMulticastPkts",
+    "description": "A network interface counter: the number of outbound multicast packets sent, part of standard interface statistics.",
+    "semantic_role": "count",
+    "data_format": "keyword (integer counter)",
+    "hunting_notes": "",
+    "join_candidates": [
+      {
+        "to": "InMulticastPkts",
+        "why": "sibling counter for the same interface's inbound multicast traffic",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events and counter cluster as OutErrors."
+  },
+  {
+    "field": "OutOctets",
+    "description": "A network interface counter: the total number of octets (bytes) sent outbound, part of standard interface statistics.",
+    "semantic_role": "size",
+    "data_format": "keyword (integer byte counter)",
+    "hunting_notes": "Could support coarse outbound-bandwidth anomaly detection at the interface level (e.g. spotting a spike consistent with data exfiltration), though per-connection network events are usually more precise for that.",
+    "join_candidates": [
+      {
+        "to": "InOctets",
+        "why": "sibling counter for the same interface's inbound byte total",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events and counter cluster as OutErrors."
+  },
+  {
+    "field": "OutUcastPkts",
+    "description": "A network interface counter: the number of outbound unicast packets sent, part of standard interface statistics.",
+    "semantic_role": "count",
+    "data_format": "keyword (integer counter)",
+    "hunting_notes": "",
+    "join_candidates": [
+      {
+        "to": "InUcastPkts",
+        "why": "sibling counter for the same interface's inbound unicast traffic",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events and counter cluster as OutErrors."
+  },
+  {
+    "field": "PatternDispositionDescription",
+    "description": "A human-readable description of the pattern-disposition outcome for a detection (summarizing the PatternDispositionFlags.* bitfield), on cloud detection-summary events.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Faster to read than decoding the individual PatternDispositionFlags.* booleans; use the flags themselves when filtering/querying programmatically.",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionFlags",
+        "why": "text summary of the same bitfield the PatternDispositionFlags.* children represent",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (Event_DetectionSummaryEvent, Event_EppDetectionSummaryEvent), always co-occurring with the full PatternDispositionFlags.* field family."
+  },
+  {
+    "field": "PatternDispositionFlags.BlockingUnsupportedOrDisabled",
+    "description": "Whether blocking/prevention for this detection type was unsupported on the host's platform or was administratively disabled, so no blocking action was attempted.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; check alongside the other PatternDispositionFlags.* siblings to understand the full remediation/response state of a detection (was it blocked, was an action attempted and failed, etc.).",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent (2 events), always co-occurring with PatternDispositionValue, PatternDispositionDescription, and its ~20 sibling PatternDispositionFlags.* boolean fields. The name matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values (the same bitmask exposed via the /detects API's pattern_disposition field), which gives strong external corroboration beyond name convention alone, though no decode table is present in this local KB to verify bit positions."
+  },
+  {
+    "field": "PatternDispositionFlags.BootupSafeguardEnabled",
+    "description": "Whether the sensor's boot-time safeguard (which limits aggressive remediation actions during early system startup, to avoid bricking the host) was active for this detection.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; check alongside the other PatternDispositionFlags.* siblings to understand the full remediation/response state of a detection (was it blocked, was an action attempted and failed, etc.).",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent (2 events), always co-occurring with PatternDispositionValue, PatternDispositionDescription, and its ~20 sibling PatternDispositionFlags.* boolean fields. The name matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values (the same bitmask exposed via the /detects API's pattern_disposition field), which gives strong external corroboration beyond name convention alone, though no decode table is present in this local KB to verify bit positions."
+  },
+  {
+    "field": "PatternDispositionFlags.CriticalProcessDisabled",
+    "description": "Whether remediation was suppressed because the target process was flagged as a critical system process that the sensor protects from being killed/suspended.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; check alongside the other PatternDispositionFlags.* siblings to understand the full remediation/response state of a detection (was it blocked, was an action attempted and failed, etc.).",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent (2 events), always co-occurring with PatternDispositionValue, PatternDispositionDescription, and its ~20 sibling PatternDispositionFlags.* boolean fields. The name matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values (the same bitmask exposed via the /detects API's pattern_disposition field), which gives strong external corroboration beyond name convention alone, though no decode table is present in this local KB to verify bit positions."
+  },
+  {
+    "field": "PatternDispositionFlags.Detect",
+    "description": "Whether this event resulted in a detection being raised (as opposed to a silent/telemetry-only match).",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; check alongside the other PatternDispositionFlags.* siblings to understand the full remediation/response state of a detection (was it blocked, was an action attempted and failed, etc.).",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent (2 events), always co-occurring with PatternDispositionValue, PatternDispositionDescription, and its ~20 sibling PatternDispositionFlags.* boolean fields. The name matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values (the same bitmask exposed via the /detects API's pattern_disposition field), which gives strong external corroboration beyond name convention alone, though no decode table is present in this local KB to verify bit positions."
+  },
+  {
+    "field": "PatternDispositionFlags.FsOperationBlocked",
+    "description": "Whether a filesystem operation associated with this detection was blocked by the sensor.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; check alongside the other PatternDispositionFlags.* siblings to understand the full remediation/response state of a detection (was it blocked, was an action attempted and failed, etc.).",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent (2 events), always co-occurring with PatternDispositionValue, PatternDispositionDescription, and its ~20 sibling PatternDispositionFlags.* boolean fields. The name matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values (the same bitmask exposed via the /detects API's pattern_disposition field), which gives strong external corroboration beyond name convention alone, though no decode table is present in this local KB to verify bit positions."
+  },
+  {
+    "field": "PatternDispositionFlags.HandleOperationDowngraded",
+    "description": "Whether a requested handle-open operation was downgraded (e.g. reduced access rights granted) rather than fully blocked or allowed.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; check alongside the other PatternDispositionFlags.* siblings to understand the full remediation/response state of a detection (was it blocked, was an action attempted and failed, etc.).",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent (2 events), always co-occurring with PatternDispositionValue, PatternDispositionDescription, and its ~20 sibling PatternDispositionFlags.* boolean fields. The name matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values (the same bitmask exposed via the /detects API's pattern_disposition field), which gives strong external corroboration beyond name convention alone, though no decode table is present in this local KB to verify bit positions."
+  },
+  {
+    "field": "PatternDispositionFlags.InddetMask",
+    "description": "A bit in the PatternDispositionFlags bitmask on cloud detection-summary events; the name ('InddetMask') is opaque and its specific meaning cannot be determined from field name or co-occurrence alone.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Treat as an opaque bit until its meaning is confirmed against CrowdStrike's own documentation; do not build detection logic on an assumed interpretation.",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent, co-occurring with PatternDispositionValue, PatternDispositionDescription and ~20 sibling PatternDispositionFlags.* fields. Unlike most siblings (KillProcess, QuarantineFile, SuspendProcess, etc.) whose names are self-descriptive, 'InddetMask' is an abbreviation that isn't decodable from the name itself; no decode table or documentation resolves it."
+  },
+  {
+    "field": "PatternDispositionFlags.Indicator",
+    "description": "Whether this record represents an indicator-only match (informational, contributing to a broader detection/lead) rather than a standalone actioned detection.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; check alongside the other PatternDispositionFlags.* siblings to understand the full remediation/response state of a detection (was it blocked, was an action attempted and failed, etc.).",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent (2 events), always co-occurring with PatternDispositionValue, PatternDispositionDescription, and its ~20 sibling PatternDispositionFlags.* boolean fields. The name matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values (the same bitmask exposed via the /detects API's pattern_disposition field), which gives strong external corroboration beyond name convention alone, though no decode table is present in this local KB to verify bit positions."
+  },
+  {
+    "field": "PatternDispositionFlags.KillActionFailed",
+    "description": "Whether the sensor attempted to kill the process/action tied to this detection and that kill attempt failed.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; check alongside the other PatternDispositionFlags.* siblings to understand the full remediation/response state of a detection (was it blocked, was an action attempted and failed, etc.).",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent (2 events), always co-occurring with PatternDispositionValue, PatternDispositionDescription, and its ~20 sibling PatternDispositionFlags.* boolean fields. The name matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values (the same bitmask exposed via the /detects API's pattern_disposition field), which gives strong external corroboration beyond name convention alone, though no decode table is present in this local KB to verify bit positions."
+  },
+  {
+    "field": "PatternDispositionFlags.KillParent",
+    "description": "Whether the sensor killed the parent process as part of remediating this detection.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; check alongside the other PatternDispositionFlags.* siblings to understand the full remediation/response state of a detection (was it blocked, was an action attempted and failed, etc.).",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent (2 events), always co-occurring with PatternDispositionValue, PatternDispositionDescription, and its ~20 sibling PatternDispositionFlags.* boolean fields. The name matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values (the same bitmask exposed via the /detects API's pattern_disposition field), which gives strong external corroboration beyond name convention alone, though no decode table is present in this local KB to verify bit positions."
+  },
+  {
+    "field": "PatternDispositionFlags.KillProcess",
+    "description": "Whether the sensor killed the process associated with this detection.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; check alongside the other PatternDispositionFlags.* siblings to understand the full remediation/response state of a detection (was it blocked, was an action attempted and failed, etc.).",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent (2 events), always co-occurring with PatternDispositionValue, PatternDispositionDescription, and its ~20 sibling PatternDispositionFlags.* boolean fields. The name matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values (the same bitmask exposed via the /detects API's pattern_disposition field), which gives strong external corroboration beyond name convention alone, though no decode table is present in this local KB to verify bit positions."
+  },
+  {
+    "field": "PatternDispositionFlags.KillSubProcess",
+    "description": "Whether the sensor killed a child/sub-process as part of remediating this detection.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; check alongside the other PatternDispositionFlags.* siblings to understand the full remediation/response state of a detection (was it blocked, was an action attempted and failed, etc.).",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent (2 events), always co-occurring with PatternDispositionValue, PatternDispositionDescription, and its ~20 sibling PatternDispositionFlags.* boolean fields. The name matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values (the same bitmask exposed via the /detects API's pattern_disposition field), which gives strong external corroboration beyond name convention alone, though no decode table is present in this local KB to verify bit positions."
+  },
+  {
+    "field": "PatternDispositionFlags.OperationBlocked",
+    "description": "Whether the underlying operation that triggered this detection was blocked by the sensor, in a general sense not covered by the more specific Fs/Registry/Handle-scoped flags.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; check alongside the other PatternDispositionFlags.* siblings to understand the full remediation/response state of a detection (was it blocked, was an action attempted and failed, etc.).",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent (2 events), always co-occurring with PatternDispositionValue, PatternDispositionDescription, and its ~20 sibling PatternDispositionFlags.* boolean fields. The name matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values (the same bitmask exposed via the /detects API's pattern_disposition field), which gives strong external corroboration beyond name convention alone, though no decode table is present in this local KB to verify bit positions."
+  },
+  {
+    "field": "PatternDispositionFlags.PolicyDisabled",
+    "description": "Whether prevention/remediation for this detection type was disabled by the host's assigned prevention policy (as opposed to being unsupported on the platform).",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; check alongside the other PatternDispositionFlags.* siblings to understand the full remediation/response state of a detection (was it blocked, was an action attempted and failed, etc.).",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent (2 events), always co-occurring with PatternDispositionValue, PatternDispositionDescription, and its ~20 sibling PatternDispositionFlags.* boolean fields. The name matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values (the same bitmask exposed via the /detects API's pattern_disposition field), which gives strong external corroboration beyond name convention alone, though no decode table is present in this local KB to verify bit positions."
+  },
+  {
+    "field": "PatternDispositionFlags.ProcessBlocked",
+    "description": "Whether the process itself was blocked from executing/continuing as a result of this detection.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; check alongside the other PatternDispositionFlags.* siblings to understand the full remediation/response state of a detection (was it blocked, was an action attempted and failed, etc.).",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent (2 events), always co-occurring with PatternDispositionValue, PatternDispositionDescription, and its ~20 sibling PatternDispositionFlags.* boolean fields. The name matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values (the same bitmask exposed via the /detects API's pattern_disposition field), which gives strong external corroboration beyond name convention alone, though no decode table is present in this local KB to verify bit positions."
+  },
+  {
+    "field": "PatternDispositionFlags.QuarantineFile",
+    "description": "Whether the offending file was quarantined by the sensor as part of remediating this detection.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; check alongside the other PatternDispositionFlags.* siblings to understand the full remediation/response state of a detection (was it blocked, was an action attempted and failed, etc.).",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent (2 events), always co-occurring with PatternDispositionValue, PatternDispositionDescription, and its ~20 sibling PatternDispositionFlags.* boolean fields. The name matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values (the same bitmask exposed via the /detects API's pattern_disposition field), which gives strong external corroboration beyond name convention alone, though no decode table is present in this local KB to verify bit positions."
+  }
+]

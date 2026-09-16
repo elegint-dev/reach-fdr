@@ -1,0 +1,573 @@
+[
+  {
+    "field": "disposition",
+    "description": "The disposition (e.g. resolved, open, ignored) of a finding or record in a lowercase-keyed cloud-security/API-style data model, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a short status keyword)",
+    "hunting_notes": "Would let a hunter filter for currently-actionable findings versus those already dispositioned, similar in purpose to the already-enriched 'status' field on CloudSecurityIOMEvaluation, if populated.",
+    "join_candidates": [
+      {
+        "to": "status",
+        "why": "analogous disposition/status concept, possibly on a related lowercase-keyed cloud-security record type",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); lowercase naming matches the general style of the CloudSecurityIOMEvaluation-family fields already enriched in this KB, but 'disposition' alone is too generic to pin to a specific record type without event context."
+  },
+  {
+    "field": "event-type",
+    "description": "A classification of the event/record type, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a short type keyword)",
+    "hunting_notes": "Generic type-classification field; the hyphenated name (unusual among mostly underscore/camelCase FDR field names) suggests this originates from an external API's raw JSON payload (e.g. an ingested third-party log format) rather than CrowdStrike's own sensor schema.",
+    "join_candidates": [
+      {
+        "to": "event_category",
+        "why": "both appear to be generic event-classification fields in the same externally-sourced lowercase/hyphenated field family",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); the hyphenated naming style is unique in this KB and gives no reliable signal of the specific source schema."
+  },
+  {
+    "field": "event_category",
+    "description": "A classification category for the event/record, as defined in the field catalogue (not observed in this corpus); plausibly the same concept as AWS CloudTrail's 'eventCategory' field (e.g. distinguishing Management vs. Data events).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a short category keyword)",
+    "hunting_notes": "If this is CloudTrail-derived (as suggested by the nearby user_identity_*/request_id/response_elements fields in this same catalogue range), it would distinguish control-plane 'Management' API calls from data-plane 'Data' events -- relevant for scoping cloud-audit hunting to the higher-signal management-event category.",
+    "join_candidates": [
+      {
+        "to": "management_event",
+        "why": "both would classify management vs. non-management events in the same likely CloudTrail-derived field family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name matches AWS CloudTrail's documented 'eventCategory' field, and this field sits in a catalogue range dense with other CloudTrail-matching field names (user_identity_arn, request_id, request_parameters, response_elements, read_only, management_event)."
+  },
+  {
+    "field": "finding",
+    "description": "A finding identifier or summary string, as defined in the field catalogue (not observed in this corpus), distinct from the nested 'findings' array on CloudSecurityIOMEvaluation.",
+    "semantic_role": "other",
+    "data_format": "unknown",
+    "hunting_notes": "Too generic and structurally distinct from the already-enriched plural 'findings' container to confidently characterize without event context.",
+    "join_candidates": [
+      {
+        "to": "findings",
+        "why": "name overlap with the already-enriched plural findings container, though the singular form here may belong to a different record type",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); singular form and lack of any observed parent/child structure prevent confirming its relationship to the already-enriched 'findings'/'findings.value' fields (batch_012)."
+  },
+  {
+    "field": "hostname",
+    "description": "The lowercase-keyed hostname field of a host/asset record, as defined in the field catalogue (not observed in this corpus), likely part of an asset-inventory or cloud-security API data model distinct from the schema's usual 'Hostname'/'ComputerName' fields.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Same concept as the many already-enriched capitalized Hostname/ComputerName fields elsewhere in this schema, just under a lowercase key consistent with the external/API-style field family in this catalogue range (compliance.*, scores.*, user_identity_*).",
+    "join_candidates": [
+      {
+        "to": "Hostname",
+        "why": "same hostname concept under CrowdStrike's standard capitalized field name used elsewhere in this schema",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name unambiguous, lowercase style matches the API-derived field family in this catalogue range."
+  },
+  {
+    "field": "info.host.*",
+    "description": "A wildcard/container entry representing an object of host-related sub-fields nested under an 'info' object, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "object (nested host-info sub-fields)",
+    "hunting_notes": "Reference the specific info.host.<subfield> paths directly once known; this wildcard entry itself carries no standalone value.",
+    "join_candidates": [
+      {
+        "to": "info.user.*",
+        "why": "sibling wildcard container for user-related sub-fields under the same 'info' object, in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=object, 0 events observed in this corpus (catalogue-only field, represented as a wildcard path rather than concrete leaves); no concrete sub-field names are available in this KB to characterize further."
+  },
+  {
+    "field": "info.user.*",
+    "description": "A wildcard/container entry representing an object of user-related sub-fields nested under an 'info' object, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "object (nested user-info sub-fields)",
+    "hunting_notes": "Reference the specific info.user.<subfield> paths directly once known; this wildcard entry itself carries no standalone value.",
+    "join_candidates": [
+      {
+        "to": "info.host.*",
+        "why": "sibling wildcard container for host-related sub-fields under the same 'info' object, in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=object, 0 events observed in this corpus (catalogue-only field, represented as a wildcard path rather than concrete leaves); no concrete sub-field names are available in this KB to characterize further."
+  },
+  {
+    "field": "internal_only",
+    "description": "A flag indicating whether a record is intended for internal (CrowdStrike-internal) use only, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "bool",
+    "data_format": "boolean",
+    "hunting_notes": "Likely a data-governance/visibility flag rather than a threat signal; if populated, records marked internal_only may not be intended to reach customer-facing hunting workflows at all.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=boolean, 0 events observed in this corpus (catalogue-only field); name self-descriptive but no context confirms which record type it gates."
+  },
+  {
+    "field": "iso_benchmark_ids",
+    "description": "The ISO (e.g. ISO/IEC 27001) benchmark identifiers a cloud security finding maps to, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of ISO control-ID strings)",
+    "hunting_notes": "Complements cis_benchmark_ids/cisa_benchmark_ids/compliance.* fields with ISO-specific compliance mappings for audit purposes.",
+    "join_candidates": [
+      {
+        "to": "cis_benchmark_ids",
+        "why": "sibling compliance-benchmark-mapping fields (ISO vs. CIS/CISA) in the same Falcon Cloud Security finding data model",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); 'ISO Benchmark' is standard compliance terminology, and this field's naming and domain match the already-enriched cis_benchmark_ids/cisa_benchmark_ids fields (batch_015)."
+  },
+  {
+    "field": "management_event",
+    "description": "A flag indicating whether the recorded event is an AWS-style 'management' (control-plane) API event, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "bool",
+    "data_format": "boolean",
+    "hunting_notes": "If CloudTrail-derived (consistent with the nearby user_identity_*/request_id/response_elements fields), a true value flags a control-plane API call (e.g. creating/modifying cloud resources) as opposed to a data-plane operation -- generally the higher-signal event category for cloud security hunting.",
+    "join_candidates": [
+      {
+        "to": "event_category",
+        "why": "both would classify management vs. non-management events in the same likely CloudTrail-derived field family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=boolean, 0 events observed in this corpus (catalogue-only field); consistent with AWS CloudTrail's management/data event distinction, corroborated by the dense cluster of other CloudTrail-matching field names in this same catalogue range."
+  },
+  {
+    "field": "monthsincereset",
+    "description": "A count of months since some reset event (e.g. a password or credential reset) for an identity, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "count",
+    "data_format": "unknown (likely a numeric value despite keyword type)",
+    "hunting_notes": "If this tracks password/credential age, a very high value would flag a stale credential that hasn't been rotated in a long time, relevant to Identity Protection-style credential-hygiene hunting -- but the unusual run-together naming (no separators) makes this a lower-confidence guess than most fields in this KB.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); the unusual concatenated naming ('monthsincereset' with no word separators) is atypical for this schema and prevents a fully confident reading of what specifically resets."
+  },
+  {
+    "field": "nist_benchmark_ids",
+    "description": "The NIST (e.g. NIST 800-53) benchmark identifiers a cloud security finding maps to, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of NIST control-ID strings)",
+    "hunting_notes": "Complements cis_benchmark_ids/iso_benchmark_ids/compliance.* fields with NIST-specific compliance mappings for audit purposes.",
+    "join_candidates": [
+      {
+        "to": "cis_benchmark_ids",
+        "why": "sibling compliance-benchmark-mapping fields (NIST vs. CIS/CISA/ISO) in the same Falcon Cloud Security finding data model",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); 'NIST Benchmark' is standard compliance terminology, matching the already-enriched cis_benchmark_ids/cisa_benchmark_ids/iso_benchmark_ids fields (batch_015/this batch)."
+  },
+  {
+    "field": "os_version",
+    "description": "The OS version of a host/asset, as defined in the field catalogue (not observed in this corpus), likely part of an asset-inventory or cloud-security API data model distinct from the schema's usual 'OSVersionString'/'ProductName' fields.",
+    "semantic_role": "version",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Same concept as the already-enriched OSVersionString field elsewhere in this schema, under a lowercase API-style key.",
+    "join_candidates": [
+      {
+        "to": "OSVersionString",
+        "why": "same OS-version concept under CrowdStrike's standard field name used elsewhere in this schema",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name unambiguous, lowercase style matches the API-derived field family in this catalogue range (hostname, subnet, scores.*)."
+  },
+  {
+    "field": "pci_benchmark_ids",
+    "description": "The PCI-DSS benchmark identifiers a cloud security finding maps to, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of PCI-DSS control-ID strings)",
+    "hunting_notes": "Complements cis_benchmark_ids/nist_benchmark_ids/compliance.* fields with PCI-DSS-specific compliance mappings, relevant for payment-card-industry audit scoping.",
+    "join_candidates": [
+      {
+        "to": "cis_benchmark_ids",
+        "why": "sibling compliance-benchmark-mapping fields (PCI vs. CIS/CISA/ISO/NIST) in the same Falcon Cloud Security finding data model",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); 'PCI Benchmark' is standard compliance terminology, matching the already-enriched benchmark-ID field family (batch_015/this batch)."
+  },
+  {
+    "field": "policy_severity",
+    "description": "The severity level assigned by a cloud-security policy to its finding, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "long integer (numeric severity level)",
+    "hunting_notes": "Numeric counterpart to the already-enriched string-typed 'severity' field on CloudSecurityIOMEvaluation; useful for numeric sorting/thresholding of findings by severity.",
+    "join_candidates": [
+      {
+        "to": "severity",
+        "why": "numeric vs. string representations of finding severity, likely in the same Falcon Cloud Security finding data model",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=long, 0 events observed in this corpus (catalogue-only field); name self-descriptive and consistent with the already-enriched 'severity' field (batch_012) in the same cloud-security domain."
+  },
+  {
+    "field": "product_type_desc",
+    "description": "A description of the product/asset type (e.g. \"Workstation\", \"Server\"), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Asset-classification field, likely from a host/asset inventory API; useful for scoping hunts by asset role (e.g. servers vs. workstations) if populated.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name self-descriptive but no event context confirms the exact source system or value vocabulary."
+  },
+  {
+    "field": "read_only",
+    "description": "A flag indicating whether the recorded API call was read-only, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "bool",
+    "data_format": "boolean",
+    "hunting_notes": "If CloudTrail-derived (consistent with the surrounding user_identity_*/request_id/response_elements fields), this matches AWS CloudTrail's 'readOnly' field, letting a hunter filter out benign read/list/describe calls to focus on state-changing (non-read-only) API activity.",
+    "join_candidates": [
+      {
+        "to": "management_event",
+        "why": "both are AWS CloudTrail-style API-call classification flags in the same likely-CloudTrail-derived field family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=boolean, 0 events observed in this corpus (catalogue-only field); name matches AWS CloudTrail's documented 'readOnly' field, corroborated by the dense cluster of other CloudTrail-matching field names in this catalogue range."
+  },
+  {
+    "field": "request_id",
+    "description": "The request identifier of an API call, as defined in the field catalogue (not observed in this corpus); plausibly AWS CloudTrail's 'requestID' field.",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely a UUID-style request identifier)",
+    "hunting_notes": "If CloudTrail-derived, this uniquely identifies a single API call and can be used to pivot to the exact corresponding entry in raw CloudTrail logs or AWS support case correlation.",
+    "join_candidates": [
+      {
+        "to": "request_parameters",
+        "why": "request identifier and its parameters for the same API call in the same likely-CloudTrail-derived field family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name matches AWS CloudTrail's documented 'requestID' field, corroborated by the surrounding user_identity_*/response_elements/read_only fields in this catalogue range."
+  },
+  {
+    "field": "request_parameters",
+    "description": "The parameters passed to an API call, as defined in the field catalogue (not observed in this corpus); plausibly AWS CloudTrail's 'requestParameters' field.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a serialized JSON object of API call parameters)",
+    "hunting_notes": "High-value field if CloudTrail-derived -- the actual arguments passed to a cloud API call (e.g. which resource was created/modified/deleted and with what configuration) are central to understanding cloud-control-plane activity.",
+    "join_candidates": [
+      {
+        "to": "request_id",
+        "why": "parameters and the identifier for the same API call in the same likely-CloudTrail-derived field family",
+        "confidence": "high"
+      },
+      {
+        "to": "response_elements",
+        "why": "request parameters and the resulting response for the same API call in the same likely-CloudTrail-derived field family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name matches AWS CloudTrail's documented 'requestParameters' field."
+  },
+  {
+    "field": "resource_url",
+    "description": "A URL identifying or linking to the cloud resource associated with a record, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "domain",
+    "data_format": "UTF-8 string (URL)",
+    "hunting_notes": "Would provide a direct pivot to the affected cloud resource (e.g. a console deep-link or a resource ARN-derived URL) if populated.",
+    "join_candidates": [
+      {
+        "to": "url",
+        "why": "both are resource/finding deep-link URLs in the same Falcon Cloud Security data domain",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name self-descriptive but less standard than the surrounding CloudTrail-matching field names, so its exact source isn't confirmed."
+  },
+  {
+    "field": "response_elements",
+    "description": "The response returned by an API call, as defined in the field catalogue (not observed in this corpus); plausibly AWS CloudTrail's 'responseElements' field.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a serialized JSON object of the API call's response)",
+    "hunting_notes": "High-value field if CloudTrail-derived -- shows the actual result of a cloud API call (e.g. a newly-created resource's identifiers), useful for confirming whether a request actually succeeded and what it produced.",
+    "join_candidates": [
+      {
+        "to": "request_parameters",
+        "why": "request parameters and the resulting response for the same API call in the same likely-CloudTrail-derived field family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name matches AWS CloudTrail's documented 'responseElements' field."
+  },
+  {
+    "field": "scores.modified_time",
+    "description": "The timestamp at which a host's security score(s) were last modified/computed, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "timestamp",
+    "data_format": "date (per fields.json type)",
+    "hunting_notes": "Would indicate how current the accompanying scores.os/.sensor/.overall values are, if populated.",
+    "join_candidates": [
+      {
+        "to": "scores.overall",
+        "why": "sibling fields within the same scores container",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=date, 0 events observed in this corpus (catalogue-only field); part of a 'scores' dotted-field family (os, sensor, overall, version, modified_time) that closely matches CrowdStrike's documented Falcon Zero Trust Assessment (ZTA) API, which exposes os_score/sensor_config_score/overall_score attributes with a last-modified timestamp."
+  },
+  {
+    "field": "scores.os",
+    "description": "The OS-configuration security score component of a host's assessment, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "long integer (numeric score)",
+    "hunting_notes": "Consistent with CrowdStrike's documented Falcon Zero Trust Assessment (ZTA) 'os_score' concept -- a low OS score would flag a host with weak OS-level security configuration for risk-based access decisions.",
+    "join_candidates": [
+      {
+        "to": "scores.sensor",
+        "why": "sibling score-component fields within the same scores container",
+        "confidence": "high"
+      },
+      {
+        "to": "scores.overall",
+        "why": "component score contributing to the overall score within the same scores container",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=long, 0 events observed in this corpus (catalogue-only field); 'scores.os' matches the structure of CrowdStrike's documented Falcon Zero Trust Assessment (ZTA) scoring model (os_score/sensor_config_score/overall_score)."
+  },
+  {
+    "field": "scores.overall",
+    "description": "The overall security score of a host's assessment, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "long integer (numeric score)",
+    "hunting_notes": "Consistent with CrowdStrike's documented Falcon Zero Trust Assessment (ZTA) 'overall_score' concept -- a low overall score flags a host as higher-risk for conditional-access/Zero-Trust policy decisions.",
+    "join_candidates": [
+      {
+        "to": "scores.os",
+        "why": "component score contributing to the overall score within the same scores container",
+        "confidence": "high"
+      },
+      {
+        "to": "scores.sensor",
+        "why": "component score contributing to the overall score within the same scores container",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=long, 0 events observed in this corpus (catalogue-only field); matches CrowdStrike's documented Falcon Zero Trust Assessment (ZTA) 'overall_score' concept."
+  },
+  {
+    "field": "scores.sensor",
+    "description": "The sensor-configuration security score component of a host's assessment, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "long integer (numeric score)",
+    "hunting_notes": "Consistent with CrowdStrike's documented Falcon Zero Trust Assessment (ZTA) 'sensor_config_score' concept -- a low sensor score flags weak Falcon sensor configuration/policy application on the host.",
+    "join_candidates": [
+      {
+        "to": "scores.os",
+        "why": "sibling score-component fields within the same scores container",
+        "confidence": "high"
+      },
+      {
+        "to": "scores.overall",
+        "why": "component score contributing to the overall score within the same scores container",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=long, 0 events observed in this corpus (catalogue-only field); matches CrowdStrike's documented Falcon Zero Trust Assessment (ZTA) 'sensor_config_score' concept."
+  },
+  {
+    "field": "scores.version",
+    "description": "The version of the scoring model/methodology used to compute the scores in this container, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "version",
+    "data_format": "unknown (likely a short version string)",
+    "hunting_notes": "Useful for confirming whether a set of scores was computed under an older or newer scoring methodology when comparing scores across hosts/time.",
+    "join_candidates": [
+      {
+        "to": "scores.overall",
+        "why": "sibling fields within the same scores container",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); sibling of the already-reasoned scores.os/.sensor/.overall/.modified_time fields (this batch) within the same Falcon Zero Trust Assessment-style scores container."
+  },
+  {
+    "field": "service",
+    "description": "The name of a service (e.g. an AWS service such as s3.amazonaws.com, or a generic service identifier) associated with a record, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "If CloudTrail-derived (consistent with the surrounding request_id/response_elements/user_identity_* fields in this catalogue range), this would correspond to CloudTrail's 'eventSource' field, identifying which AWS service the API call targeted.",
+    "join_candidates": [
+      {
+        "to": "request_parameters",
+        "why": "would identify which service the same API call (parameters/response) targeted, in the same likely-CloudTrail-derived field family",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); too generic on its own to confirm the specific source schema, though it sits in a catalogue range dense with CloudTrail-matching field names."
+  },
+  {
+    "field": "soc2_benchmark_ids",
+    "description": "The SOC 2 benchmark identifiers a cloud security finding maps to, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of SOC 2 control-ID strings)",
+    "hunting_notes": "Complements cis_benchmark_ids/nist_benchmark_ids/pci_benchmark_ids/compliance.* fields with SOC 2-specific compliance mappings for audit purposes.",
+    "join_candidates": [
+      {
+        "to": "cis_benchmark_ids",
+        "why": "sibling compliance-benchmark-mapping fields (SOC 2 vs. CIS/CISA/ISO/NIST/PCI) in the same Falcon Cloud Security finding data model",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); 'SOC 2 Benchmark' is standard compliance terminology, matching the already-enriched benchmark-ID field family (batch_015/this batch)."
+  },
+  {
+    "field": "subnet",
+    "description": "The network subnet of a host/asset, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "network",
+    "data_format": "unknown (likely a CIDR string, e.g. 10.0.1.0/24)",
+    "hunting_notes": "Asset-inventory/network-topology field; useful for scoping hunts by network segment if populated.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name unambiguous, consistent with the lowercase API-derived asset-inventory field family in this catalogue range (hostname, os_version)."
+  },
+  {
+    "field": "user_identity_access_key_id",
+    "description": "The AWS access key ID used to make an API call, as defined in the field catalogue (not observed in this corpus); plausibly AWS CloudTrail's 'userIdentity.accessKeyId' field, flattened.",
+    "semantic_role": "identifier",
+    "data_format": "UTF-8 string (AWS access key ID, e.g. AKIA...)",
+    "hunting_notes": "Identifies which AWS credential (access key) performed an API call -- key for tracing which specific key/credential was used in suspicious cloud activity, especially long-lived/static keys that are higher-risk than temporary STS credentials.",
+    "join_candidates": [
+      {
+        "to": "user_identity_arn",
+        "why": "sibling flattened AWS CloudTrail userIdentity fields describing the same calling identity",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name matches AWS CloudTrail's documented userIdentity.accessKeyId field, flattened with underscores, consistent with the dense cluster of CloudTrail-matching fields in this catalogue range."
+  },
+  {
+    "field": "user_identity_account_id",
+    "description": "The AWS account ID of the identity that made an API call, as defined in the field catalogue (not observed in this corpus); plausibly AWS CloudTrail's 'userIdentity.accountId' field, flattened.",
+    "semantic_role": "identifier",
+    "data_format": "decimal string (12-digit AWS account ID)",
+    "hunting_notes": "Identifies the owning AWS account of the calling identity -- important for spotting cross-account API activity (e.g. a call made using credentials from an unexpected account).",
+    "join_candidates": [
+      {
+        "to": "user_identity_arn",
+        "why": "sibling flattened AWS CloudTrail userIdentity fields describing the same calling identity",
+        "confidence": "high"
+      },
+      {
+        "to": "aws_account_id",
+        "why": "both represent an AWS account identifier, though possibly for different roles (resource owner vs. calling identity)",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name matches AWS CloudTrail's documented userIdentity.accountId field, flattened with underscores."
+  },
+  {
+    "field": "user_identity_arn",
+    "description": "The AWS ARN (Amazon Resource Name) of the identity that made an API call, as defined in the field catalogue (not observed in this corpus); plausibly AWS CloudTrail's 'userIdentity.arn' field, flattened.",
+    "semantic_role": "identifier",
+    "data_format": "UTF-8 string (AWS ARN)",
+    "hunting_notes": "Primary field for identifying exactly which IAM user/role made a cloud API call -- essential for cloud identity attribution during incident investigation.",
+    "join_candidates": [
+      {
+        "to": "user_identity_access_key_id",
+        "why": "sibling flattened AWS CloudTrail userIdentity fields describing the same calling identity",
+        "confidence": "high"
+      },
+      {
+        "to": "user_identity_mfa_authenticated",
+        "why": "sibling flattened AWS CloudTrail userIdentity fields describing the same calling identity",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name matches AWS CloudTrail's documented userIdentity.arn field, flattened with underscores."
+  },
+  {
+    "field": "user_identity_mfa_authenticated",
+    "description": "Whether the identity that made an API call was authenticated with multi-factor authentication, as defined in the field catalogue (not observed in this corpus); plausibly AWS CloudTrail's 'userIdentity.sessionContext.attributes.mfaAuthenticated' field, flattened.",
+    "semantic_role": "bool",
+    "data_format": "boolean",
+    "hunting_notes": "A sensitive/high-privilege API call made without MFA authentication is a notable risk signal for credential-theft-driven cloud activity; a strong field for cloud-account-compromise hunting if populated.",
+    "join_candidates": [
+      {
+        "to": "user_identity_arn",
+        "why": "sibling flattened AWS CloudTrail userIdentity fields describing the same calling identity",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=boolean, 0 events observed in this corpus (catalogue-only field); name matches AWS CloudTrail's documented userIdentity mfaAuthenticated session-context attribute, flattened with underscores."
+  },
+  {
+    "field": "vertex_id",
+    "description": "The identifier of a vertex (node) in CrowdStrike's ThreatGraph, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely a graph-node identifier string)",
+    "hunting_notes": "Would allow direct pivoting to a specific ThreatGraph node (e.g. a process, host, or file vertex) if populated, complementing the already-enriched ThreatgraphIndicators.* fields elsewhere in this KB.",
+    "join_candidates": [
+      {
+        "to": "vertex_type",
+        "why": "ID/type pair for the same ThreatGraph vertex in the same catalogue family",
+        "confidence": "high"
+      },
+      {
+        "to": "ThreatgraphIndicators.IndicatorId",
+        "why": "both are ThreatGraph node/indicator identifiers, possibly for related or overlapping graph data models",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); 'ThreatGraph' is CrowdStrike's documented graph-database technology, already established elsewhere in this KB via the ThreatgraphIndicators container (batch_011), making 'vertex' (a standard graph-database term) a strong contextual fit."
+  },
+  {
+    "field": "vertex_type",
+    "description": "The type of a vertex (node) in CrowdStrike's ThreatGraph (e.g. process, host, file, indicator), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a short type keyword)",
+    "hunting_notes": "Would classify what kind of entity a given ThreatGraph vertex represents, if populated, useful for filtering graph traversal results by node type.",
+    "join_candidates": [
+      {
+        "to": "vertex_id",
+        "why": "ID/type pair for the same ThreatGraph vertex in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); same ThreatGraph-terminology reasoning as vertex_id (this batch)."
+  }
+]

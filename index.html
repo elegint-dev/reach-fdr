@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reach</title>
+  <meta name="description" content="Reach — what you can get to from the thing you are holding, what it costs, and what to paste into Splunk.">
+  <meta name="color-scheme" content="dark light">
+  <!-- Inline SVG favicon: no file, no request, no 404. -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' rx='3' fill='%23111417'/%3E%3Cpath d='M3 8h6M9 5l3 3-3 3' fill='none' stroke='%2363a9ff' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="./app/styles/tokens.css">
+  <link rel="stylesheet" href="./app/styles/base.css">
+  <link rel="stylesheet" href="./app/styles/components.css">
+  <script>
+    // Theme before first paint, so a chosen theme never flashes the other one.
+    try {
+      var t = localStorage.getItem("reach.theme");
+      if (t === "light" || t === "dark") document.documentElement.setAttribute("data-theme", t);
+    } catch (e) { /* storage blocked: fall back to prefers-color-scheme */ }
+  </script>
+</head>
+<body>
+  <a class="r-skip" href="#main">Skip to the ledger</a>
+
+  <div class="r-page" id="page">
+    <div class="r-bar" id="bar"></div>
+    <main class="r-main" id="main" tabindex="-1"></main>
+    <div class="r-side" id="side"></div>
+  </div>
+
+  <div id="boot-error" hidden></div>
+
+  <noscript>
+    <div class="r-bootfail">
+      <h1>Reach needs JavaScript</h1>
+      <p>Reach is a static page that reads its knowledge base in the browser. There is no server and nothing is sent anywhere — but it cannot render with scripting disabled.</p>
+    </div>
+  </noscript>
+
+  <script>
+    // ES modules are blocked by CORS on file://, so app.js never runs there and
+    // cannot render its own message. This inline script can.
+    if (location.protocol === "file:") {
+      document.getElementById("page").hidden = true;
+      var box = document.getElementById("boot-error");
+      box.hidden = false;
+      box.innerHTML =
+        '<div class="r-bootfail" role="alert">' +
+        '<h1>Reach has to be served, not opened</h1>' +
+        '<p>This page was opened straight from disk (file://). Browsers block a page on file:// from loading its own modules and data, so Reach cannot read its knowledge base.</p>' +
+        '<p class="r-secondary">From the repository root:</p>' +
+        '<pre class="r-bootfail__cmd" tabindex="0"><code>python3 -m http.server 8000\n\nthen open  http://localhost:8000/</code></pre>' +
+        '<p class="r-secondary">Nothing else is needed: no build step, no install, and no network at runtime.</p>' +
+        '</div>';
+    }
+  </script>
+  <script type="module" src="./app/app.js"></script>
+</body>
+</html>

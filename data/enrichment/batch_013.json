@@ -1,0 +1,760 @@
+[
+  {
+    "field": "status",
+    "description": "The current status (e.g. open, resolved, suppressed) of the cloud misconfiguration finding recorded by this event.",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a short status keyword)",
+    "hunting_notes": "Use to filter for currently-open/unremediated misconfigurations versus those already resolved or suppressed.",
+    "join_candidates": [
+      {
+        "to": "severity",
+        "why": "sibling finding-classification fields on the same CloudSecurityIOMEvaluation event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event CloudSecurityIOMEvaluation; name self-descriptive though the exact status vocabulary isn't confirmed by a decode table."
+  },
+  {
+    "field": "threat",
+    "description": "A nested container mapping this cloud misconfiguration finding to a threat framework (e.g. MITRE ATT&CK) tactic and technique.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference the threat.* child fields directly to see which adversary tactic/technique a given misconfiguration finding could enable, mirroring the MitreAttack container pattern used on other detection events in this KB.",
+    "join_candidates": [
+      {
+        "to": "MitreAttack",
+        "why": "analogous ATT&CK-mapping container, on a cloud-misconfiguration event rather than an endpoint detection event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank (nested/object), single event CloudSecurityIOMEvaluation, whose co-occurring children are exactly its threat.* fields (framework, tactic.id/.name/.reference, technique.id/.name/.reference) -- confirms a parent/child nested relationship structurally identical to the already-enriched MitreAttack container elsewhere in this KB."
+  },
+  {
+    "field": "threat.framework",
+    "description": "The name of the threat framework (e.g. MITRE ATT&CK) that the tactic/technique mapping for this cloud misconfiguration finding is drawn from.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Confirms which threat taxonomy the accompanying tactic/technique fields use, useful when an environment maps findings to multiple frameworks.",
+    "join_candidates": [
+      {
+        "to": "threat.tactic",
+        "why": "framework identifies the taxonomy that threat.tactic/.technique values are drawn from on the same CloudSecurityIOMEvaluation event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event CloudSecurityIOMEvaluation, sibling within the threat container; name self-descriptive."
+  },
+  {
+    "field": "threat.tactic",
+    "description": "A nested container describing the threat-framework tactic (e.g. a MITRE ATT&CK tactic such as Initial Access) associated with this cloud misconfiguration finding, grouping its ID, name, and reference URL.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference threat.tactic.id/.name/.reference directly; mirrors the MitreAttack.Tactic/.TacticID fields already established elsewhere in this KB.",
+    "join_candidates": [
+      {
+        "to": "threat.technique",
+        "why": "sibling threat-mapping containers (tactic vs. technique) on the same CloudSecurityIOMEvaluation event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank (nested), single event CloudSecurityIOMEvaluation, whose co-occurring children are exactly threat.tactic.id/.name/.reference -- confirms parent/child nested relationship."
+  },
+  {
+    "field": "threat.tactic.reference",
+    "description": "A reference URL or identifier (e.g. a link to the MITRE ATT&CK tactic page) for the threat-framework tactic associated with this cloud misconfiguration finding.",
+    "semantic_role": "domain",
+    "data_format": "unknown (likely a URL string)",
+    "hunting_notes": "Direct link/reference for analysts to look up the full tactic definition in the source framework.",
+    "join_candidates": [
+      {
+        "to": "threat.tactic",
+        "why": "sibling fields within the same threat.tactic container on the same CloudSecurityIOMEvaluation event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event CloudSecurityIOMEvaluation, sibling of threat.tactic.id/.name within the threat.tactic container; name self-descriptive."
+  },
+  {
+    "field": "threat.technique",
+    "description": "A nested container describing the threat-framework technique (e.g. a MITRE ATT&CK technique) associated with this cloud misconfiguration finding, grouping its ID, name, and reference URL.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference threat.technique.id/.name/.reference directly; mirrors the MitreAttack.Technique/.TechniqueID fields already established elsewhere in this KB.",
+    "join_candidates": [
+      {
+        "to": "threat.tactic",
+        "why": "sibling threat-mapping containers (tactic vs. technique) on the same CloudSecurityIOMEvaluation event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank (nested), single event CloudSecurityIOMEvaluation, whose co-occurring children are exactly threat.technique.id/.name/.reference -- confirms parent/child nested relationship."
+  },
+  {
+    "field": "threat.technique.reference",
+    "description": "A reference URL or identifier (e.g. a link to the MITRE ATT&CK technique page) for the threat-framework technique associated with this cloud misconfiguration finding.",
+    "semantic_role": "domain",
+    "data_format": "unknown (likely a URL string)",
+    "hunting_notes": "Direct link/reference for analysts to look up the full technique definition in the source framework.",
+    "join_candidates": [
+      {
+        "to": "threat.technique",
+        "why": "sibling fields within the same threat.technique container on the same CloudSecurityIOMEvaluation event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event CloudSecurityIOMEvaluation, sibling of threat.technique.id/.name within the threat.technique container; name self-descriptive."
+  },
+  {
+    "field": "url",
+    "description": "A URL linking to this cloud misconfiguration finding in the Falcon console, as recorded by this event.",
+    "semantic_role": "domain",
+    "data_format": "UTF-8 string (URL)",
+    "hunting_notes": "Direct pivot link for an analyst to open this specific finding in the Falcon Cloud Security console, mirroring the FalconHostLink field used on other detection event types in this KB.",
+    "join_candidates": [
+      {
+        "to": "FalconHostLink",
+        "why": "analogous console-deep-link field, on a cloud-misconfiguration finding rather than an endpoint detection",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event CloudSecurityIOMEvaluation; name unambiguous, and this schema already uses an analogous link field (FalconHostLink) on other cloud-generated events."
+  },
+  {
+    "field": "AntiTamperStateFlag",
+    "description": "A bitmask flag describing the current state of the sensor's anti-tamper protection, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "decimal string (bitmask, decoded via the crowdstrike_ta_AntiTamperStateFlag lookup)",
+    "hunting_notes": "Directly reflects whether the sensor's self-protection is active/healthy; an unexpected state (e.g. protection disabled) alongside other tampering telemetry (SensorTampering, TamperingAction) is a high-priority signal.",
+    "join_candidates": [
+      {
+        "to": "TamperingAction",
+        "why": "both relate to sensor anti-tamper/self-protection state, though on different events (SensorAntiTamperState vs. SensorTampering)",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event SensorAntiTamperState (event name matches concept); CIM mapping confirms a dedicated bitmask LOOKUP (crowdstrike_ta_bitmask_lookup_AntiTamperStateFlag) and a companion AntiTamperStateFlag_meaning sibling field, both confirming this is a documented, decodable bitmask."
+  },
+  {
+    "field": "ConfigurationDescriptorAttributes",
+    "description": "The attributes bitmask (bmAttributes) declared in the USB configuration descriptor of the device recorded by this event (e.g. self-powered, bus-powered, remote-wakeup-capable per the USB spec).",
+    "semantic_role": "other",
+    "data_format": "decimal string (bitmask, decoded via the crowdstrike_ta_ConfigurationDescriptorAttributes lookup)",
+    "hunting_notes": "Part of full USB device fingerprinting; use the accompanying _meaning field to decode the specific power/wakeup attributes for the device.",
+    "join_candidates": [
+      {
+        "to": "ConfigurationDescriptorMaxPowerDraw",
+        "why": "sibling USB configuration-descriptor fields describing the same device on the same DcUsbConfigurationDescriptor event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DcUsbConfigurationDescriptor; CIM mapping confirms a dedicated bitmask LOOKUP and a companion ConfigurationDescriptorAttributes_meaning sibling field, both confirming this maps directly to the standard USB configuration descriptor's bmAttributes field."
+  },
+  {
+    "field": "CpuClockSpeed",
+    "description": "The CPU clock speed of the host, as recorded by this system-capacity event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely MHz, per the CIM mapping to cpu_mhz)",
+    "hunting_notes": "Hardware asset-inventory field, not a direct threat signal.",
+    "join_candidates": [
+      {
+        "to": "CpuProcessorName",
+        "why": "sibling CPU-inventory fields on the same SystemCapacity event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "fdr-to-CIM mapping: case(event_simpleName=\"SystemCapacity\", CpuClockSpeed) directly populates the CIM 'cpu_mhz' field -- confirms this is the host's CPU clock speed; single event SystemCapacity, cim_reachable=true."
+  },
+  {
+    "field": "CpuProcessorName",
+    "description": "The name/model of the host's CPU, as recorded by this system-capacity event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (processor model name)",
+    "hunting_notes": "Hardware asset-inventory field, not a direct threat signal.",
+    "join_candidates": [
+      {
+        "to": "CpuClockSpeed",
+        "why": "sibling CPU-inventory fields on the same SystemCapacity event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event SystemCapacity, alongside the already-confirmed CpuClockSpeed field on the same event (cim_reachable via cpu_mhz); name unambiguous for a CPU model/name field."
+  },
+  {
+    "field": "DcPolicyMassStorageBlockPermissions",
+    "description": "The block-permissions bitmask applied by CrowdStrike's Device Control (Dc) policy to the mass-storage USB device recorded by this event (e.g. blocking read/write/execute access).",
+    "semantic_role": "other",
+    "data_format": "decimal string (bitmask, decoded via the crowdstrike_ta_DcPolicyMassStorageBlockPermissions lookup)",
+    "hunting_notes": "Directly shows what access CrowdStrike's Device Control policy denied for this mass-storage device -- key field for confirming whether a removable-media device-control policy actually blocked read/write/execute as intended.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DcUsbDeviceConnected ('Dc' = Device Control, matching the DcUsb*/DcBluetooth* event-name family already established in this KB); CIM mapping confirms a dedicated bitmask LOOKUP and a companion DcPolicyMassStorageBlockPermissions_meaning sibling field."
+  },
+  {
+    "field": "DllCharacteristics",
+    "description": "The PE DllCharacteristics bitmask (IMAGE_DLLCHARACTERISTICS, e.g. ASLR, DEP/NX-compatible, high-entropy VA flags) of the file written, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "decimal string (bitmask, decoded via the crowdstrike_ta_DllCharacteristics lookup)",
+    "hunting_notes": "A file missing expected hardening flags (e.g. no ASLR/DEP) can indicate an older or deliberately weakened binary; use the accompanying _meaning field to decode the exact flags set.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event PeFileWritten; 'DllCharacteristics' is a standard, well-documented Windows PE Optional Header field, and CIM mapping confirms a dedicated bitmask LOOKUP with a companion DllCharacteristics_meaning sibling field."
+  },
+  {
+    "field": "DownloadServer",
+    "description": "The server (domain/host) that provided the downloaded file confirmed by this event.",
+    "semantic_role": "domain",
+    "data_format": "UTF-8 string (hostname/domain, per the CIM mapping to url_domain)",
+    "hunting_notes": "Primary field for identifying the source of a confirmed download; check against threat-intel domain reputation for the download origin.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "fdr-to-CIM mapping: case(event_simpleName=\"LFODownloadConfirmation\", DownloadServer) directly populates the CIM 'url_domain' field -- confirms this is the download's source server; single event LFODownloadConfirmation, cim_reachable=true."
+  },
+  {
+    "field": "EnabledPrivilegesBitmask",
+    "description": "A bitmask of the Windows privileges enabled in the logon session's access token, as recorded by this user-logon event.",
+    "semantic_role": "other",
+    "data_format": "decimal string (bitmask, decoded via the crowdstrike_ta_EnabledPrivilegesBitmask lookup)",
+    "hunting_notes": "Unusually powerful privileges (e.g. SeDebugPrivilege, SeImpersonatePrivilege) enabled on a logon session are relevant to detecting privilege-escalation and token-manipulation attacks; use the accompanying _meaning field to decode the specific privileges.",
+    "join_candidates": [
+      {
+        "to": "PrivilegesBitmask",
+        "why": "sibling privilege-bitmask fields (enabled subset vs. full assigned set) on the same UserLogon event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event UserLogon; CIM mapping confirms a dedicated bitmask LOOKUP and a companion EnabledPrivilegesBitmask_meaning sibling field; 'Privileges' matches standard Windows access-token terminology."
+  },
+  {
+    "field": "EnvironmentVariableName",
+    "description": "The name of the critical environment variable that changed, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (environment variable name, e.g. PATH)",
+    "hunting_notes": "Changes to sensitive environment variables (e.g. PATH, LD_PRELOAD-equivalents) are a well-known technique for hijacking application behavior or achieving persistence; use with EnvironmentVariableValue to see the new value set.",
+    "join_candidates": [
+      {
+        "to": "EnvironmentVariableValue",
+        "why": "name/value pair for the same environment-variable change on the same CriticalEnvironmentVariableChanged event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "fdr-to-CIM mapping for 'object': case(event_simpleName=\"CriticalEnvironmentVariableChanged\", EnvironmentVariableName ...) -- confirms this field names the changed environment variable; single event CriticalEnvironmentVariableChanged, cim_reachable=true."
+  },
+  {
+    "field": "EnvironmentVariableValue",
+    "description": "The new value of the critical environment variable that changed, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Use with EnvironmentVariableName to see exactly which variable changed and to what value; a value pointing at an attacker-controlled path (e.g. a hijacked PATH entry) is the specific evidence of abuse here.",
+    "join_candidates": [
+      {
+        "to": "EnvironmentVariableName",
+        "why": "name/value pair for the same environment-variable change on the same CriticalEnvironmentVariableChanged event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "fdr-to-CIM mapping for 'object_attrs' references CriticalEnvironmentVariableChanged in the same eval family as EnvironmentVariableName; single event CriticalEnvironmentVariableChanged, cim_reachable=true."
+  },
+  {
+    "field": "OSVersionString",
+    "description": "The raw OS version/release string of the host (e.g. a Linux distribution release string), as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "CrowdStrike's own CIM mapping uses this as the authoritative OS version source on non-Windows platforms (falling back to ProductName on Windows) -- use for OS-version-based asset inventory and vulnerability scoping.",
+    "join_candidates": [
+      {
+        "to": "ProductName",
+        "why": "CrowdStrike's CIM 'version' field is derived from OSVersionString on non-Windows platforms and from ProductName on Windows, for the same OsVersionInfo event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "fdr-to-CIM mapping for 'version': case(event_simpleName=\"OsVersionInfo\" AND event_platform!=\"Win\", OSVersionString, event_simpleName=\"OsVersionInfo\" AND event_platform=\"Win\", ProductName, ...) -- directly confirms this field's role as the OS version string on non-Windows hosts; single event OsVersionInfo, cim_reachable=true."
+  },
+  {
+    "field": "PrivilegesBitmask",
+    "description": "A bitmask of the Windows privileges assigned to the logon session's access token, as recorded by this user-logon event, likely the full assigned set as opposed to the enabled subset in EnabledPrivilegesBitmask.",
+    "semantic_role": "other",
+    "data_format": "decimal string (bitmask, decoded via the crowdstrike_ta_PrivilegesBitmask lookup)",
+    "hunting_notes": "Compare against EnabledPrivilegesBitmask to see which assigned privileges are actually active in the session; unusually powerful assigned privileges on an unexpected account are relevant to privilege-escalation hunting.",
+    "join_candidates": [
+      {
+        "to": "EnabledPrivilegesBitmask",
+        "why": "sibling privilege-bitmask fields (full assigned set vs. enabled subset) on the same UserLogon event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event UserLogon, sibling of the already-confirmed EnabledPrivilegesBitmask field (this batch); CIM mapping confirms a dedicated bitmask LOOKUP and a companion PrivilegesBitmask_meaning sibling field."
+  },
+  {
+    "field": "ProductName",
+    "description": "The name of the MSI product installed, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Primary field for identifying which software was installed via this MSI transaction; cross-reference against expected/approved software inventory.",
+    "join_candidates": [
+      {
+        "to": "ProductManufacturer",
+        "why": "sibling MSI product-metadata fields on the same MsiTransactionExecuted event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event MsiTransactionExecuted, alongside the already-enriched ProductManufacturer/ProductLanguage fields (batch_010); 'ProductName' is a standard Windows Installer (MSI) property name (this field name is reused by a different event, OsVersionInfo, elsewhere in the CIM mapping shown, but on MsiTransactionExecuted it is the MSI product name)."
+  },
+  {
+    "field": "RespondingDnsServer",
+    "description": "The DNS server that responded to the DNS request recorded by this event.",
+    "semantic_role": "ip",
+    "data_format": "IP address or hostname string (per the CIM mapping to 'dest')",
+    "hunting_notes": "Identifies which DNS server actually answered the query; useful for spotting DNS requests answered by an unexpected (e.g. non-corporate, attacker-controlled, or DNS-hijacked) server instead of the expected internal/ISP resolver.",
+    "join_candidates": [
+      {
+        "to": "IP4Records",
+        "why": "responding server vs. the answer records it returned for the same DnsRequest event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "fdr-to-CIM mapping for 'dest' includes DnsRequest in its broad case() list of events supplying the generic CIM destination field; single event DnsRequest, cim_reachable=true, and the field name itself is unambiguous."
+  },
+  {
+    "field": "UserGroupsBitmask",
+    "description": "A bitmask representing the Windows group memberships encoded in the logon session's token, as recorded by this user-logon event.",
+    "semantic_role": "other",
+    "data_format": "decimal string (bitmask, decoded via the crowdstrike_ta_UserGroupsBitmask lookup)",
+    "hunting_notes": "Use the accompanying _meaning field to decode which groups (e.g. built-in privileged groups) the logon session's token carries -- useful for spotting a logon with unexpectedly privileged group membership.",
+    "join_candidates": [
+      {
+        "to": "PrivilegesBitmask",
+        "why": "sibling logon-token bitmask fields (groups vs. privileges) on the same UserLogon event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event UserLogon; CIM mapping confirms a dedicated bitmask LOOKUP and a companion UserGroupsBitmask_meaning sibling field."
+  },
+  {
+    "field": "WmiNamespaceName",
+    "description": "The WMI namespace (e.g. root\\cimv2) queried, as recorded by this sensitive-WMI-query event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (WMI namespace path)",
+    "hunting_notes": "Scopes which part of the WMI object model was queried; use with WmiQuery for the full query context. Namespaces beyond the common root\\cimv2/root\\subscription (e.g. security- or antivirus-product namespaces) can indicate targeted reconnaissance.",
+    "join_candidates": [
+      {
+        "to": "WmiQuery",
+        "why": "namespace and query text for the same sensitive WMI query on the same SensitiveWmiQuery event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "fdr-to-CIM mapping for 'object_path': case(..., event_simpleName IN (\"SensitiveWmiQuery\"), WmiNamespaceName) -- confirms this field's role as the queried WMI namespace; single event SensitiveWmiQuery, cim_reachable=true."
+  },
+  {
+    "field": "WmiQuery",
+    "description": "The WMI query language (WQL) text of the sensitive WMI query recorded by this event.",
+    "semantic_role": "command",
+    "data_format": "UTF-8 string (WQL query text)",
+    "hunting_notes": "High-value field -- WMI is heavily used both for legitimate administration and for adversary reconnaissance/persistence (e.g. querying for AV products, enumerating processes, or registering permanent WMI event subscriptions); the query text itself often reveals intent.",
+    "join_candidates": [
+      {
+        "to": "WmiNamespaceName",
+        "why": "namespace and query text for the same sensitive WMI query on the same SensitiveWmiQuery event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "fdr-to-CIM mapping for 'command': case(event_simpleName IN (\"SensitiveWmiQuery\"), WmiQuery) -- directly confirms this field holds the query's command text; single event SensitiveWmiQuery, cim_reachable=true."
+  },
+  {
+    "field": "AgentTimeOffset",
+    "description": "The time offset between the sensor agent's clock and a reference time, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "float",
+    "hunting_notes": "If populated, a large clock offset could explain apparent timestamp discrepancies during investigation correlation, but this field carries no example data in this KB to confirm units or typical range.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=float, 0 events observed in this corpus (catalogue-only field); name suggests a clock-offset/skew measurement but there is no event context or decode table to confirm its exact meaning or units."
+  },
+  {
+    "field": "AwsInstanceName",
+    "description": "The name tag of the AWS EC2 instance, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Would complement the already-enriched AwsRegion/AwsPrivateIPAddress fields (batch_007) for AWS instance identification, if populated.",
+    "join_candidates": [
+      {
+        "to": "AwsRegion",
+        "why": "would be a sibling AWS instance-identity field on an AwsEc2Instance-family event, if observed",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name matches the standard AWS EC2 instance 'Name' tag concept, consistent with sibling AWS fields already enriched elsewhere in this KB, though no event context confirms its actual usage here."
+  },
+  {
+    "field": "BluetoothClassOfDeviceValue",
+    "description": "The Bluetooth Class of Device (CoD) value of the paired/connected device, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a standard Bluetooth CoD bitfield value)",
+    "hunting_notes": "The Bluetooth CoD encodes major/minor device class and service class (e.g. keyboard, headset, phone); would be useful for identifying the declared device type of a connected Bluetooth peripheral if populated.",
+    "join_candidates": [
+      {
+        "to": "BluetoothDeviceName",
+        "why": "would be sibling Bluetooth device-identity fields on the same connection event, if observed",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'Class of Device' is standard, well-documented Bluetooth Core Specification terminology, but no event context in this KB confirms its actual use here."
+  },
+  {
+    "field": "BluetoothDeviceAppearanceValue",
+    "description": "The Bluetooth LE 'Appearance' characteristic value of the device (a standardized GATT value indicating device category, e.g. keyboard, mouse, generic computer), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a standard Bluetooth LE Appearance value)",
+    "hunting_notes": "Would help classify the declared type of a Bluetooth LE peripheral if populated.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'Appearance' is standard, well-documented Bluetooth LE GATT terminology, but no event context in this KB confirms its actual use here."
+  },
+  {
+    "field": "BluetoothDeviceModelNumber",
+    "description": "The model number of the Bluetooth device, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text)",
+    "hunting_notes": "Would be useful for device fingerprinting/inventory alongside BluetoothDeviceName if populated.",
+    "join_candidates": [
+      {
+        "to": "BluetoothDeviceName",
+        "why": "would be sibling Bluetooth device-identity fields on the same connection event, if observed",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); name self-descriptive, matching the standard Bluetooth Device Information Service model-number characteristic."
+  },
+  {
+    "field": "BluetoothDeviceName",
+    "description": "The advertised name of the Bluetooth device, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text)",
+    "hunting_notes": "Would be the primary human-readable identifier for a connected Bluetooth device if populated.",
+    "join_candidates": [
+      {
+        "to": "BluetoothDeviceAddress",
+        "why": "name and MAC address would be paired identity fields for the same Bluetooth device on a connection event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); name self-descriptive, and BluetoothDeviceAddress is already enriched elsewhere in this KB (batch_005) as the corresponding MAC address field on an observed Bluetooth event."
+  },
+  {
+    "field": "BluetoothServiceName_1",
+    "description": "The name of a Bluetooth SDP service advertised by the device (the first of several numbered slots), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text)",
+    "hunting_notes": "Would identify which Bluetooth service profile(s) a device advertises (e.g. audio, HID, file transfer) if populated; part of a numbered set (_1 through at least _8) suggesting a fixed-size array of discovered services.",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceUuid_1",
+        "why": "would be the paired name/UUID for the same advertised service slot on the same connection event, if observed",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); numbered '_1' suffix and sibling BluetoothServiceName_3 through _8/BluetoothServiceUuid_1 through _8 fields in the same catalogue confirm this is one slot of a fixed-size discovered-services array, consistent with standard Bluetooth SDP service discovery."
+  },
+  {
+    "field": "BluetoothServiceName_3",
+    "description": "The name of a Bluetooth SDP service advertised by the device (one of several numbered slots), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text)",
+    "hunting_notes": "See BluetoothServiceName_1 -- part of the same numbered service-name array.",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceUuid_3",
+        "why": "would be the paired name/UUID for the same advertised service slot on the same connection event, if observed",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); same numbered-array reasoning as BluetoothServiceName_1."
+  },
+  {
+    "field": "BluetoothServiceName_4",
+    "description": "The name of a Bluetooth SDP service advertised by the device (one of several numbered slots), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text)",
+    "hunting_notes": "See BluetoothServiceName_1 -- part of the same numbered service-name array.",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceUuid_4",
+        "why": "would be the paired name/UUID for the same advertised service slot on the same connection event, if observed",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); same numbered-array reasoning as BluetoothServiceName_1."
+  },
+  {
+    "field": "BluetoothServiceName_5",
+    "description": "The name of a Bluetooth SDP service advertised by the device (one of several numbered slots), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text)",
+    "hunting_notes": "See BluetoothServiceName_1 -- part of the same numbered service-name array.",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceUuid_5",
+        "why": "would be the paired name/UUID for the same advertised service slot on the same connection event, if observed",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); same numbered-array reasoning as BluetoothServiceName_1."
+  },
+  {
+    "field": "BluetoothServiceName_6",
+    "description": "The name of a Bluetooth SDP service advertised by the device (one of several numbered slots), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text)",
+    "hunting_notes": "See BluetoothServiceName_1 -- part of the same numbered service-name array.",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceUuid_6",
+        "why": "would be the paired name/UUID for the same advertised service slot on the same connection event, if observed",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); same numbered-array reasoning as BluetoothServiceName_1."
+  },
+  {
+    "field": "BluetoothServiceName_7",
+    "description": "The name of a Bluetooth SDP service advertised by the device (one of several numbered slots), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text)",
+    "hunting_notes": "See BluetoothServiceName_1 -- part of the same numbered service-name array.",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceUuid_7",
+        "why": "would be the paired name/UUID for the same advertised service slot on the same connection event, if observed",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); same numbered-array reasoning as BluetoothServiceName_1."
+  },
+  {
+    "field": "BluetoothServiceName_8",
+    "description": "The name of a Bluetooth SDP service advertised by the device (the last of several numbered slots), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text)",
+    "hunting_notes": "See BluetoothServiceName_1 -- part of the same numbered service-name array; '_8' and the absence of a '_2' in this queue slice suggests an 8-slot array (BluetoothServiceName_2 was likely already classified or is elsewhere in the corpus).",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceUuid_8",
+        "why": "would be the paired name/UUID for the same advertised service slot on the same connection event, if observed",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); same numbered-array reasoning as BluetoothServiceName_1."
+  },
+  {
+    "field": "BluetoothServiceUuidArray",
+    "description": "The full array of Bluetooth SDP service UUIDs advertised by the device, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a list of UUID strings)",
+    "hunting_notes": "Would be the consolidated form of the individual BluetoothServiceUuid_1 through _8 slots, useful for a single-field view of all services a device advertises.",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceUuid_1",
+        "why": "the array likely aggregates the same per-slot UUID fields on the same connection event, if observed",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); name and co-occurrence with the numbered BluetoothServiceUuid_1-8/BluetoothServiceName_1-8 fields in the catalogue indicate this is an aggregate array counterpart."
+  },
+  {
+    "field": "BluetoothServiceUuid_1",
+    "description": "The UUID of a Bluetooth SDP service advertised by the device (the first of several numbered slots), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a Bluetooth service UUID, 16-bit/32-bit/128-bit form)",
+    "hunting_notes": "Would identify a specific advertised Bluetooth service by its standard or vendor-defined UUID if populated; paired with BluetoothServiceName_1 for the human-readable label.",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceName_1",
+        "why": "would be the paired UUID/name for the same advertised service slot on the same connection event, if observed",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); numbered '_1' suffix consistent with the same fixed-size discovered-services array as BluetoothServiceName_1, matching standard Bluetooth SDP service discovery."
+  },
+  {
+    "field": "BluetoothServiceUuid_2",
+    "description": "The UUID of a Bluetooth SDP service advertised by the device (one of several numbered slots), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a Bluetooth service UUID)",
+    "hunting_notes": "See BluetoothServiceUuid_1 -- part of the same numbered service-UUID array.",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceName_1",
+        "why": "same numbered service-slot naming family, though the matching Name_2 slot isn't in this KB's field list",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); same numbered-array reasoning as BluetoothServiceUuid_1."
+  },
+  {
+    "field": "BluetoothServiceUuid_3",
+    "description": "The UUID of a Bluetooth SDP service advertised by the device (one of several numbered slots), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a Bluetooth service UUID)",
+    "hunting_notes": "See BluetoothServiceUuid_1 -- part of the same numbered service-UUID array.",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceName_3",
+        "why": "would be the paired UUID/name for the same advertised service slot on the same connection event, if observed",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); same numbered-array reasoning as BluetoothServiceUuid_1."
+  },
+  {
+    "field": "BluetoothServiceUuid_4",
+    "description": "The UUID of a Bluetooth SDP service advertised by the device (one of several numbered slots), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a Bluetooth service UUID)",
+    "hunting_notes": "See BluetoothServiceUuid_1 -- part of the same numbered service-UUID array.",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceName_4",
+        "why": "would be the paired UUID/name for the same advertised service slot on the same connection event, if observed",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); same numbered-array reasoning as BluetoothServiceUuid_1."
+  },
+  {
+    "field": "BluetoothServiceUuid_5",
+    "description": "The UUID of a Bluetooth SDP service advertised by the device (one of several numbered slots), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a Bluetooth service UUID)",
+    "hunting_notes": "See BluetoothServiceUuid_1 -- part of the same numbered service-UUID array.",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceName_5",
+        "why": "would be the paired UUID/name for the same advertised service slot on the same connection event, if observed",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); same numbered-array reasoning as BluetoothServiceUuid_1."
+  },
+  {
+    "field": "BluetoothServiceUuid_6",
+    "description": "The UUID of a Bluetooth SDP service advertised by the device (one of several numbered slots), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a Bluetooth service UUID)",
+    "hunting_notes": "See BluetoothServiceUuid_1 -- part of the same numbered service-UUID array.",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceName_6",
+        "why": "would be the paired UUID/name for the same advertised service slot on the same connection event, if observed",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); same numbered-array reasoning as BluetoothServiceUuid_1."
+  },
+  {
+    "field": "BluetoothServiceUuid_7",
+    "description": "The UUID of a Bluetooth SDP service advertised by the device (one of several numbered slots), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a Bluetooth service UUID)",
+    "hunting_notes": "See BluetoothServiceUuid_1 -- part of the same numbered service-UUID array.",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceName_7",
+        "why": "would be the paired UUID/name for the same advertised service slot on the same connection event, if observed",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); same numbered-array reasoning as BluetoothServiceUuid_1."
+  },
+  {
+    "field": "BluetoothServiceUuid_8",
+    "description": "The UUID of a Bluetooth SDP service advertised by the device (the last of several numbered slots), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a Bluetooth service UUID)",
+    "hunting_notes": "See BluetoothServiceUuid_1 -- part of the same numbered service-UUID array.",
+    "join_candidates": [
+      {
+        "to": "BluetoothServiceName_8",
+        "why": "would be the paired UUID/name for the same advertised service slot on the same connection event, if observed",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); same numbered-array reasoning as BluetoothServiceUuid_1, and '_8' matches the last observed slot in BluetoothServiceName_8."
+  },
+  {
+    "field": "BluetoothVendorIdSource",
+    "description": "The source of the Bluetooth device's Vendor ID (per the Bluetooth spec, indicating whether the Vendor ID is assigned by the Bluetooth SIG or by the USB Implementers Forum), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "enum",
+    "data_format": "unknown (stored as match_only_text; a standard Bluetooth Vendor ID Source value)",
+    "hunting_notes": "Low direct hunting value alone; part of full Bluetooth device fingerprinting.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'Vendor ID Source' is standard, well-documented Bluetooth Device ID Profile terminology."
+  },
+  {
+    "field": "CallStackModuleNames",
+    "description": "A list of module names appearing in a captured call stack, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of module-name strings)",
+    "hunting_notes": "If populated on a stack-walk-based detection, an unexpected or unsigned module appearing in the call stack (rather than expected system/application modules) would be a strong indicator of code injection or hooking.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name self-descriptive for call-stack module attribution, but no event context here confirms which detection type uses it or its exact format."
+  },
+  {
+    "field": "ConfigurationDescriptorName",
+    "description": "The string descriptor name (iConfiguration) declared in a USB configuration descriptor, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text)",
+    "hunting_notes": "Would be a human-readable label for a USB configuration, part of full USB device fingerprinting alongside the already-enriched ConfigurationDescriptor* fields (batch_005) if populated.",
+    "join_candidates": [
+      {
+        "to": "ConfigurationDescriptorMaxPowerDraw",
+        "why": "would be a sibling USB configuration-descriptor field on the same event type, if observed",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); maps to the standard USB configuration descriptor's iConfiguration string field, matching the naming convention of the already-enriched ConfigurationDescriptor* fields from DcUsbConfigurationDescriptor."
+  }
+]

@@ -1,0 +1,719 @@
+[
+  {
+    "field": "IOServiceProperties",
+    "description": "A serialized set of properties associated with the macOS IOKit service registered, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a serialized key-value property dictionary)",
+    "hunting_notes": "IOKit service properties can reveal what a driver declares about itself (matching keys, provider class, personality data); useful for deeper inspection of an unrecognized IOServiceName/IOServiceClass.",
+    "join_candidates": [
+      {
+        "to": "IOServiceName",
+        "why": "sibling fields describing the same registered IOKit service on the same IOServiceRegister event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event IOServiceRegister, sibling of IOServiceClass/IOServiceName/IOServicePath (no IOServiceProperties.* children in this KB, so it is a leaf field rather than a further-nested container); name self-descriptive for IOKit's standard property-dictionary concept."
+  },
+  {
+    "field": "IP4Records",
+    "description": "The IPv4 address record(s) returned in the DNS response for the request recorded by this event.",
+    "semantic_role": "ip",
+    "data_format": "delimited string (\";\"-separated IPv4 addresses, per the CIM eval)",
+    "hunting_notes": "CrowdStrike's own CIM mapping combines this with IP6Records (split on \";\") to build the CIM 'answer'/'answer_count'/'record_type' fields -- use this as the authoritative source of A-record answers for a DnsRequest, and compare against known-bad IP infrastructure.",
+    "join_candidates": [
+      {
+        "to": "answer",
+        "why": "CrowdStrike's CIM eval derives the CIM 'answer' and 'answer_count' fields directly from IP4Records (concatenated with IP6Records and split on ';')",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "fdr-to-CIM mapping for 'answer'/'answer_count'/'record_type': case(event_simpleName=\"DnsRequest\", ... split(coalesce(IP4Records,\"\")+coalesce(IP6Records,\"\"), \";\") ...) -- directly shows IP4Records' delimiter and role as DNS A-record data; appears on 2 events (DnsRequest, DNSRequestDetectInfo), cim_reachable=true."
+  },
+  {
+    "field": "IdpPerfCounterMaximum",
+    "description": "The maximum observed value of the performance counter sampled by this Identity-Protection domain-controller performance report.",
+    "semantic_role": "other",
+    "data_format": "long integer",
+    "hunting_notes": "Sensor-health/performance telemetry for CrowdStrike's Identity Protection module running on a domain controller, not endpoint activity; useful for diagnosing sensor performance impact rather than direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "IdpPerfCounterMinimum",
+        "why": "sibling performance-counter aggregate fields on the same IdpDcPerfReport event",
+        "confidence": "high"
+      },
+      {
+        "to": "IdpPerfCounterSum",
+        "why": "sibling performance-counter aggregate fields on the same IdpDcPerfReport event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=long, single event IdpDcPerfReport; 'Idp' (Identity Protection) + 'Dc' (domain controller) + 'PerfReport' naming, alongside sibling IdpPerfCounterPath/IdpPerfSampleDuration/IdpPerfSampleCount, indicates a performance-counter aggregation report for CrowdStrike's Identity Protection sensor component on a domain controller."
+  },
+  {
+    "field": "IdpPerfCounterMinimum",
+    "description": "The minimum observed value of the performance counter sampled by this Identity-Protection domain-controller performance report.",
+    "semantic_role": "other",
+    "data_format": "long integer",
+    "hunting_notes": "Sensor-health/performance telemetry, not endpoint activity.",
+    "join_candidates": [
+      {
+        "to": "IdpPerfCounterMaximum",
+        "why": "sibling performance-counter aggregate fields on the same IdpDcPerfReport event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=long, single event IdpDcPerfReport; same reasoning as IdpPerfCounterMaximum."
+  },
+  {
+    "field": "IdpPerfCounterSum",
+    "description": "The sum of observed values of the performance counter sampled by this Identity-Protection domain-controller performance report, likely used with a sample count to compute an average.",
+    "semantic_role": "other",
+    "data_format": "long integer",
+    "hunting_notes": "Sensor-health/performance telemetry, not endpoint activity.",
+    "join_candidates": [
+      {
+        "to": "IdpPerfCounterMaximum",
+        "why": "sibling performance-counter aggregate fields on the same IdpDcPerfReport event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=long, single event IdpDcPerfReport, co-occurring with IdpPerfSampleCount (a sibling not requiring AI review) -- sum-plus-count is the standard pattern for computing an average."
+  },
+  {
+    "field": "IdpPerfSampleDuration",
+    "description": "The duration over which the performance counter was sampled for this Identity-Protection domain-controller performance report.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely milliseconds or seconds)",
+    "hunting_notes": "Sensor-health/performance telemetry, not endpoint activity; defines the sampling window for the accompanying Min/Max/Sum counter values.",
+    "join_candidates": [
+      {
+        "to": "IdpPerfCounterSum",
+        "why": "sample duration scopes the aggregate counter values on the same IdpDcPerfReport event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event IdpDcPerfReport; name self-descriptive."
+  },
+  {
+    "field": "ImageBaseName",
+    "description": "The base file name (without path) of the kernel service's image, as recorded by this event.",
+    "semantic_role": "file_path",
+    "data_format": "UTF-8 string (file name)",
+    "hunting_notes": "Quick identifier for which driver/kernel service image started; cross-reference against known-good driver names.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event KernelServiceStarted; name unambiguous."
+  },
+  {
+    "field": "ImpersonatedUserName",
+    "description": "The username of the account whose access token was impersonated, as recorded by this event.",
+    "semantic_role": "user_id",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Token impersonation is a well-known privilege-escalation/lateral-movement technique (e.g. impersonating SYSTEM or a domain admin's token); an unexpected process impersonating a highly-privileged account's token is a strong signal.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event TokenImpersonated; name and event together unambiguous for Windows token-impersonation detection."
+  },
+  {
+    "field": "InBroadcastOctets",
+    "description": "The count of inbound broadcast octets (bytes) received on the network interface, as recorded by this event.",
+    "semantic_role": "count",
+    "data_format": "unknown (likely integer counter)",
+    "hunting_notes": "Standard interface traffic counter (part of the IF-MIB-style In*/Out* counter family on this event); a coarse network-activity baseline rather than a direct detection signal.",
+    "join_candidates": [
+      {
+        "to": "InMulticastOctets",
+        "why": "sibling interface traffic counters on the same LocalIpAddressIP6 event",
+        "confidence": "medium"
+      },
+      {
+        "to": "InUcastOctets",
+        "why": "sibling interface traffic counters on the same LocalIpAddressIP6 event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; name matches standard IF-MIB interface-counter terminology (ifInBroadcastPkts/Octets family), and other In*/Out* counters (InErrors, InDiscards, OutOctets, etc.) are already-enriched siblings in this KB (batch_003)."
+  },
+  {
+    "field": "InMulticastOctets",
+    "description": "The count of inbound multicast octets (bytes) received on the network interface, as recorded by this event.",
+    "semantic_role": "count",
+    "data_format": "unknown (likely integer counter)",
+    "hunting_notes": "Standard interface traffic counter; coarse baseline rather than a direct detection signal.",
+    "join_candidates": [
+      {
+        "to": "InBroadcastOctets",
+        "why": "sibling interface traffic counters on the same LocalIpAddressIP6 event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; matches standard IF-MIB interface-counter terminology."
+  },
+  {
+    "field": "InNUcastPkts",
+    "description": "The count of inbound non-unicast (broadcast + multicast) packets received on the network interface, as recorded by this event.",
+    "semantic_role": "count",
+    "data_format": "unknown (likely integer counter)",
+    "hunting_notes": "Standard interface traffic counter; coarse baseline rather than a direct detection signal.",
+    "join_candidates": [
+      {
+        "to": "InUcastOctets",
+        "why": "sibling interface traffic counters on the same LocalIpAddressIP6 event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; 'NUcast' matches the standard IF-MIB ifInNUcastPkts (non-unicast packets) counter name."
+  },
+  {
+    "field": "InUcastOctets",
+    "description": "The count of inbound unicast octets (bytes) received on the network interface, as recorded by this event.",
+    "semantic_role": "count",
+    "data_format": "unknown (likely integer counter)",
+    "hunting_notes": "Standard interface traffic counter; coarse baseline rather than a direct detection signal.",
+    "join_candidates": [
+      {
+        "to": "InNUcastPkts",
+        "why": "sibling interface traffic counters on the same LocalIpAddressIP6 event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; matches standard IF-MIB interface-counter terminology."
+  },
+  {
+    "field": "InjectedDll",
+    "description": "The path or name of the DLL that was injected into a process, as recorded by this event.",
+    "semantic_role": "file_path",
+    "data_format": "UTF-8 string (file path)",
+    "hunting_notes": "Direct, high-confidence process-injection evidence -- inspect the injected DLL's path/location (e.g. a temp directory, an unsigned or unusual location) and hash for known-malicious tooling.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DllInjection (event name matches concept); name and event together unambiguous."
+  },
+  {
+    "field": "InterfaceDescription",
+    "description": "A human-readable description of the network interface, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Useful for identifying the physical/virtual adapter type (e.g. a VPN adapter, a virtual switch) behind an IPv6 address entry.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; name unambiguous."
+  },
+  {
+    "field": "InterfaceDescriptorAlternateSetting",
+    "description": "The alternate setting value (bAlternateSetting) declared in the USB interface descriptor of the device recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Part of full USB device fingerprinting; low direct hunting value alone.",
+    "join_candidates": [
+      {
+        "to": "InterfaceDescriptorNumber",
+        "why": "sibling USB interface-descriptor fields describing the same interface on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DcUsbInterfaceDescriptor; maps directly to the standard USB interface descriptor's bAlternateSetting field."
+  },
+  {
+    "field": "InterfaceDescriptorName",
+    "description": "The string descriptor name (iInterface) declared in the USB interface descriptor of the device recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Human-readable interface label; useful for USB device fingerprinting/inventory.",
+    "join_candidates": [
+      {
+        "to": "InterfaceDescriptorNumber",
+        "why": "sibling USB interface-descriptor fields describing the same interface on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DcUsbInterfaceDescriptor; maps directly to the standard USB interface descriptor's iInterface string field."
+  },
+  {
+    "field": "InterfaceDescriptorNumEndpoints",
+    "description": "The number of endpoints declared in the USB interface descriptor of the device recorded by this event (the USB spec's bNumEndpoints field).",
+    "semantic_role": "count",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Devices declaring an unusual number of endpoints for their apparent class is part of full USB device fingerprinting relevant to BadUSB-style detection.",
+    "join_candidates": [
+      {
+        "to": "InterfaceDescriptorNumber",
+        "why": "sibling USB interface-descriptor fields describing the same interface on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DcUsbInterfaceDescriptor; maps directly to the standard USB interface descriptor's bNumEndpoints field."
+  },
+  {
+    "field": "InterfaceDescriptorNumber",
+    "description": "The interface number (bInterfaceNumber) declared in the USB interface descriptor of the device recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Identifies which of a composite USB device's multiple interfaces this descriptor describes; a device presenting an extra HID interface number alongside a storage interface is a BadUSB indicator.",
+    "join_candidates": [
+      {
+        "to": "InterfaceDescriptorNumEndpoints",
+        "why": "sibling USB interface-descriptor fields describing the same interface on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DcUsbInterfaceDescriptor; maps directly to the standard USB interface descriptor's bInterfaceNumber field."
+  },
+  {
+    "field": "InterfaceIdentifier",
+    "description": "An identifier for the network interface associated with the local IPv6 address recorded by this event.",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely an OS interface index/LUID rather than the IPv6-address interface-identifier bits)",
+    "hunting_notes": "Use to correlate this address entry with other per-interface fields (InterfaceDescription, InterfaceMtu) on the same host.",
+    "join_candidates": [
+      {
+        "to": "InterfaceDescription",
+        "why": "sibling per-interface fields on the same LocalIpAddressIP6 event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; ambiguous whether this names the OS-level interface (index/LUID) or refers to the IPv6 address's own 64-bit interface-identifier suffix -- no decode table or documentation in this KB resolves which."
+  },
+  {
+    "field": "InterfaceMtu",
+    "description": "The Maximum Transmission Unit (MTU) configured on the network interface, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer, in bytes)",
+    "hunting_notes": "Standard network configuration attribute; a non-default MTU could indicate a VPN/tunnel adapter or an unusual network configuration worth noting during asset triage.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; name unambiguous, standard networking term."
+  },
+  {
+    "field": "KeyObject",
+    "description": "A key/registry object referenced during the SAM credential-hash dump performed by an unsigned module, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text)",
+    "hunting_notes": "This event itself (SAMHashDumpFromUnsignedModule) is a very high-severity signal -- an unsigned module dumping the SAM database is classic credential-theft tooling (e.g. mimikatz-style or pwdump-style tools); treat any populated detail field here, including KeyObject, as supporting forensic context for that high-priority alert rather than routine telemetry.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=match_only_text, single event SAMHashDumpFromUnsignedModule; the generic name 'KeyObject' doesn't specify which SAM/LSA encryption key or registry object it refers to, and no decode table or sibling field in this KB clarifies it."
+  },
+  {
+    "field": "LastAdded",
+    "description": "The most recently added command in the command-history capture represented by this event, mirroring FirstCommand at the other end of the captured history.",
+    "semantic_role": "command",
+    "data_format": "UTF-8 text (a single command line)",
+    "hunting_notes": "Gives a quick view of the latest command in a CommandHistory capture without parsing the full CommandHistory blob; useful for near-real-time monitoring of active shell sessions.",
+    "join_candidates": [
+      {
+        "to": "CommandHistory",
+        "why": "drawn from the same command-history capture as the CommandHistory field on the same event",
+        "confidence": "medium"
+      },
+      {
+        "to": "FirstCommand",
+        "why": "first/last command pair bounding the same command-history capture",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event CommandHistory, co-occurring with FirstCommand (already enriched in this batch); paired naming ('First'/'Last') strongly suggests this bounds the captured command sequence, though whether 'Added' vs. 'Displayed' differ in practice isn't confirmed."
+  },
+  {
+    "field": "LastDisplayed",
+    "description": "The most recently displayed command in the command-history capture represented by this event, potentially distinct from LastAdded if the shell's displayed history differs from what was entered.",
+    "semantic_role": "command",
+    "data_format": "UTF-8 text (a single command line)",
+    "hunting_notes": "If a shell's displayed history can diverge from its added/entered history (e.g. due to history manipulation or a different history file/session), comparing LastDisplayed against LastAdded could reveal history tampering; that specific distinction isn't confirmed by this KB.",
+    "join_candidates": [
+      {
+        "to": "LastAdded",
+        "why": "sibling command-history boundary fields on the same CommandHistory event, possibly capturing displayed vs. entered history",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=match_only_text, single event CommandHistory; the distinction this KB's name implies between 'Added' and 'Displayed' commands isn't explained by any sibling field or documentation here."
+  },
+  {
+    "field": "LaunchItemUrl",
+    "description": "The URL or path of the launch target for the macOS login item recorded as added by this event.",
+    "semantic_role": "file_path",
+    "data_format": "unknown (stored as match_only_text; a file URL, e.g. file:///Applications/...)",
+    "hunting_notes": "macOS login items are a well-known persistence mechanism; an unexpected or unsigned application/path added as a login item is worth investigating.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event LoginItemAdded (event name matches concept); name and event together unambiguous for macOS login-item persistence detection."
+  },
+  {
+    "field": "Line",
+    "description": "A line number or log line associated with the error recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer line number)",
+    "hunting_notes": "Internal sensor error-reporting detail (source line/log line); useful for sensor troubleshooting, not endpoint threat activity.",
+    "join_candidates": [
+      {
+        "to": "Facility",
+        "why": "sibling error-detail fields on the same ErrorEvent",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, single event ErrorEvent; the generic name 'Line' could mean a source-code line number, a log-line index, or something else, and no sibling field in this KB (beyond Facility) clarifies which."
+  },
+  {
+    "field": "LinkLocalAddressBehavior",
+    "description": "The configured behavior for link-local address usage on the network interface, as recorded by this event.",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a short keyword matching standard IPv6 stack link-local-address policy values)",
+    "hunting_notes": "Standard IPv6 stack configuration parameter; useful for network configuration auditing rather than direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "LinkLocalAddressTimeout",
+        "why": "sibling IPv6 link-local-address configuration fields on the same LocalIpAddressIP6 event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; matches the standard IPv6 stack configuration concept for link-local address handling (e.g. as configurable via 'netsh interface ipv6' on Windows)."
+  },
+  {
+    "field": "LinkLocalAddressTimeout",
+    "description": "The configured timeout for the link-local address on the network interface, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer, seconds)",
+    "hunting_notes": "Standard IPv6 stack configuration parameter; useful for network configuration auditing rather than direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "LinkLocalAddressBehavior",
+        "why": "sibling IPv6 link-local-address configuration fields on the same LocalIpAddressIP6 event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; name self-descriptive."
+  },
+  {
+    "field": "LocalAddressMaskIP4",
+    "description": "The IPv4 address mask specified in the local-address scope of the firewall rule created or modified, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "IPv4 subnet mask string",
+    "hunting_notes": "Part of understanding the scope of a new/modified firewall rule; an overly broad mask (e.g. 0.0.0.0) on a rule that allows traffic is worth flagging.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FirewallSetRuleIP4; name unambiguous."
+  },
+  {
+    "field": "LocalAddressMaskIP6",
+    "description": "The IPv6 address mask/prefix specified in the local-address scope of the firewall rule created or modified, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "IPv6 subnet mask/prefix string",
+    "hunting_notes": "Part of understanding the scope of a new/modified firewall rule; an overly broad scope on a rule that allows traffic is worth flagging.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FirewallSetRuleIP6; name unambiguous."
+  },
+  {
+    "field": "LocalIPv6",
+    "description": "The host's local IPv6 address at the time of the detection recorded by this event.",
+    "semantic_role": "ip",
+    "data_format": "IPv6 address string",
+    "hunting_notes": "IPv6 counterpart to the host's IPv4 local address on the same detection event; use for network-context correlation on dual-stack hosts.",
+    "join_candidates": [
+      {
+        "to": "LocalIP",
+        "why": "IPv4/IPv6 pair for the same host's local address on the same detection event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=ip, single event Event_EppDetectionSummaryEvent; name and type both unambiguous."
+  },
+  {
+    "field": "MatchedClassification",
+    "description": "A nested container identifying the data classification (e.g. a sensitive-data category such as PII or PCI) matched by this DLP detection, grouping MatchedClassification.ID and .Name.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference the MatchedClassification.* child fields directly for the actual classification identity.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank (nested/object), single event Event_DataProtectionDetectionSummaryEvent, co-occurring set is exactly its two children ID and Name -- confirms parent/child nested relationship, matching the container-field pattern established elsewhere in this KB (ContentPatterns, Policy)."
+  },
+  {
+    "field": "MatchedClassification.ID",
+    "description": "The identifier of the data classification matched by this DLP detection, paired with .Name.",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely numeric or short code)",
+    "hunting_notes": "Use with MatchedClassification.Name to know exactly which sensitive-data classification (e.g. PII, PCI, source code) matched.",
+    "join_candidates": [
+      {
+        "to": "MatchedClassification.Name",
+        "why": "ID/Name pair labeling the same matched data classification",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event Event_DataProtectionDetectionSummaryEvent, sibling of Name within MatchedClassification -- standard ID/Name pairing pattern seen elsewhere in this KB."
+  },
+  {
+    "field": "MatchedClassification.Name",
+    "description": "The name of the data classification matched by this DLP detection (e.g. a sensitive-data category such as PII or PCI), paired with .ID.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Primary human-readable field for identifying what kind of sensitive-data classification a DLP detection matched.",
+    "join_candidates": [
+      {
+        "to": "MatchedClassification.ID",
+        "why": "ID/Name pair labeling the same matched data classification",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event Event_DataProtectionDetectionSummaryEvent, sibling of ID within MatchedClassification."
+  },
+  {
+    "field": "MaxCpuUsage",
+    "description": "The maximum CPU utilization sampled over the ResourceUtilization event's reporting interval.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a percentage, despite keyword type)",
+    "hunting_notes": "Peak-usage counterpart to AverageCpuUsage; a high peak with a low average can indicate brief bursts of activity (e.g. a scan or a short-lived cryptomining process) that an average alone would mask.",
+    "join_candidates": [
+      {
+        "to": "AverageCpuUsage",
+        "why": "sibling resource-utilization metrics on the same ResourceUtilization event",
+        "confidence": "high"
+      },
+      {
+        "to": "MaxUsedRam",
+        "why": "sibling peak resource-utilization metrics on the same ResourceUtilization event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event ResourceUtilization; mirrors the already-enriched AverageCpuUsage field (batch_005) as its peak-value counterpart."
+  },
+  {
+    "field": "MaxRouterAdvertisementInterval",
+    "description": "The configured maximum interval between IPv6 Router Advertisement messages for the network interface, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer, seconds)",
+    "hunting_notes": "Standard IPv6 stack configuration parameter (RFC 4861); useful for network configuration auditing rather than direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "MinRouterAdvertisementInterval",
+        "why": "min/max pair for the same IPv6 router-advertisement interval configuration on the same event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; 'RouterAdvertisementInterval' is standard IPv6 Neighbor Discovery (RFC 4861) terminology."
+  },
+  {
+    "field": "MaxUsedRam",
+    "description": "The maximum amount of RAM used on the host, sampled over the ResourceUtilization event's reporting interval.",
+    "semantic_role": "size",
+    "data_format": "unknown (likely bytes or a percentage, despite keyword type)",
+    "hunting_notes": "Peak-usage counterpart to AverageUsedRam; a high peak with a low average can indicate a brief memory spike worth investigating.",
+    "join_candidates": [
+      {
+        "to": "AverageUsedRam",
+        "why": "sibling resource-utilization metrics on the same ResourceUtilization event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event ResourceUtilization; mirrors the already-enriched AverageUsedRam field (batch_005) as its peak-value counterpart."
+  },
+  {
+    "field": "Metric",
+    "description": "The route/interface metric (routing priority value) associated with the local IPv6 address's interface, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Standard networking configuration attribute; a manually-lowered metric on an unexpected interface could indicate route-preference tampering (e.g. to reroute traffic through an attacker-controlled interface), though that reading isn't confirmed here.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; 'Metric' is standard networking terminology for route/interface priority."
+  },
+  {
+    "field": "MicrocodeSignature",
+    "description": "The CPU microcode revision/signature of the host's processor, as reported at agent startup.",
+    "semantic_role": "version",
+    "data_format": "unknown (likely a hex or decimal microcode revision number)",
+    "hunting_notes": "Useful for hardware/patch-level inventory (e.g. confirming CPU microcode mitigations for speculative-execution vulnerabilities are applied); not a direct threat signal.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event AgentOnline; 'Microcode' + 'Signature' is standard terminology for a CPU's microcode revision identifier."
+  },
+  {
+    "field": "MillisecondsToReadFirmware",
+    "description": "The time, in milliseconds, taken to read the firmware image analyzed by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer milliseconds)",
+    "hunting_notes": "Primarily a performance/diagnostic metric for the firmware-analysis process; an unusually long read time could indicate an abnormally large or slow-to-access firmware image, but this is a weak, indirect signal at best.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event FirmwareImageAnalyzed; name self-descriptive."
+  },
+  {
+    "field": "MinRouterAdvertisementInterval",
+    "description": "The configured minimum interval between IPv6 Router Advertisement messages for the network interface, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer, seconds)",
+    "hunting_notes": "Standard IPv6 stack configuration parameter (RFC 4861); useful for network configuration auditing rather than direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "MaxRouterAdvertisementInterval",
+        "why": "min/max pair for the same IPv6 router-advertisement interval configuration on the same event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; matches standard IPv6 Neighbor Discovery (RFC 4861) terminology."
+  },
+  {
+    "field": "MoboManufacturer",
+    "description": "The manufacturer of the host's motherboard, as reported at agent startup.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (vendor name, likely from SMBIOS)",
+    "hunting_notes": "Hardware asset-inventory field; useful for spotting VM/virtualization motherboard vendors (e.g. \"QEMU\", \"VMware\", \"Xen\") when assessing whether a host is physical or virtual.",
+    "join_candidates": [
+      {
+        "to": "MoboProductName",
+        "why": "sibling motherboard identification fields on the same AgentOnline event",
+        "confidence": "high"
+      },
+      {
+        "to": "ChasisManufacturer",
+        "why": "sibling hardware-manufacturer fields reported at the same AgentOnline event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event AgentOnline; 'Mobo' is a common abbreviation for motherboard, and this mirrors the already-enriched ChasisManufacturer field (batch_005) on the same event."
+  },
+  {
+    "field": "MoboProductName",
+    "description": "The product name/model of the host's motherboard, as reported at agent startup.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (likely from SMBIOS)",
+    "hunting_notes": "Hardware asset-inventory field, useful alongside MoboManufacturer for precise hardware identification.",
+    "join_candidates": [
+      {
+        "to": "MoboManufacturer",
+        "why": "sibling motherboard identification fields on the same AgentOnline event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event AgentOnline; name unambiguous."
+  },
+  {
+    "field": "ModelPrediction",
+    "description": "The local machine-learning model's prediction/classification result, delivered to the cloud alongside FeatureVector, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a label or numeric score)",
+    "hunting_notes": "This is the local behavioral-ML engine's verdict for the activity described by the accompanying FeatureVector -- directly relevant for understanding why a local ML-based detection fired.",
+    "join_candidates": [
+      {
+        "to": "FeatureVector",
+        "why": "the model's input features and its resulting prediction on the same DeliverLocalFXToCloud event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event DeliverLocalFXToCloud, sibling of FeatureVector (already enriched in this batch as a local ML feature vector) -- 'ModelPrediction' is the natural output counterpart to that input."
+  },
+  {
+    "field": "ModuleExportName",
+    "description": "The name of the exported function targeted by the hooking activity recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (exported function name)",
+    "hunting_notes": "Identifies exactly which API/function was hooked; hooks on security-relevant exports (e.g. process-creation, network, or crypto APIs) are higher priority to investigate.",
+    "join_candidates": [
+      {
+        "to": "BaseModuleName",
+        "why": "sibling fields identifying the hooked module and its specific export on the same XumdHookEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event XumdHookEvent, sibling of BaseModuleName (already enriched in batch_005); name self-descriptive for a hooked function's export name, though the 'Xumd' event-name prefix itself remains unconfirmed."
+  },
+  {
+    "field": "ModuleLoadTelemetryClassification",
+    "description": "A classification label assigned to the module-load event by CrowdStrike's module-load classifier, as recorded by this event.",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a short classification keyword)",
+    "hunting_notes": "A direct classifier verdict on a loaded module (e.g. suspicious vs. benign) -- higher classification values/labels warrant closer inspection of the loaded module.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event ClassifiedModuleLoad (event name matches concept); name self-descriptive though the specific classification vocabulary isn't confirmed by a decode table in this KB."
+  },
+  {
+    "field": "MountedVolumeAction",
+    "description": "The action (e.g. mount or unmount) associated with the volume-mount activity recorded by this event.",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a short action keyword)",
+    "hunting_notes": "Distinguishes a volume being attached from one being detached; useful when correlating with removable-media or disk-image (mounted archive/ISO) activity for data-exfiltration or malware-delivery investigations.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event MountedVolume (event name matches concept); name self-descriptive though the exact action vocabulary isn't confirmed by a decode table in this KB."
+  },
+  {
+    "field": "NDRoot",
+    "description": "A field on process-creation events whose specific meaning cannot be determined from its name or context; the 'ND' prefix and 'Root' suggest a possible connection to a root path, namespace, or discovery-related concept, but this cannot be confirmed.",
+    "semantic_role": "other",
+    "data_format": "unknown",
+    "hunting_notes": "Treat as opaque until its meaning is confirmed; do not assume a specific reading (e.g. network-discovery root vs. namespace root) without corroboration from CrowdStrike documentation.",
+    "join_candidates": [
+      {
+        "to": "RootPath",
+        "why": "both appear on ProcessRollup2 and involve the word 'Root', though the relationship (if any) is unconfirmed",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, single event ProcessRollup2, co-occurring with UID/GID/RUID/RGID/SVUID/SVGID/RootPath/OciContainerId (Unix/Linux process-identity and container fields); the abbreviation 'ND' has no clear, confirmed expansion in this context, so the reading is deliberately left unresolved rather than guessed."
+  },
+  {
+    "field": "NetlinkFamily",
+    "description": "The Linux netlink protocol family (e.g. NETLINK_ROUTE, NETLINK_KOBJECT_UEVENT) used when creating the netlink socket recorded by this event.",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a small integer matching Linux netlink family constants)",
+    "hunting_notes": "Netlink sockets are used for kernel-userspace communication (routing, device events, etc.) and are occasionally abused by rootkits/malware for covert kernel interaction; an unexpected process opening a netlink socket for an unusual family is worth investigating.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event CreateSocket; 'Netlink' and 'Family' together map directly to the standard Linux netlink socket API's address-family concept."
+  },
+  {
+    "field": "NetworkAccesses",
+    "description": "A nested list of network accesses (connections) associated with the activity leading to this detection, each entry carrying timestamp, access type, direction, local/remote address and port, and protocol.",
+    "semantic_role": "other",
+    "data_format": "nested/object (array of network-access records)",
+    "hunting_notes": "Reference the NetworkAccesses.* child fields directly; this gives a per-connection network timeline tied to the detection, useful for reconstructing C2 or lateral-movement network activity without a separate network-event join.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank (nested), single event Event_EppDetectionSummaryEvent, whose co-occurring children are exactly its nine NetworkAccesses.* fields (AccessTimestamp, AccessType, ConnectionDirection, IsIPV6, LocalAddress, LocalPort, Protocol, RemoteAddress, RemotePort) -- confirms a parent/child nested relationship, matching the container-field pattern established elsewhere in this KB (FilesAccessed/FilesWritten)."
+  },
+  {
+    "field": "NetworkAccesses.AccessTimestamp",
+    "description": "The timestamp at which the corresponding network access in the NetworkAccesses list occurred.",
+    "semantic_role": "timestamp",
+    "data_format": "unknown (likely epoch; type keyword per fields.json)",
+    "hunting_notes": "Use to build a chronological timeline of network connections alongside the other NetworkAccesses.* fields during incident reconstruction.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event Event_EppDetectionSummaryEvent, sibling of NetworkAccesses.AccessType/.ConnectionDirection/.LocalAddress/.RemoteAddress/etc. within the NetworkAccesses array; name unambiguous for a timestamp role despite the keyword-typed storage."
+  }
+]

@@ -1,0 +1,742 @@
+[
+  {
+    "field": "PatternDispositionFlags.QuarantineMachine",
+    "description": "Whether the entire machine was quarantined (network-contained) by the sensor as part of remediating this detection.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; interpret alongside sibling PatternDispositionFlags.* fields to understand the full remediation/response state of a detection.",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent, always co-occurring with PatternDispositionValue, PatternDispositionDescription and its ~20 sibling PatternDispositionFlags.* boolean fields. Matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values."
+  },
+  {
+    "field": "PatternDispositionFlags.RegistryOperationBlocked",
+    "description": "Whether a registry operation associated with this detection was blocked by the sensor.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; interpret alongside sibling PatternDispositionFlags.* fields to understand the full remediation/response state of a detection.",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent, always co-occurring with PatternDispositionValue, PatternDispositionDescription and its ~20 sibling PatternDispositionFlags.* boolean fields. Matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values."
+  },
+  {
+    "field": "PatternDispositionFlags.Rooting",
+    "description": "A bit in the PatternDispositionFlags bitmask on cloud detection-summary events. The name suggests some connection to 'rooting' (privileged/root-level activity) but the specific triggering condition cannot be determined from field name or co-occurrence alone.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Treat as an opaque bit until its meaning is confirmed; do not assume a mobile-specific or privilege-escalation reading without corroboration.",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent, co-occurring with PatternDispositionValue, PatternDispositionDescription and ~20 sibling PatternDispositionFlags.* fields. Unlike clearly self-descriptive siblings (KillProcess, QuarantineFile), 'Rooting' could plausibly mean several different things (root-level detection, mobile root/jailbreak detection, or something else) and no decode table or documentation resolves which."
+  },
+  {
+    "field": "PatternDispositionFlags.SensorOnly",
+    "description": "Whether this detection was recorded for sensor-visibility/telemetry purposes only, with no user-facing detection or remediation action taken.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; interpret alongside sibling PatternDispositionFlags.* fields to understand the full remediation/response state of a detection.",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent, always co-occurring with PatternDispositionValue, PatternDispositionDescription and its ~20 sibling PatternDispositionFlags.* boolean fields. Matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values."
+  },
+  {
+    "field": "PatternDispositionFlags.SuspendParent",
+    "description": "Whether the sensor suspended the parent process as part of remediating this detection.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; interpret alongside sibling PatternDispositionFlags.* fields to understand the full remediation/response state of a detection.",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent, always co-occurring with PatternDispositionValue, PatternDispositionDescription and its ~20 sibling PatternDispositionFlags.* boolean fields. Matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values."
+  },
+  {
+    "field": "PatternDispositionFlags.SuspendProcess",
+    "description": "Whether the sensor suspended the process associated with this detection.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; interpret alongside sibling PatternDispositionFlags.* fields to understand the full remediation/response state of a detection.",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Sub-field of the PatternDispositionFlags bitmask on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent, always co-occurring with PatternDispositionValue, PatternDispositionDescription and its ~20 sibling PatternDispositionFlags.* boolean fields. Matches CrowdStrike's publicly documented Falcon Detects API 'pattern disposition' bit values."
+  },
+  {
+    "field": "PatternDispositionValue",
+    "description": "The raw numeric value of the pattern-disposition bitmask, whose individual bits are exposed as the PatternDispositionFlags.* boolean fields (Detect, KillProcess, QuarantineFile, etc.) on cloud detection-summary events.",
+    "semantic_role": "flag",
+    "data_format": "long (bitmask integer)",
+    "hunting_notes": "Prefer the individually-named PatternDispositionFlags.* fields for filtering/querying; use this raw value only if you need the full bitmask for cross-referencing against CrowdStrike's own API documentation.",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "text summary of the same bitmask value",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=long, 2 events (Event_DetectionSummaryEvent, Event_EppDetectionSummaryEvent), always co-occurring with all ~20 PatternDispositionFlags.* children and PatternDispositionDescription \u2014 this is the parent numeric value the flags decode."
+  },
+  {
+    "field": "PerformanceCounter",
+    "description": "A high-resolution timer value (akin to a Windows QueryPerformanceCounter reading) captured on ETW-sourced screenshot and WMI-provider events, likely used to precisely order or timestamp the event relative to other ETW telemetry.",
+    "semantic_role": "other",
+    "data_format": "keyword (integer counter, unit unconfirmed)",
+    "hunting_notes": "",
+    "join_candidates": [
+      {
+        "to": "ProcessStartKey",
+        "why": "co-occurs on ScreenshotTakenEtw as another precise process/event correlation value",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 2 events (ScreenshotTakenEtw, WmiProviderRegistrationEtw), both ETW-sourced events where a QueryPerformanceCounter-style value is a common companion to ETW timestamps; no decode table or CIM mapping confirms the exact semantics."
+  },
+  {
+    "field": "Policy",
+    "description": "A container/object field grouping policy/rule metadata (Policy.ID, Policy.Name, Policy.RuleBasePath, Policy.RuleGroupName) on DLP detection and file-integrity-monitoring events.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference the Policy.* child fields directly for the actual policy identifier/name.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank (nested/object), 2 events (Event_DataProtectionDetectionSummaryEvent, Event_FileIntegrityMonitorRuleMatchedEnriched), and its co-occurrence set includes exactly its Policy.* children, confirming a parent/child nested relationship."
+  },
+  {
+    "field": "Policy.ID",
+    "description": "The identifier of the DLP policy or file-integrity-monitoring rule that matched.",
+    "semantic_role": "identifier",
+    "data_format": "keyword (opaque policy/rule ID)",
+    "hunting_notes": "Pivot from a triggered event back to its specific policy/rule configuration.",
+    "join_candidates": [
+      {
+        "to": "Policy.Name",
+        "why": "ID/name pair for the same policy on the same event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, same 2 events as Policy, always co-occurring with Policy.Name."
+  },
+  {
+    "field": "Policy.Name",
+    "description": "The display name of the DLP policy or file-integrity-monitoring rule that matched.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Human-readable complement to Policy.ID for triage/reporting.",
+    "join_candidates": [
+      {
+        "to": "Policy.ID",
+        "why": "ID/name pair for the same policy on the same event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events as Policy.ID, always co-occurring with it."
+  },
+  {
+    "field": "ProcessStartKey",
+    "description": "A composite key uniquely identifying a specific process instance (typically combining PID with its start time) to disambiguate PID reuse, on ETW-sourced screenshot and WSL-start events.",
+    "semantic_role": "identifier",
+    "data_format": "keyword (opaque composite key)",
+    "hunting_notes": "More reliable than a raw PID alone for correlating this event to the exact process instance it belongs to, since PIDs can be reused after a process exits.",
+    "join_candidates": [
+      {
+        "to": "RawProcessId",
+        "why": "ProcessStartKey likely incorporates the same PID identified by RawProcessId, plus a start-time component to disambiguate reuse",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 2 events (ScreenshotTakenEtw, WSLDistributionStarted), co-occurring with RawProcessId/RawThreadId \u2014 'process start key' is a term used in Windows ETW/kernel telemetry for a PID+creation-time composite identifier, though not independently confirmed by a decode table here."
+  },
+  {
+    "field": "RGID",
+    "description": "The real group ID (GID) of the process on Linux/Unix, part of the POSIX real/effective/saved credential set alongside RUID (real UID), SVUID/SVGID (saved), and GID.",
+    "semantic_role": "user_id",
+    "data_format": "keyword (numeric POSIX GID)",
+    "hunting_notes": "Useful alongside RUID for spotting privilege-escalation patterns where the real GID differs from the effective/saved GID.",
+    "join_candidates": [
+      {
+        "to": "RUID",
+        "why": "companion real-ID field (user) captured on the same Linux process events",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (ProcessRollup2, SyntheticProcessRollup2), always co-occurring with RUID, SVGID, SVUID, GID, UID \u2014 the standard POSIX real/effective/saved credential field cluster."
+  },
+  {
+    "field": "ReferrerUrl",
+    "description": "The URL of the web page that referred/initiated a file download, associated with Mark-of-the-Web (MOTW) tracking and cloud detections of downloaded files.",
+    "semantic_role": "domain",
+    "data_format": "UTF-8 string (URL)",
+    "hunting_notes": "Useful for tracing a malicious download back to the hosting/distribution page, and for identifying watering-hole or malvertising campaigns delivering the same payload via different referrers.",
+    "join_candidates": [
+      {
+        "to": "HostUrl",
+        "why": "HostUrl (on MotwWritten) is the direct download URL, while ReferrerUrl is the page that linked to it",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (Event_EppDetectionSummaryEvent, MotwWritten), the latter co-occurring with HostUrl and FileIdentifier \u2014 'referrer URL' is standard, unambiguous web terminology in a Mark-of-the-Web context."
+  },
+  {
+    "field": "RemoteAddressString",
+    "description": "A string-formatted representation of the remote IP address on a network-connect event, alongside the typed RemoteAddressIP4/RemoteAddressIP6 fields.",
+    "semantic_role": "ip",
+    "data_format": "UTF-8 string (IP address text)",
+    "hunting_notes": "Useful when a tool needs the address as plain text rather than the typed ip field; verify it matches RemoteAddressIP4/IP6 rather than treating it as an independent value.",
+    "join_candidates": [
+      {
+        "to": "RemoteAddressIP4",
+        "why": "string vs. typed representation of the same remote address on the same NetworkConnectIP4/IP6 events",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 2 events (NetworkConnectIP4, NetworkConnectIP6), always co-occurring with the typed RemoteAddressIP4/RemoteAddressIP6 fields \u2014 name and context strongly suggest a string-encoded duplicate, though the exact reason both forms exist isn't documented."
+  },
+  {
+    "field": "ResendToCloud",
+    "description": "A flag on group/user identity events indicating whether this identity record should be (re-)synced to CrowdStrike's cloud backend, likely for deduplication or resync-on-change purposes.",
+    "semantic_role": "bool",
+    "data_format": "keyword (boolean-like value)",
+    "hunting_notes": "Primarily a sensor/pipeline mechanics field rather than a direct hunting signal.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, 2 events (GroupIdentity, UserIdentity). No decode table or CIM mapping found; the name suggests a sync-control flag but this is not independently confirmed."
+  },
+  {
+    "field": "ResponsiblePid",
+    "description": "The process ID of the process responsible for a macOS configuration-profile modification or login-item addition.",
+    "semantic_role": "identifier",
+    "data_format": "keyword (numeric PID)",
+    "hunting_notes": "Attributes a persistence-relevant macOS change (login items, configuration profiles) to the process that made it \u2014 key for macOS persistence hunting.",
+    "join_candidates": [
+      {
+        "to": "ImageFileName",
+        "why": "identifies the process image corresponding to this PID on the same ConfigurationProfileModified event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (ConfigurationProfileModified, LoginItemAdded \u2014 both macOS-specific), name is unambiguous ('responsible PID' matches macOS's own 'responsible process' terminology used in TCC/launch services)."
+  },
+  {
+    "field": "SHA1String",
+    "description": "The SHA1 hash (as a string) of the file associated with a cloud detection, alongside MD5String/SHA256String.",
+    "semantic_role": "hash",
+    "data_format": "hex string (SHA1, 40 chars)",
+    "hunting_notes": "Standard hash-based IOC pivot for detection-summary events.",
+    "join_candidates": [
+      {
+        "to": "SHA256String",
+        "why": "same file identified by a different hash algorithm on the same detection event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (Event_DetectionSummaryEvent, Event_EppDetectionSummaryEvent), co-occurring with MD5String \u2014 the 'String' suffix distinguishes these cloud-side text hash fields from the sensor-side *HashData binary fields."
+  },
+  {
+    "field": "SHA256String",
+    "description": "The SHA256 hash (as a string) of the file associated with a cloud detection, alongside MD5String/SHA1String.",
+    "semantic_role": "hash",
+    "data_format": "hex string (SHA256, 64 chars)",
+    "hunting_notes": "Preferred hash for IOC matching due to collision resistance.",
+    "join_candidates": [
+      {
+        "to": "SHA256HashData",
+        "why": "same hash algorithm and value space as the sensor-side binary hash field, just on cloud detection-summary events",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events as SHA1String, always co-occurring with MD5String/SHA1String."
+  },
+  {
+    "field": "SVGID",
+    "description": "The saved-set group ID (GID) of the process on Linux/Unix, part of the POSIX real/effective/saved credential set alongside RGID (real), UID/GID (effective), and SVUID.",
+    "semantic_role": "user_id",
+    "data_format": "keyword (numeric POSIX GID)",
+    "hunting_notes": "A saved GID that differs from the real/effective GID can indicate a setgid binary having dropped and re-raised privileges \u2014 relevant to Linux privilege-escalation hunting.",
+    "join_candidates": [
+      {
+        "to": "SVUID",
+        "why": "companion saved-ID field (user) captured on the same Linux process events",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (ProcessRollup2, SyntheticProcessRollup2), always co-occurring with RGID, RUID, SVUID, GID, UID \u2014 standard POSIX saved-ID terminology."
+  },
+  {
+    "field": "SVUID",
+    "description": "The saved-set user ID (UID) of the process on Linux/Unix, part of the POSIX real/effective/saved credential set alongside RUID (real), UID (effective), and SVGID.",
+    "semantic_role": "user_id",
+    "data_format": "keyword (numeric POSIX UID)",
+    "hunting_notes": "A saved UID that differs from the real/effective UID can indicate a setuid binary having dropped and re-raised privileges \u2014 relevant to Linux privilege-escalation hunting.",
+    "join_candidates": [
+      {
+        "to": "SVGID",
+        "why": "companion saved-ID field (group) captured on the same Linux process events",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events as SVGID, always co-occurring with RUID/RGID/SVGID/UID/GID."
+  },
+  {
+    "field": "SystemSku",
+    "description": "The hardware SKU string identifying the system model, part of hardware inventory reported at agent-online time and in TPM PCR events.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Asset-inventory/fleet-profiling field.",
+    "join_candidates": [
+      {
+        "to": "SystemProductName",
+        "why": "sibling hardware-identity attribute captured on AgentOnline",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (AgentOnline, TcgPcrInfo), co-occurring with SystemManufacturer/SystemProductName/SystemSerialNumber \u2014 standard hardware inventory terminology."
+  },
+  {
+    "field": "TargetCommandLineParameters",
+    "description": "The command-line arguments/parameters portion of a suspicious autostart (ASEP) registry entry's target command, on AsepValueUpdate/SuspiciousRegAsepUpdate.",
+    "semantic_role": "command",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Core persistence-hunting field \u2014 inspect alongside TargetFileName and TargetSHA256HashData to fully evaluate an autostart entry's launch command.",
+    "join_candidates": [
+      {
+        "to": "TargetFileName",
+        "why": "the parameters named here are passed to the executable identified by TargetFileName on the same ASEP registry entry",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (AsepValueUpdate, SuspiciousRegAsepUpdate), always co-occurring with TargetFileName/TargetSHA256HashData \u2014 clear autostart/persistence field cluster."
+  },
+  {
+    "field": "TargetSHA256HashData",
+    "description": "The SHA256 hash of the target file referenced by a suspicious autostart (ASEP) registry entry.",
+    "semantic_role": "hash",
+    "data_format": "hex string (SHA256, 64 chars)",
+    "hunting_notes": "Use to fingerprint the persistence payload independent of its path/filename.",
+    "join_candidates": [
+      {
+        "to": "TargetFileName",
+        "why": "hash of the same target file named by TargetFileName on the same ASEP entry",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events as TargetCommandLineParameters, always co-occurring with TargetFileName."
+  },
+  {
+    "field": "TaskAuthor",
+    "description": "The author metadata field from a Windows Scheduled Task's definition XML.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Can help distinguish legitimate vendor/OS-authored scheduled tasks from attacker-created ones with missing/spoofed author metadata.",
+    "join_candidates": [
+      {
+        "to": "TaskName",
+        "why": "describes the same scheduled task identified by TaskName",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (ScheduledTaskModified, ScheduledTaskRegistered), co-occurring with TaskName/TaskExecCommand/TaskXml \u2014 standard Windows Task Scheduler XML schema field (Author element)."
+  },
+  {
+    "field": "TaskExecArguments",
+    "description": "The arguments passed to the executable action of a Windows Scheduled Task.",
+    "semantic_role": "command",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Inspect alongside TaskExecCommand for the full launch command of a scheduled task \u2014 classic persistence-hunting pair.",
+    "join_candidates": [
+      {
+        "to": "TaskExecCommand",
+        "why": "arguments passed to the command named by TaskExecCommand on the same task",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events as TaskAuthor, always co-occurring with TaskExecCommand \u2014 standard Task Scheduler XML field (Arguments element)."
+  },
+  {
+    "field": "TaskXml",
+    "description": "The full XML definition of a Windows Scheduled Task, as registered with Task Scheduler.",
+    "semantic_role": "other",
+    "data_format": "match_only_text (XML)",
+    "hunting_notes": "Contains the complete task definition (triggers, actions, principal/run-as context) \u2014 richest single field for deep scheduled-task persistence analysis when TaskName/TaskExecCommand alone aren't enough.",
+    "join_candidates": [
+      {
+        "to": "TaskName",
+        "why": "full XML definition of the same task identified by TaskName",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=match_only_text, same 2 events as TaskAuthor/TaskExecArguments, always co-occurring with them."
+  },
+  {
+    "field": "Timeout",
+    "description": "A timeout value associated with a process-rollup statistics aggregation window, on ProcessRollup2Stats/SyntheticPR2Stats, paired with BoundedCount/ProcessCount/SuppressType.",
+    "semantic_role": "count",
+    "data_format": "long (unit unconfirmed \u2014 likely seconds or ms)",
+    "hunting_notes": "If a stats event was suppressed/bounded due to volume, checking Timeout alongside SuppressType/BoundedCount clarifies whether apparent process-count gaps are due to sensor-side suppression rather than a real absence of activity.",
+    "join_candidates": [
+      {
+        "to": "BoundedCount",
+        "why": "co-occurs on the same stats-aggregation events describing the same suppression/bounding window",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=long, 2 events (ProcessRollup2Stats, SyntheticPR2Stats), co-occurring with BoundedCount/ProcessCount/SuppressType \u2014 clearly part of a stats-suppression/aggregation-window field cluster, though the exact unit isn't confirmed."
+  },
+  {
+    "field": "VolumeDeviceCharacteristics",
+    "description": "A bitmask of Windows storage device characteristics (e.g. FILE_REMOVABLE_MEDIA, FILE_READ_ONLY_DEVICE) for a mounted volume's underlying device.",
+    "semantic_role": "flag",
+    "data_format": "keyword (bitmask, CIM-decoded via VolumeDeviceCharacteristics_meaning)",
+    "hunting_notes": "CrowdStrike's own TA provides a decode lookup for this bitmask; useful for confirming whether a mounted device is removable media without relying solely on IsOnRemovableDisk-style flags.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "cim_reachable=True via LOOKUP-type CIM mapping ('VolumeDeviceCharacteristics_meaning'), confirming it's a decodable Windows device-characteristics bitmask; 4 events, all volume-mount related."
+  },
+  {
+    "field": "VolumeIsNetwork",
+    "description": "Whether a mounted/unmounted volume is a network share (as opposed to a local/removable device), on FsVolumeMounted/FsVolumeUnmounted.",
+    "semantic_role": "bool",
+    "data_format": "keyword (boolean-like value)",
+    "hunting_notes": "Useful to separate network-share mount/unmount activity from local/removable-media activity in volume telemetry.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (FsVolumeMounted, FsVolumeUnmounted), name is unambiguous."
+  },
+  {
+    "field": "VolumeLabel",
+    "description": "The label assigned to a mounted volume, on MountedVolume/SnapshotVolumeMounted \u2014 a parallel concept to VolumeName used on a different subset of volume events.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (volume label)",
+    "hunting_notes": "Same use as VolumeName; check which of the two fields is populated depending on event type.",
+    "join_candidates": [
+      {
+        "to": "VolumeName",
+        "why": "overlapping concept (volume label/name) used on a different but related subset of volume-mount events",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 2 events (MountedVolume, SnapshotVolumeMounted), always co-occurring with VolumeName on the same events \u2014 the exact distinction between the two fields isn't documented, but the name is self-explanatory."
+  },
+  {
+    "field": "VolumeMediaBSDName",
+    "description": "The macOS BSD device name (e.g. 'disk2s1') of a mounted volume's underlying media.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (BSD device path)",
+    "hunting_notes": "macOS-specific device-identification field, useful for correlating with other macOS storage/diskutil-based telemetry.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (FsVolumeMounted, FsVolumeUnmounted), 'BSD name' is standard, unambiguous macOS/Darwin storage terminology (co-occurs with VolumeMediaBSDMajor/Minor/Unit on FsVolumeMounted)."
+  },
+  {
+    "field": "VolumeSnapshotName",
+    "description": "The name of a volume shadow copy/snapshot, on SnapshotVolumeMounted and VolumeSnapshotDeleted.",
+    "semantic_role": "other",
+    "data_format": "match_only_text (snapshot name)",
+    "hunting_notes": "Relevant to ransomware/anti-forensics hunting \u2014 deletion of volume snapshots (a common technique to prevent recovery) is directly visible via VolumeSnapshotDeleted with this field naming the specific snapshot removed.",
+    "join_candidates": [
+      {
+        "to": "VolumeName",
+        "why": "the snapshot named here belongs to the volume identified by VolumeName on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=match_only_text, 2 events (SnapshotVolumeMounted, VolumeSnapshotDeleted), co-occurring with VolumeSnapshotTimeStamp \u2014 'volume snapshot' is standard, unambiguous Windows VSS terminology."
+  },
+  {
+    "field": "ConfigIDPlatform",
+    "description": "The platform component of the sensor's three-part configuration identifier (ConfigIDBase/ConfigIDBuild/ConfigIDPlatform), decodable via CrowdStrike's ConfigIDPlatform_meaning lookup \u2014 likely identifying the OS platform (Windows/Mac/Linux) the config applies to.",
+    "semantic_role": "platform",
+    "data_format": "keyword (code, CIM-decoded)",
+    "hunting_notes": "Useful for verifying sensor configuration consistency across a specific OS platform in the fleet.",
+    "join_candidates": [
+      {
+        "to": "ConfigIDBase",
+        "why": "sibling components of the same sensor configuration identifier tuple",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "cim_reachable=True via LOOKUP-type CIM mapping 'ConfigIDPlatform_meaning', confirming it's a decodable code; 3 events (AgentConnect, AgentOnline, SensorHeartbeat), always co-occurring with ConfigIDBase/ConfigIDBuild."
+  },
+  {
+    "field": "LogonServer",
+    "description": "The name of the domain controller or server that validated a user's logon (the Windows 'Logon Server' concept).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (server/host name)",
+    "hunting_notes": "Standard Windows authentication-analysis field \u2014 useful for spotting logons validated by an unexpected or untrusted domain controller.",
+    "join_candidates": [
+      {
+        "to": "LogonDomain",
+        "why": "together they identify the authenticating domain and the specific server that handled the logon",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "cim_reachable=True (mapped to 'dest'), 3 events (UserIdentity, UserLogoff, UserLogon), co-occurring with LogonDomain/LogonType \u2014 matches the standard Windows Security-event 'Logon Server' field."
+  },
+  {
+    "field": "OriginalFilename",
+    "description": "The OriginalFilename string embedded in a PE file's version-info resource, which can differ from the file's actual on-disk name.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Classic masquerading-detection field \u2014 a mismatch between OriginalFilename and the actual on-disk filename (e.g. a file named 'update.exe' whose OriginalFilename is 'mimikatz.exe') is a strong evasion indicator.",
+    "join_candidates": [
+      {
+        "to": "ImageFileName",
+        "why": "compare the embedded original name against the actual on-disk/loaded file name to detect renaming/masquerading",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "cim_reachable=True (mapped to 'original_file_name'), 3 events (ClassifiedModuleLoad, DriverLoad, PeVersionInfo) \u2014 standard PE VERSIONINFO resource field."
+  },
+  {
+    "field": "UserIsAdmin",
+    "description": "Whether the authenticated user account is a local/domain administrator, on logon/logoff/identity events.",
+    "semantic_role": "bool",
+    "data_format": "boolean",
+    "hunting_notes": "Directly flags admin-account logons for prioritized review, especially combined with LogonType/AuthenticationPackage to spot risky admin authentication patterns (e.g. NTLM admin logons from unexpected hosts).",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "cim_reachable=True (mapped to src_user_type/user_type), 3 events (UserIdentity, UserLogoff, UserLogon) \u2014 name is unambiguous and CIM's own mapping to a 'user_type' concept corroborates the boolean admin-flag reading."
+  },
+  {
+    "field": "ActionBlocked",
+    "description": "Whether the sensor blocked a detected tampering action against itself, on SensorTampering events.",
+    "semantic_role": "bool",
+    "data_format": "keyword (boolean-like value)",
+    "hunting_notes": "Distinguishes successful self-protection (tampering blocked) from tampering attempts that got through \u2014 a critical severity signal either way, since any SensorTampering event indicates an attempt to disable/evade the sensor.",
+    "join_candidates": [
+      {
+        "to": "TamperingAction",
+        "why": "describes the outcome of the specific tampering action named by TamperingAction on the same event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 1 event (SensorTampering), co-occurring with TamperingAction/SourceProcessId/TargetProcessId \u2014 name is unambiguous in this anti-tamper context."
+  },
+  {
+    "field": "AgenticDataSource",
+    "description": "On AgenticSessionStart (telemetry for AI coding-agent / LLM tool sessions running on the endpoint), likely identifies the data source or channel the agentic session's activity is being captured from.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Part of a newer telemetry family for visibility into AI agent/coding-assistant usage on endpoints \u2014 useful for inventorying which AI tools are running where, an emerging governance concern.",
+    "join_candidates": [
+      {
+        "to": "AgenticProduct",
+        "why": "sibling descriptive attribute of the same AI agent session",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, 1 event (AgenticSessionStart), co-occurring with AgentType/AgenticModel/AgenticProduct/AgenticSessionId/AgenticWorkingDirectory \u2014 clearly part of a new 'agentic AI session' telemetry family (inferred from field-name context), but no decode table or documentation confirms the exact meaning of 'DataSource' here."
+  },
+  {
+    "field": "AgenticModel",
+    "description": "On AgenticSessionStart, likely the name/identifier of the underlying AI/LLM model powering the agentic coding session (e.g. a Claude or GPT model name).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (model name)",
+    "hunting_notes": "Useful for inventorying which AI models are in use on endpoints, relevant to AI-usage governance and data-exposure risk assessment.",
+    "join_candidates": [
+      {
+        "to": "AgenticProduct",
+        "why": "sibling attribute describing the product that runs this model on the same session",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 1 event (AgenticSessionStart), co-occurring with AgenticDataSource/AgenticProduct/AgenticWorkingDirectory \u2014 the name directly suggests an AI model identifier in this new agentic-session telemetry family."
+  },
+  {
+    "field": "AgenticProduct",
+    "description": "On AgenticSessionStart, likely the name of the AI agent/coding-assistant product (e.g. a CLI coding agent) that started the session.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (product name)",
+    "hunting_notes": "Primary inventory field for which AI coding/agent tools are running on a given host \u2014 a novel and increasingly relevant asset-visibility use case.",
+    "join_candidates": [
+      {
+        "to": "AgenticModel",
+        "why": "sibling attribute describing which model this product used for the same session",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 1 event (AgenticSessionStart), co-occurring with AgentType/AgenticDataSource/AgenticModel/AgenticSessionId/AgenticWorkingDirectory \u2014 name is a reasonably clear fit for 'which agent product ran this session' given the surrounding field cluster."
+  },
+  {
+    "field": "AnodeIndicators",
+    "description": "A nested container of behavioral data-loss-prevention (DLP) anomaly indicators (likely CrowdStrike's internal 'Anode' anomaly-detection subsystem for data egress) on Event_DataProtectionDetectionSummaryEvent, grouping fields like DataVolumeIncreasePercentage, Destination, Detected, Entity, Explanation, and FileCategoryDistributions.",
+    "semantic_role": "other",
+    "data_format": "nested",
+    "hunting_notes": "Reference the AnodeIndicators.* child fields directly; this container groups the evidence behind a data-egress anomaly detection.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=nested (confirmed in fields.json), 1 event (Event_DataProtectionDetectionSummaryEvent), whose co-occurrence set is exactly its AnodeIndicators.* children \u2014 confirms the parent/child nested structure, though the 'Anode' name itself is an unconfirmed internal CrowdStrike codename."
+  },
+  {
+    "field": "AnodeIndicators.DataVolumeIncreasePercentage",
+    "description": "The percentage increase in data volume (relative to a behavioral baseline) that contributed to a data-egress anomaly indicator.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely numeric percentage)",
+    "hunting_notes": "Quantifies how anomalous the observed data volume was versus the user/entity's baseline \u2014 a higher percentage suggests a stronger exfiltration-volume signal.",
+    "join_candidates": [
+      {
+        "to": "AnodeIndicators.Entity",
+        "why": "the volume increase is measured relative to the baseline of the entity named by AnodeIndicators.Entity",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, 1 event (Event_DataProtectionDetectionSummaryEvent), part of the AnodeIndicators nested object alongside DataVolume/Destination/FileCategoryDistributions \u2014 name is self-descriptive of a behavioral-baseline percentage metric."
+  },
+  {
+    "field": "AnodeIndicators.Destination",
+    "description": "The destination (e.g. a channel/endpoint) associated with the data-egress behavior that a DLP anomaly indicator evaluated.",
+    "semantic_role": "other",
+    "data_format": "nested/object or string",
+    "hunting_notes": "Identifies where the anomalously-large data transfer was headed \u2014 key context for a data-exfiltration triage.",
+    "join_candidates": [
+      {
+        "to": "Destination",
+        "why": "likely related to the top-level Destination/Destination.Channel fields on the same Event_DataProtectionDetectionSummaryEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, 1 event, part of the AnodeIndicators nested object; a sibling top-level 'Destination'/'Destination.Channel' field pair also exists on the same event, supporting the destination-of-egress reading."
+  },
+  {
+    "field": "AnodeIndicators.Detected",
+    "description": "Whether this particular Anode behavioral indicator was triggered/detected for the data-egress event.",
+    "semantic_role": "bool",
+    "data_format": "unknown (likely boolean)",
+    "hunting_notes": "Use to filter to only the indicators that actually fired, when AnodeIndicators may enumerate multiple candidate signals per event.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type blank, 1 event, name ('Detected') is a standard boolean-flag naming convention within the AnodeIndicators nested object."
+  },
+  {
+    "field": "AnodeIndicators.Entity",
+    "description": "The entity (e.g. the user or host) whose behavior the Anode data-egress anomaly indicator was evaluated against.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a user/host identifier or name)",
+    "hunting_notes": "Identifies whose baseline behavior was used to judge this data-egress event anomalous.",
+    "join_candidates": [
+      {
+        "to": "UserName",
+        "why": "likely refers to the same user identified elsewhere on the same detection event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type blank, 1 event, part of the AnodeIndicators nested object; the exact value (username vs. host vs. some other entity ID) is not confirmed by co-occurring fields."
+  },
+  {
+    "field": "AnodeIndicators.Explanation",
+    "description": "A human-readable explanation of why the Anode behavioral indicator fired for this data-egress event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (free text)",
+    "hunting_notes": "Useful directly in analyst-facing triage to understand the reasoning behind a DLP anomaly detection without needing to reconstruct it from the raw percentage/count fields.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank, 1 event, name is unambiguous within the AnodeIndicators nested object."
+  },
+  {
+    "field": "AnodeIndicators.FileCategoryDistributions",
+    "description": "A nested list of file-category distribution statistics (each with CurrentPercentage/ExpectedPercentage/ID/IncreasePercentage/Name) comparing the observed mix of file types in an egress event against a behavioral baseline.",
+    "semantic_role": "other",
+    "data_format": "nested (array of objects)",
+    "hunting_notes": "Reference the child fields (CurrentPercentage, ExpectedPercentage, Name) to see exactly which file categories were over-represented in the anomalous egress.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type blank, 1 event, its co-occurrence set includes its own CurrentPercentage/ExpectedPercentage/ID/IncreasePercentage/Name children, confirming a nested list-of-objects structure."
+  },
+  {
+    "field": "AnodeIndicators.FileCategoryDistributions.CurrentPercentage",
+    "description": "The observed percentage share of a given file category in the current data-egress event, compared against ExpectedPercentage.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely numeric percentage)",
+    "hunting_notes": "A large gap versus ExpectedPercentage for a sensitive file category (e.g. archives, documents) is the specific evidence behind a file-category-distribution anomaly.",
+    "join_candidates": [
+      {
+        "to": "AnodeIndicators.FileCategoryDistributions.ExpectedPercentage",
+        "why": "current vs. expected pair for the same file category on the same egress event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, 1 event, sibling of ExpectedPercentage/ID/IncreasePercentage/Name within AnodeIndicators.FileCategoryDistributions \u2014 name is self-descriptive."
+  },
+  {
+    "field": "AnodeIndicators.FileCategoryDistributions.ExpectedPercentage",
+    "description": "The behavioral-baseline expected percentage share of a given file category, compared against CurrentPercentage for the same egress event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely numeric percentage)",
+    "hunting_notes": "Baseline value used to compute the anomaly \u2014 combine with CurrentPercentage/IncreasePercentage to assess how unusual the file-type mix in this egress event was.",
+    "join_candidates": [
+      {
+        "to": "AnodeIndicators.FileCategoryDistributions.CurrentPercentage",
+        "why": "expected vs. current pair for the same file category on the same egress event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "Same event and sibling structure as CurrentPercentage."
+  }
+]

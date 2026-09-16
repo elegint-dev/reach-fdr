@@ -1,0 +1,213 @@
+{
+ "_provenance": {
+  "source": "hand-authored from docs/DATA_MODEL.md and queries/ (macros/SPLUNK_CLOUD_MACROS.md, process/03_os_pid_to_crowdstrike_pid.spl)",
+  "date": "2026-09-16",
+  "validated_by": "tools/build_knowledge_base.py",
+  "note": "The pivot_to_anchor direction's SPL is stats-based (no `join`), per queries/README.md."
+ },
+ "pid_translation": {
+  "summary": "CrowdStrike's TargetProcessId and the OS PID (RawProcessId) are NOT convertible by arithmetic. Translation is a LOOKUP against events that carry both.",
+  "evidence": {
+   "tested": "28 documents carrying both TargetProcessId and RawProcessId",
+   "hypotheses_rejected": [
+    "RawProcessId == TargetProcessId & 0xFFFFFFFF   (0/28)",
+    "RawProcessId == TargetProcessId >> 32          (0/28)",
+    "RawProcessId == TargetProcessId & 0xFFFF       (0/28)",
+    "RawProcessId == TargetProcessId % 100000       (0/28)"
+   ],
+   "caveat": "Corpus is Elastic's sanitized pipeline fixtures. The negative result is consistent with CrowdStrike's documented model (TargetProcessId is an opaque composite identifier), but should be re-confirmed against tenant data."
+  },
+  "fields": {
+   "TargetProcessId": {
+    "meaning": "CrowdStrike's synthetic process identifier. Unique per host; does not repeat.",
+    "safe_to_join": true,
+    "note": "This is the correct key for process identity and lineage."
+   },
+   "RawProcessId": {
+    "meaning": "The OS-visible PID (what Task Manager / ps / a memory dump or a ticket will show).",
+    "safe_to_join": false,
+    "note": "RECYCLED by the OS. Never unique on its own. Always scope by aid AND a time window, and expect multiple matches."
+   }
+  },
+  "anchor_events": {
+   "description": "Events carrying BOTH fields -- the only places a translation can be read directly.",
+   "events": [
+    "BrowserInjectedThread",
+    "DllInjection",
+    "DocumentProgramInjectedThread",
+    "EndOfProcess",
+    "InjectedThread",
+    "JavaInjectedThread",
+    "ProcessRollup2",
+    "SyntheticProcessRollup2",
+    "TerminateProcess",
+    "UserLogonFailed2"
+   ],
+   "primary": "ProcessRollup2",
+   "primary_note": "Process-creation event; the canonical anchor. SyntheticProcessRollup2 covers processes already running when the sensor started."
+  },
+  "needs_join": {
+   "description": "Events carrying TargetProcessId but NOT RawProcessId. To get an OS PID from these you must pivot to an anchor event.",
+   "events": [
+    "ClassifiedModuleLoad",
+    "CommandHistory",
+    "DetectionExcluded",
+    "FalconProcessHandleOpDetectInfo",
+    "HostedServiceStarted",
+    "HostedServiceStopped",
+    "ImageHash",
+    "LsassHandleFromUnsignedModule",
+    "PrivilegedProcessHandleFromUnsignedModule",
+    "ProcessExecOnPackedExecutable",
+    "ProcessSelfDeleted",
+    "RemoteThreadCreate",
+    "SensorTampering",
+    "ServiceStarted",
+    "ServiceStopped",
+    "SuspiciousPrivilegedProcessHandle",
+    "UnsignedModuleLoad",
+    "WmiCreateProcess"
+   ]
+  },
+  "raw_only": {
+   "description": "Events carrying RawProcessId but NOT TargetProcessId.",
+   "events": [
+    "AgenticSessionStart",
+    "FileIntegrityMonitorRuleMatched",
+    "ScreenshotTakenEtw",
+    "WSLDistributionStarted"
+   ]
+  },
+  "directions": [
+   {
+    "id": "cs_to_os",
+    "label": "CrowdStrike PID -> OS PID",
+    "ambiguity": "none",
+    "confidence": "high",
+    "note": "TargetProcessId is unique per host, so this resolves to exactly one process.",
+    "spl": "index=$INDEX sourcetype=crowdstrike:events:sensor\n  aid=$AID TargetProcessId=$TPID\n  (event_simpleName=ProcessRollup2 OR event_simpleName=SyntheticProcessRollup2)\n| fields _time aid ComputerName TargetProcessId RawProcessId ImageFileName CommandLine ProcessStartTime\n| head 1"
+   },
+   {
+    "id": "os_to_cs",
+    "label": "OS PID -> CrowdStrike PID",
+    "ambiguity": "HIGH",
+    "confidence": "medium",
+    "note": "RawProcessId is recycled by the OS. Without a tight time window this returns several unrelated processes. Always supply the narrowest window you can justify, then disambiguate on ImageFileName / ProcessStartTime.",
+    "spl": "index=$INDEX sourcetype=crowdstrike:events:sensor\n  aid=$AID RawProcessId=$PID\n  (event_simpleName=ProcessRollup2 OR event_simpleName=SyntheticProcessRollup2)\n  earliest=$EARLIEST latest=$LATEST\n| fields _time TargetProcessId RawProcessId ImageFileName CommandLine ProcessStartTime\n| sort _time"
+   },
+   {
+    "id": "pivot_to_anchor",
+    "label": "Event with only TargetProcessId -> OS PID",
+    "ambiguity": "none",
+    "confidence": "high",
+    "note": "For the events in needs_join. Join the observed TargetProcessId back to its creation event to recover the OS PID and image.",
+    "spl": "index=$INDEX sourcetype=crowdstrike:events:sensor aid=$AID\n  ( TargetProcessId=$TPID\n    OR event_simpleName=ProcessRollup2\n    OR event_simpleName=SyntheticProcessRollup2 )\n| eval _key = TargetProcessId,\n       _anchor = if(event_simpleName IN (\"ProcessRollup2\",\"SyntheticProcessRollup2\"), 1, 0),\n       _hit = if(TargetProcessId=$TPID AND _anchor=0, 1, 0)\n| stats max(_hit) as observed, max(_anchor) as has_anchor,\n        values(eval(if(_hit=1, event_simpleName, null()))) as observed_on,\n        values(eval(if(_anchor=1, RawProcessId, null()))) as RawProcessId,\n        values(eval(if(_anchor=1, ImageFileName, null()))) as ImageFileName,\n        values(eval(if(_anchor=1, CommandLine, null()))) as CommandLine,\n        values(eval(if(_anchor=1, ProcessStartTime, null()))) as ProcessStartTime\n        by aid _key\n| where _key=$TPID\n| rename _key as TargetProcessId\n| eval resolved = if(has_anchor=1, \"yes\", \"no - creation event outside time range or aged out\")\n| table aid TargetProcessId RawProcessId ImageFileName CommandLine ProcessStartTime observed_on resolved"
+   }
+  ],
+  "parameters": {
+   "$INDEX": "your FDR index",
+   "$AID": "the CrowdStrike agent id (host). REQUIRED -- both PID spaces are per-host.",
+   "$TPID": "TargetProcessId value",
+   "$PID": "OS PID value",
+   "$EARLIEST/$LATEST": "time window; required for os_to_cs"
+  },
+  "guided_workflows": [
+   {
+    "id": "os_to_cs",
+    "title": "I have an OS PID and need CrowdStrike's process ID",
+    "when": "You got a PID from a memory dump, a ticket, `ps`/Task Manager, another EDR, or a colleague — and now you need to pivot into FDR.",
+    "steps": [
+     {
+      "ask": "Which host?",
+      "input": "aid",
+      "why": "PIDs are only meaningful on one machine. PID 4820 on a laptop and PID 4820 on a server are unrelated processes. Without the host you will get a pile of matches from across the fleet.",
+      "help": "If you have a hostname instead of an aid, look it up in aidmaster — the TA joins aid to ComputerName for you.",
+      "required": true
+     },
+     {
+      "ask": "Roughly when?",
+      "input": "time_window",
+      "why": "This is the one that catches people. The OS reuses PIDs — a busy Windows host can burn through the same PID several times a day. Searching all time will return multiple unrelated processes that all legitimately had this PID.",
+      "help": "Start with ±1 hour around the activity you are investigating. If you get nothing, widen it. If you get many, narrow it.",
+      "required": true
+     },
+     {
+      "ask": "The PID itself",
+      "input": "RawProcessId",
+      "why": "",
+      "required": true
+     }
+    ],
+    "expect": "One or more rows. More than one is normal and does not mean you did something wrong — it means the PID was reused in your window.",
+    "disambiguate": [
+     "Match `ImageFileName` against the process you actually expect. This resolves most cases immediately.",
+     "Check that `ProcessStartTime` is BEFORE the activity you are investigating. A process cannot have caused an event that predates its own start.",
+     "If two candidates both fit, widen `fields` to include `CommandLine` — arguments usually separate them.",
+     "The value you carry forward is `TargetProcessId`. That is the key every other FDR event is joined on."
+    ],
+    "troubleshooting": [
+     {
+      "symptom": "Zero results",
+      "causes": [
+       "Your window is too narrow — widen it.",
+       "The process started before the sensor was installed or before the host booted with the sensor running. Check `SyntheticProcessRollup2`, which covers already-running processes.",
+       "Wrong host. Confirm the aid.",
+       "The process is older than your FDR retention."
+      ]
+     },
+     {
+      "symptom": "Far too many results",
+      "causes": [
+       "Narrow the time window.",
+       "Low-numbered PIDs (under ~1000) are often system processes that churn constantly. Add an `ImageFileName` filter."
+      ]
+     },
+     {
+      "symptom": "Found the process but no later events reference it",
+      "causes": [
+       "Confirm you are pivoting on `TargetProcessId`, not `RawProcessId`. Most FDR events carry only `TargetProcessId`.",
+       "Short-lived processes may only ever produce `ProcessRollup2`."
+      ]
+     }
+    ]
+   },
+   {
+    "id": "cs_to_os",
+    "title": "I have a CrowdStrike process ID and need the OS PID",
+    "when": "You are in FDR data, following a process tree, and need a PID to hand to someone working on the box, or to match against a dump.",
+    "steps": [
+     {
+      "ask": "Which host?",
+      "input": "aid",
+      "why": "TargetProcessId is unique per host, not globally. Scoping to the host keeps the search fast and correct.",
+      "required": true
+     },
+     {
+      "ask": "The TargetProcessId",
+      "input": "TargetProcessId",
+      "why": "",
+      "required": true
+     }
+    ],
+    "expect": "Exactly one process. This direction is unambiguous — TargetProcessId does not repeat on a host.",
+    "disambiguate": [],
+    "troubleshooting": [
+     {
+      "symptom": "Zero results",
+      "causes": [
+       "The process may predate the sensor — check `SyntheticProcessRollup2`.",
+       "You may be on the wrong host.",
+       "The creation event may have aged out of retention even though later events referencing the process are still present."
+      ]
+     }
+    ],
+    "caution": "Once you hand an OS PID to someone, it stops being reliable. If the box has rebooted or the process exited, that PID may now belong to something else entirely. Always pass the ImageFileName and start time alongside it."
+   }
+  ],
+  "why_no_formula": {
+   "question": "Why can't the tool just convert the number for me?",
+   "answer": "Because CrowdStrike's TargetProcessId is not derived from the OS PID. It is an independent identifier, so there is no arithmetic that turns one into the other — the relationship only exists in events that happen to record both. That is why this tool asks for a host and a time window instead of just doing a calculation.",
+   "tested": "Verified against 28 documents carrying both fields: masking to the low 32 or 16 bits, shifting right 32, and modulo all failed to reproduce the OS PID in every single case."
+  }
+ }
+}

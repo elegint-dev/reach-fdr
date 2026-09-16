@@ -1,0 +1,178 @@
+/* Reach — design tokens (ARCHITECTURE §4.1)
+ *
+ * Dark is the default and lives on :root. Light is declared twice, byte for
+ * byte: once under prefers-color-scheme (guarded so an explicit dark choice
+ * wins) and once under [data-theme="light"] for an explicit choice.
+ *
+ * The [data-theme="…"] selectors are also matched on non-root elements so a
+ * page (the gallery) can show both themes side by side in wrapper sections.
+ * Custom properties inherit, so a wrapper's values override the page's.
+ *
+ * Hue budget: five trust colours and one accent blue. Nothing else
+ * carries hue. Every --trust-*-fg is a literal hex so tests/contrast.test.js
+ * and the gallery can compute the same WCAG ratios the browser paints.
+ */
+
+:root {
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --fs-1: 12px;
+  --fs-2: 13px;
+  --fs-3: 14px;
+  --fs-4: 16px;
+  --fs-5: 20px;
+  --fs-6: 24px;
+  --lh-body: 1.45;
+  --lh-tight: 1.2;
+
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+
+  --radius-1: 2px;
+  --radius-2: 4px;
+
+  --bg-0: #111417;
+  --bg-1: #181c21;
+  --bg-2: #1f242a;
+  --bg-3: #272d34;
+
+  --fg-0: #e3e7ec;
+  --fg-1: #a6aeb8;
+  --fg-2: #7f8894;
+  --line: #2b323a;
+
+  --accent: #63a9ff;
+  --accent-bg: #16283d;
+
+  --trust-confirmed: #3fc9b5;
+  --trust-confirmed-fg: #3fc9b5;
+  --trust-confirmed-bg: #12302e;
+  --trust-asserted: #e0a23a;
+  --trust-asserted-fg: #e0a23a;
+  --trust-asserted-bg: #33280f;
+  --trust-suggested: #b59cf3;
+  --trust-suggested-fg: #b59cf3;
+  --trust-suggested-bg: #28243a;
+  --trust-inferred: #98a2ad;
+  --trust-inferred-fg: #98a2ad;
+  --trust-inferred-bg: #232930;
+  --hazard: #f2736d;
+  --hazard-fg: #f2736d;
+  --hazard-bg: #3a1f1e;
+
+  --layer-fg: #c4cad2;
+  --layer-bg: #1f242a;
+
+  --focus-ring: 2px solid var(--accent);
+  --focus-ring-offset: 2px;
+
+  --shadow-drawer: 0 0 0 1px var(--line);
+  --scheme: dark;
+  color-scheme: dark;
+}
+
+[data-theme="dark"] {
+  --bg-0: #111417;
+  --bg-1: #181c21;
+  --bg-2: #1f242a;
+  --bg-3: #272d34;
+  --fg-0: #e3e7ec;
+  --fg-1: #a6aeb8;
+  --fg-2: #7f8894;
+  --line: #2b323a;
+  --accent: #63a9ff;
+  --accent-bg: #16283d;
+  --trust-confirmed: #3fc9b5;
+  --trust-confirmed-fg: #3fc9b5;
+  --trust-confirmed-bg: #12302e;
+  --trust-asserted: #e0a23a;
+  --trust-asserted-fg: #e0a23a;
+  --trust-asserted-bg: #33280f;
+  --trust-suggested: #b59cf3;
+  --trust-suggested-fg: #b59cf3;
+  --trust-suggested-bg: #28243a;
+  --trust-inferred: #98a2ad;
+  --trust-inferred-fg: #98a2ad;
+  --trust-inferred-bg: #232930;
+  --hazard: #f2736d;
+  --hazard-fg: #f2736d;
+  --hazard-bg: #3a1f1e;
+  --layer-fg: #c4cad2;
+  --layer-bg: #1f242a;
+  --scheme: dark;
+  color-scheme: dark;
+}
+
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme="dark"]),
+  :root:not([data-theme="dark"]) [data-theme]:not([data-theme="dark"]) {
+    --bg-0: #f3f4f6;
+    --bg-1: #ffffff;
+    --bg-2: #eceef1;
+    --bg-3: #e1e4e8;
+    --fg-0: #171b20;
+    --fg-1: #4b5563;
+    --fg-2: #667080;
+    --line: #d9dde3;
+    --accent: #1f5fd0;
+    --accent-bg: #e3ecfb;
+    --trust-confirmed: #0a6e63;
+    --trust-confirmed-fg: #0a6e63;
+    --trust-confirmed-bg: #d5f2ec;
+    --trust-asserted: #7d5200;
+    --trust-asserted-fg: #7d5200;
+    --trust-asserted-bg: #fbeacb;
+    --trust-suggested: #5537b4;
+    --trust-suggested-fg: #5537b4;
+    --trust-suggested-bg: #e9e3fb;
+    --trust-inferred: #59636e;
+    --trust-inferred-fg: #59636e;
+    --trust-inferred-bg: #e6e9ed;
+    --hazard: #b1281c;
+    --hazard-fg: #b1281c;
+    --hazard-bg: #fde1de;
+    --layer-fg: #3d4650;
+    --layer-bg: #eceef1;
+    --scheme: light;
+    color-scheme: light;
+  }
+}
+
+:root[data-theme="light"],
+[data-theme="light"] {
+    --bg-0: #f3f4f6;
+    --bg-1: #ffffff;
+    --bg-2: #eceef1;
+    --bg-3: #e1e4e8;
+    --fg-0: #171b20;
+    --fg-1: #4b5563;
+    --fg-2: #667080;
+    --line: #d9dde3;
+    --accent: #1f5fd0;
+    --accent-bg: #e3ecfb;
+    --trust-confirmed: #0a6e63;
+    --trust-confirmed-fg: #0a6e63;
+    --trust-confirmed-bg: #d5f2ec;
+    --trust-asserted: #7d5200;
+    --trust-asserted-fg: #7d5200;
+    --trust-asserted-bg: #fbeacb;
+    --trust-suggested: #5537b4;
+    --trust-suggested-fg: #5537b4;
+    --trust-suggested-bg: #e9e3fb;
+    --trust-inferred: #59636e;
+    --trust-inferred-fg: #59636e;
+    --trust-inferred-bg: #e6e9ed;
+    --hazard: #b1281c;
+    --hazard-fg: #b1281c;
+    --hazard-bg: #fde1de;
+    --layer-fg: #3d4650;
+    --layer-bg: #eceef1;
+    --scheme: light;
+    color-scheme: light;
+}

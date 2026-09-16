@@ -1,0 +1,22 @@
+# Field fill rate for one event type.
+#
+# The KB knows which fields CAN appear on an event; only your data knows which
+# actually do. Low fill rate usually means platform-specific (a Windows-only
+# field on a Linux fleet) rather than broken.
+#
+# Change event_simpleName and add fields you care about.
+
+index=`cs_index` sourcetype=crowdstrike:events:sensor earliest=-24h
+  event_simpleName=ProcessRollup2
+| eval _total=1
+| stats count as total,
+        count(TargetProcessId) as f_TargetProcessId,
+        count(RawProcessId) as f_RawProcessId,
+        count(ParentProcessId) as f_ParentProcessId,
+        count(CommandLine) as f_CommandLine,
+        count(ImageFileName) as f_ImageFileName,
+        count(SHA256HashData) as f_SHA256HashData,
+        count(UserSid) as f_UserSid
+| foreach f_* [ eval <<FIELD>>=round('<<FIELD>>'/total*100,1) ]
+| transpose
+| rename column as field, "row 1" as pct_populated

@@ -1,0 +1,734 @@
+[
+  {
+    "field": "UserCanonical",
+    "description": "The canonical form of the username (e.g. a fully-qualified or normalized account name) for the user identity recorded by this event.",
+    "semantic_role": "user_id",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Use alongside UserName/UserPrincipal/UserSid when correlating the same identity across events that may reference it in different formats.",
+    "join_candidates": [
+      {
+        "to": "UserPrincipal",
+        "why": "sibling user-identity representation fields on the same UserIdentity event",
+        "confidence": "medium"
+      },
+      {
+        "to": "UserSid",
+        "why": "sibling user-identity representation fields on the same UserIdentity event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event UserIdentity, co-occurring with UserName/UserPrincipal/UserSid/LogonDomain -- 'Canonical' name form is standard Windows/AD terminology, though the exact normalization (e.g. domain\\user vs. UPN vs. distinguished name) isn't confirmed here."
+  },
+  {
+    "field": "UserNames",
+    "description": "The username(s) associated with the macOS Open Directory user record created, as recorded by this event.",
+    "semantic_role": "user_id",
+    "data_format": "unknown (likely a list of username strings)",
+    "hunting_notes": "macOS Open Directory records can carry multiple username aliases; an unexpected new local account (especially one with an admin-sounding or hidden-looking name) is a classic persistence technique worth investigating.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event OpenDirectoryCreateUser (event name matches concept: macOS Open Directory user creation); plural naming suggests multiple usernames/aliases per OD record, consistent with Open Directory's data model."
+  },
+  {
+    "field": "UserNotified",
+    "description": "Whether the user was notified of the data-loss-prevention detection recorded by this event.",
+    "semantic_role": "bool",
+    "data_format": "boolean",
+    "hunting_notes": "Cloud-side counterpart to the sensor-side DataProtectionUserNotified field on DataEgress; distinguishes silent DLP enforcement/logging from user-visible policy prompts.",
+    "join_candidates": [
+      {
+        "to": "DataProtectionUserNotified",
+        "why": "analogous user-notification fields on the cloud detection-summary event vs. the sensor-side DataEgress event respectively",
+        "confidence": "medium"
+      },
+      {
+        "to": "ResponseAction",
+        "why": "sibling DLP outcome fields on the same Event_DataProtectionDetectionSummaryEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=boolean, single event Event_DataProtectionDetectionSummaryEvent; name and type both unambiguous, mirroring the already-enriched DataProtectionUserNotified field (batch_006)."
+  },
+  {
+    "field": "ValidLifetime",
+    "description": "The valid lifetime of the IPv6 address recorded by this event, after which the address is no longer usable (RFC 4862 SLAAC concept), paired with PreferredLifetime.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer, seconds)",
+    "hunting_notes": "Standard IPv6 address-lifecycle configuration parameter; useful for network configuration auditing rather than direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "PreferredLifetime",
+        "why": "sibling IPv6 address-lifecycle fields on the same LocalIpAddressIP6 event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6, sibling of the already-enriched PreferredLifetime field (batch_010); 'ValidLifetime' is standard IPv6 SLAAC terminology (RFC 4862)."
+  },
+  {
+    "field": "VerifiedCertificate",
+    "description": "The certificate verification status/result for the sensor's connection to the CrowdStrike cloud, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a boolean or short status string)",
+    "hunting_notes": "A failed or unexpected certificate-verification result on sensor-cloud connectivity could indicate a TLS man-in-the-middle interception attempt (e.g. a proxy intercepting sensor traffic) -- worth investigating alongside other connectivity/tampering telemetry.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event AgentConnect (sensor-to-cloud connection event); name self-descriptive for a TLS certificate-verification outcome, though the exact value format isn't confirmed by a decode table."
+  },
+  {
+    "field": "VersionInfo",
+    "description": "The raw PE (Portable Executable) version-info resource data (VS_VERSION_INFO) of the file recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely serialized version-resource fields such as CompanyName/ProductName/FileVersion)",
+    "hunting_notes": "Version-info metadata is commonly spoofed by malware to impersonate legitimate software (e.g. copying a well-known vendor's CompanyName/ProductName); compare against the file's actual hash/signer to spot such impersonation.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event PeVersionInfo (event name matches concept); 'VS_VERSION_INFO' is standard, well-documented Windows PE file format terminology."
+  },
+  {
+    "field": "VirtualAddress",
+    "description": "The virtual memory address at which the shared object (e.g. a Linux .so library) was loaded, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "hex string (memory address)",
+    "hunting_notes": "Base load address for a shared library; useful for correlating with other memory-address fields (e.g. injected code, hooked functions) that may reference offsets within this module.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event SharedObjectLoaded (event name matches concept); name unambiguous."
+  },
+  {
+    "field": "VolumeBusName",
+    "description": "The name of the bus (e.g. USB, SATA, PCI) that the mounted volume's underlying device is attached to, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Distinguishes removable/external bus types (e.g. USB) from internal ones (e.g. SATA/NVMe) for a mounted volume; useful for scoping removable-media/data-exfiltration investigations.",
+    "join_candidates": [
+      {
+        "to": "VolumeDeviceInternal",
+        "why": "sibling device-identity fields describing the same mounted volume's underlying device on FsVolumeMounted",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FsVolumeMounted, co-occurring with VolumeDeviceInternal/Model/Protocol/Revision/Vendor and Volume Media BSD*/Ejectable/Removable/Whole/Writable fields -- these map directly onto standard macOS IOKit/DiskArbitration device and media property names (Internal, Ejectable, Removable, Whole, Writable, BSD Major/Minor/Unit/Name, Content)."
+  },
+  {
+    "field": "VolumeDeviceInternal",
+    "description": "Whether the mounted volume's underlying device is internal (built into the host) rather than external, as recorded by this event.",
+    "semantic_role": "bool",
+    "data_format": "unknown (likely a stringified boolean)",
+    "hunting_notes": "An external (non-internal) device mounting is more relevant to removable-media/data-exfiltration monitoring than an internal disk.",
+    "join_candidates": [
+      {
+        "to": "VolumeMediaRemovable",
+        "why": "sibling device/media property fields describing the same mounted volume on FsVolumeMounted",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FsVolumeMounted; 'Internal' matches the exact macOS IOKit/DiskArbitration device property key name."
+  },
+  {
+    "field": "VolumeDeviceModel",
+    "description": "The model string of the mounted volume's underlying device, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Useful for fingerprinting/inventory of the specific physical device (e.g. a known-bad USB storage device model) behind a mounted volume.",
+    "join_candidates": [
+      {
+        "to": "VolumeDeviceVendor",
+        "why": "sibling device-identity fields describing the same mounted volume's underlying device on FsVolumeMounted",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FsVolumeMounted; maps to the standard macOS IOKit device 'Model' property."
+  },
+  {
+    "field": "VolumeDeviceProtocol",
+    "description": "The protocol (e.g. SCSI, ATA, USB Attached SCSI) used by the mounted volume's underlying device, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Part of full device fingerprinting for a mounted volume; low direct hunting value alone.",
+    "join_candidates": [
+      {
+        "to": "VolumeDeviceModel",
+        "why": "sibling device-identity fields describing the same mounted volume's underlying device on FsVolumeMounted",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FsVolumeMounted; maps to the standard macOS IOKit device 'Protocol Characteristics' property."
+  },
+  {
+    "field": "VolumeDeviceRevision",
+    "description": "The firmware/hardware revision string of the mounted volume's underlying device, as recorded by this event.",
+    "semantic_role": "version",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Part of full device fingerprinting for a mounted volume; low direct hunting value alone.",
+    "join_candidates": [
+      {
+        "to": "VolumeDeviceModel",
+        "why": "sibling device-identity fields describing the same mounted volume's underlying device on FsVolumeMounted",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FsVolumeMounted; maps to the standard macOS IOKit device 'Revision' property."
+  },
+  {
+    "field": "VolumeDeviceVendor",
+    "description": "The vendor/manufacturer string of the mounted volume's underlying device, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a vendor-name string)",
+    "hunting_notes": "Cross-reference against known-good/known-bad device vendor lists for USB/external storage inventory and tracking.",
+    "join_candidates": [
+      {
+        "to": "VolumeDeviceModel",
+        "why": "sibling device-identity fields describing the same mounted volume's underlying device on FsVolumeMounted",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event FsVolumeMounted; maps to the standard macOS IOKit device 'Vendor Name' property."
+  },
+  {
+    "field": "VolumeMediaBSDMajor",
+    "description": "The BSD major device number of the mounted volume's media, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Low-level macOS/BSD device-node identifier; useful mainly for correlating with raw device-node references (e.g. /dev/diskNsM) rather than direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "VolumeMediaBSDUnit",
+        "why": "sibling BSD device-numbering fields describing the same mounted media on FsVolumeMounted",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FsVolumeMounted; maps to the standard macOS IOKit media 'BSD Major' property."
+  },
+  {
+    "field": "VolumeMediaBSDMinor",
+    "description": "The BSD minor device number of the mounted volume's media, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Low-level macOS/BSD device-node identifier; useful mainly for correlating with raw device-node references.",
+    "join_candidates": [
+      {
+        "to": "VolumeMediaBSDMajor",
+        "why": "sibling BSD device-numbering fields describing the same mounted media on FsVolumeMounted",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FsVolumeMounted; maps to the standard macOS IOKit media 'BSD Minor' property."
+  },
+  {
+    "field": "VolumeMediaBSDUnit",
+    "description": "The BSD unit number (disk index, e.g. the \"2\" in /dev/disk2) of the mounted volume's media, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Useful for correlating this event with the exact /dev/diskN device referenced elsewhere (e.g. in logs or forensic tooling).",
+    "join_candidates": [
+      {
+        "to": "VolumeMediaBSDMajor",
+        "why": "sibling BSD device-numbering fields describing the same mounted media on FsVolumeMounted",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FsVolumeMounted; maps to the standard macOS IOKit media 'BSD Unit' property."
+  },
+  {
+    "field": "VolumeMediaContent",
+    "description": "The content/partition-scheme identifier (e.g. a GPT partition type) of the mounted volume's media, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a partition-type UUID or short content-hint string)",
+    "hunting_notes": "Identifies the partition scheme/type of the mounted media; low direct hunting value alone.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event FsVolumeMounted; maps to the standard macOS IOKit media 'Content Hint'/'Content' property."
+  },
+  {
+    "field": "VolumeMediaEjectable",
+    "description": "Whether the mounted volume's media is ejectable, as recorded by this event.",
+    "semantic_role": "bool",
+    "data_format": "unknown (likely a stringified boolean)",
+    "hunting_notes": "Ejectable media (e.g. optical discs, some USB drives) is more relevant to removable-media/data-movement monitoring.",
+    "join_candidates": [
+      {
+        "to": "VolumeMediaRemovable",
+        "why": "sibling media-property fields describing the same mounted media on FsVolumeMounted",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FsVolumeMounted; 'Ejectable' matches the exact macOS IOKit media property key name."
+  },
+  {
+    "field": "VolumeMediaName",
+    "description": "The name of the mounted volume's media, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Human-readable media label; use alongside VolumeName/VolumeMountPoint for full volume identification.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FsVolumeMounted; maps to the standard macOS IOKit media name property."
+  },
+  {
+    "field": "VolumeMediaRemovable",
+    "description": "Whether the mounted volume's media is removable, as recorded by this event.",
+    "semantic_role": "bool",
+    "data_format": "unknown (likely a stringified boolean)",
+    "hunting_notes": "Removable media (e.g. USB drives) is a primary vector for both malware introduction and data exfiltration -- a key filter for removable-media hunting.",
+    "join_candidates": [
+      {
+        "to": "VolumeMediaEjectable",
+        "why": "sibling media-property fields describing the same mounted media on FsVolumeMounted",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FsVolumeMounted; 'Removable' matches the exact macOS IOKit media property key name."
+  },
+  {
+    "field": "VolumeMediaWhole",
+    "description": "Whether this mounted-volume media entry represents the whole disk (as opposed to a single partition/slice), as recorded by this event.",
+    "semantic_role": "bool",
+    "data_format": "unknown (likely a stringified boolean)",
+    "hunting_notes": "Useful for distinguishing whole-disk mount events from individual-partition mounts when reconstructing a device's full partition layout.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FsVolumeMounted; 'Whole' matches the exact macOS IOKit media property key name."
+  },
+  {
+    "field": "VolumeMediaWritable",
+    "description": "Whether the mounted volume's media is writable, as recorded by this event.",
+    "semantic_role": "bool",
+    "data_format": "unknown (likely a stringified boolean)",
+    "hunting_notes": "A write-protected (non-writable) removable device mounting is a lower data-exfiltration risk than a writable one.",
+    "join_candidates": [
+      {
+        "to": "VolumeMediaRemovable",
+        "why": "sibling media-property fields describing the same mounted media on FsVolumeMounted",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FsVolumeMounted; 'Writable' matches the exact macOS IOKit media property key name."
+  },
+  {
+    "field": "WSLDistributionFlavor",
+    "description": "The flavor/distribution type (e.g. Ubuntu, Debian) of the Windows Subsystem for Linux distribution started, as recorded by this event.",
+    "semantic_role": "platform",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "WSL distributions can be a blind spot for Windows-centric monitoring; identifying which Linux flavor is running helps scope Linux-specific threat hunting within a WSL environment on a Windows host.",
+    "join_candidates": [
+      {
+        "to": "WSLDistributionName",
+        "why": "sibling WSL distribution-identity fields on the same WSLDistributionStarted event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event WSLDistributionStarted (event name matches concept); name unambiguous."
+  },
+  {
+    "field": "WSLDistributionName",
+    "description": "The name of the Windows Subsystem for Linux distribution instance started, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Identifies the specific named WSL instance (a host can run multiple named distributions); use with WSLDistributionFlavor for full identification.",
+    "join_candidates": [
+      {
+        "to": "WSLDistributionFlavor",
+        "why": "sibling WSL distribution-identity fields on the same WSLDistributionStarted event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event WSLDistributionStarted; name unambiguous."
+  },
+  {
+    "field": "WSLPIDNamespace",
+    "description": "The Linux PID namespace identifier used by the WSL distribution's kernel instance, as recorded by this event.",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely an integer namespace identifier)",
+    "hunting_notes": "Relevant for correlating WSL-internal Linux process telemetry (which uses Linux PIDs scoped to this namespace) with the Windows-host-level view of the WSL environment.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event WSLDistributionStarted; 'PID Namespace' is standard Linux kernel namespacing terminology, applied here to WSL's Linux-kernel-compatible process model."
+  },
+  {
+    "field": "WSLPluginAPIMajor",
+    "description": "The major version number of the WSL plugin API used by CrowdStrike's WSL sensor integration, as recorded by this event.",
+    "semantic_role": "version",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Sensor/integration versioning detail; useful for confirming WSL visibility compatibility rather than direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "WSLPluginAPIMinor",
+        "why": "sibling WSL plugin API version-component fields on the same WSLDistributionStarted event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event WSLDistributionStarted, co-occurring with WSLPluginAPIMinor/WSLPluginAPIRevision; name self-descriptive for a major/minor/revision version triple."
+  },
+  {
+    "field": "WSLPluginAPIMinor",
+    "description": "The minor version number of the WSL plugin API used by CrowdStrike's WSL sensor integration, as recorded by this event.",
+    "semantic_role": "version",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Sensor/integration versioning detail; useful for confirming WSL visibility compatibility rather than direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "WSLPluginAPIMajor",
+        "why": "sibling WSL plugin API version-component fields on the same WSLDistributionStarted event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event WSLDistributionStarted; name self-descriptive."
+  },
+  {
+    "field": "WSLPluginAPIRevision",
+    "description": "The revision (patch) version number of the WSL plugin API used by CrowdStrike's WSL sensor integration, as recorded by this event.",
+    "semantic_role": "version",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Sensor/integration versioning detail; useful for confirming WSL visibility compatibility rather than direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "WSLPluginAPIMajor",
+        "why": "sibling WSL plugin API version-component fields on the same WSLDistributionStarted event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event WSLDistributionStarted; name self-descriptive."
+  },
+  {
+    "field": "WmiProviderName",
+    "description": "The name of the WMI (Windows Management Instrumentation) provider registered, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "WMI provider registration -- especially a custom/unrecognized provider -- is a known technique for establishing WMI-based persistence or executing code via WMI event subscriptions; compare against known-good built-in provider names.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event WmiProviderRegistrationEtw (event name matches concept, captured via Event Tracing for Windows); name unambiguous."
+  },
+  {
+    "field": "XumdProcessErrorStatusString",
+    "description": "A human-readable error status string for a process related to the 'Xumd' subsystem, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "This event's sibling fields (XumdInjectionFailureCount/XumdInjectionSuccessCount) indicate 'Xumd' relates to an injection-based hooking/visibility subsystem (consistent with the already-enriched XumdHookEvent/BaseModuleName/ModuleExportName fields in this KB) -- a non-empty error status here likely reflects a failure to establish that hooking/visibility mechanism in a specific process, which is worth correlating with any gaps in expected telemetry from that process.",
+    "join_candidates": [
+      {
+        "to": "XumdSuccessStatusString",
+        "why": "sibling status-string fields (error vs. success) on the same XumdStatus event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event XumdStatus, co-occurring with XumdInjectionFailureCount/XumdInjectionSuccessCount/XumdStatusReason/XumdStatusVersion -- the injection-count siblings corroborate 'Xumd' as an injection/hooking mechanism (matching XumdHookEvent from batch_005/batch_008), narrowing this field's role to a per-process error message for that mechanism, though 'Xumd' itself remains an unconfirmed CrowdStrike-internal name."
+  },
+  {
+    "field": "XumdSuccessStatusString",
+    "description": "A human-readable success status string for a process related to the 'Xumd' subsystem, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Counterpart to XumdProcessErrorStatusString; a healthy population of success statuses alongside low XumdInjectionFailureCount indicates the hooking/visibility mechanism is functioning normally for monitored processes.",
+    "join_candidates": [
+      {
+        "to": "XumdProcessErrorStatusString",
+        "why": "sibling status-string fields (error vs. success) on the same XumdStatus event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event XumdStatus, sibling of XumdProcessErrorStatusString; same reasoning as that field."
+  },
+  {
+    "field": "compliance",
+    "description": "A nested container of compliance-framework mappings for this cloud misconfiguration finding, grouping the benchmark names, frameworks, requirements, sections, and versions that the finding relates to.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference the compliance.* child fields directly to see which compliance standards (e.g. CIS, PCI-DSS, NIST) a given cloud-misconfiguration finding maps to, useful for compliance-driven remediation prioritization.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank (nested/object), single event CloudSecurityIOMEvaluation (CrowdStrike Falcon Cloud Security's documented 'Indicator of Misconfiguration' evaluation event), whose co-occurring children are exactly its five compliance.* fields -- confirms a parent/child nested relationship."
+  },
+  {
+    "field": "compliance.benchmarkNames",
+    "description": "The name(s) of the compliance benchmark(s) (e.g. a specific CIS Benchmark) that this cloud misconfiguration finding relates to.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of benchmark-name strings)",
+    "hunting_notes": "Use to filter/report misconfiguration findings by the specific benchmark an auditor or compliance team cares about.",
+    "join_candidates": [
+      {
+        "to": "compliance.frameworks",
+        "why": "sibling compliance-mapping fields on the same CloudSecurityIOMEvaluation event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event CloudSecurityIOMEvaluation; name self-descriptive within the established compliance-mapping container."
+  },
+  {
+    "field": "compliance.frameworks",
+    "description": "The compliance framework(s) (e.g. CIS, PCI-DSS, NIST, SOC 2) that this cloud misconfiguration finding relates to.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of framework-name strings)",
+    "hunting_notes": "Use to filter/report misconfiguration findings by regulatory or industry framework relevant to the organization.",
+    "join_candidates": [
+      {
+        "to": "compliance.benchmarkNames",
+        "why": "sibling compliance-mapping fields on the same CloudSecurityIOMEvaluation event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event CloudSecurityIOMEvaluation; name self-descriptive."
+  },
+  {
+    "field": "compliance.requirements",
+    "description": "The specific compliance requirement(s) that this cloud misconfiguration finding violates, within the frameworks named in compliance.frameworks.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of requirement identifiers/strings)",
+    "hunting_notes": "More granular than compliance.frameworks/.benchmarkNames -- pinpoints the exact control/requirement affected, useful for audit evidence and remediation tracking.",
+    "join_candidates": [
+      {
+        "to": "compliance.frameworks",
+        "why": "sibling compliance-mapping fields on the same CloudSecurityIOMEvaluation event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event CloudSecurityIOMEvaluation; name self-descriptive."
+  },
+  {
+    "field": "compliance.sections",
+    "description": "The section(s) of the relevant compliance benchmark/framework document that this cloud misconfiguration finding falls under.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of section identifiers/strings)",
+    "hunting_notes": "Useful for mapping a finding directly to the exact document section an auditor would reference.",
+    "join_candidates": [
+      {
+        "to": "compliance.requirements",
+        "why": "sibling compliance-mapping fields on the same CloudSecurityIOMEvaluation event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event CloudSecurityIOMEvaluation; name self-descriptive."
+  },
+  {
+    "field": "compliance.versions",
+    "description": "The version(s) of the compliance benchmark/framework that this cloud misconfiguration finding was evaluated against.",
+    "semantic_role": "version",
+    "data_format": "unknown (likely a list of version strings)",
+    "hunting_notes": "Useful for confirming which revision of a benchmark (e.g. CIS Benchmark v1.4 vs. v2.0) the finding's mapping is based on, since requirements can shift between versions.",
+    "join_candidates": [
+      {
+        "to": "compliance.benchmarkNames",
+        "why": "sibling compliance-mapping fields on the same CloudSecurityIOMEvaluation event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event CloudSecurityIOMEvaluation; name self-descriptive."
+  },
+  {
+    "field": "created",
+    "description": "The timestamp at which this cloud misconfiguration finding/evaluation record was created.",
+    "semantic_role": "timestamp",
+    "data_format": "date (per fields.json type)",
+    "hunting_notes": "Use alongside firstDetected/lastDetected to distinguish the finding record's own creation time from when the underlying misconfiguration was actually first/last observed.",
+    "join_candidates": [
+      {
+        "to": "firstDetected",
+        "why": "sibling lifecycle-timestamp fields on the same CloudSecurityIOMEvaluation event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=date, single event CloudSecurityIOMEvaluation; name and type unambiguous."
+  },
+  {
+    "field": "crn",
+    "description": "The CrowdStrike Resource Name (CRN) uniquely identifying the cloud resource or entity evaluated by this misconfiguration finding.",
+    "semantic_role": "identifier",
+    "data_format": "UTF-8 string (CRN format, analogous to an AWS ARN)",
+    "hunting_notes": "The authoritative cross-platform identifier for correlating this finding with the same resource elsewhere in the Falcon Cloud Security / CrowdStrike platform.",
+    "join_candidates": [
+      {
+        "to": "resource.resourceId",
+        "why": "the CRN likely encodes or corresponds to the same resource identified by resource.resourceId on the same CloudSecurityIOMEvaluation event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event CloudSecurityIOMEvaluation; 'CRN' (CrowdStrike Resource Name) is a documented CrowdStrike Falcon platform identifier format used across its cloud security and other modules."
+  },
+  {
+    "field": "findings",
+    "description": "A nested list of specific finding name/value pairs supporting this cloud misconfiguration evaluation.",
+    "semantic_role": "other",
+    "data_format": "nested/object (array of name/value records)",
+    "hunting_notes": "Reference the findings.* child fields directly for the specific evidence (e.g. a checked configuration attribute and its observed value) behind this misconfiguration finding.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank (nested), single event CloudSecurityIOMEvaluation, whose co-occurring children are findings.name and findings.value -- confirms a parent/child nested relationship, matching the container-field pattern established elsewhere in this KB."
+  },
+  {
+    "field": "findings.value",
+    "description": "The observed value for a named finding within this cloud misconfiguration evaluation, paired with findings.name.",
+    "semantic_role": "other",
+    "data_format": "unknown",
+    "hunting_notes": "Use with findings.name to see exactly which configuration attribute was checked and what value was found, i.e. the specific evidence behind the misconfiguration.",
+    "join_candidates": [
+      {
+        "to": "findings.name",
+        "why": "name/value pair describing the same specific finding within the same CloudSecurityIOMEvaluation event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event CloudSecurityIOMEvaluation, sibling of findings.name (findings.name itself was already classified by this KB's name-convention rules and didn't require AI review); name self-descriptive as a name/value pair."
+  },
+  {
+    "field": "firstDetected",
+    "description": "The timestamp at which this cloud misconfiguration was first detected.",
+    "semantic_role": "timestamp",
+    "data_format": "date (per fields.json type)",
+    "hunting_notes": "Use with lastDetected to determine how long a misconfiguration has persisted (an old firstDetected with a recent lastDetected indicates a long-standing unremediated issue).",
+    "join_candidates": [
+      {
+        "to": "lastDetected",
+        "why": "first/last detection timestamp pair for the same misconfiguration finding on the same CloudSecurityIOMEvaluation event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=date, single event CloudSecurityIOMEvaluation; name and type unambiguous."
+  },
+  {
+    "field": "lastDetected",
+    "description": "The timestamp at which this cloud misconfiguration was last (most recently) detected.",
+    "semantic_role": "timestamp",
+    "data_format": "date (per fields.json type)",
+    "hunting_notes": "Use with firstDetected to determine whether a misconfiguration is still active/current versus stale.",
+    "join_candidates": [
+      {
+        "to": "firstDetected",
+        "why": "first/last detection timestamp pair for the same misconfiguration finding on the same CloudSecurityIOMEvaluation event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=date, single event CloudSecurityIOMEvaluation; name and type unambiguous."
+  },
+  {
+    "field": "resource",
+    "description": "A nested container describing the cloud resource evaluated by this misconfiguration finding, grouping its account, cloud provider, region, resource ID/type, and capture time.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference the resource.* child fields directly to identify exactly which cloud asset (account, provider, region, resource) a given misconfiguration finding applies to.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank (nested/object), single event CloudSecurityIOMEvaluation, whose co-occurring children are exactly its eight resource.* fields (accountId, captured, cloudProvider, legacyResourceId, legacyResourceTypeId, region, resourceId, resourceType) -- confirms a parent/child nested relationship."
+  },
+  {
+    "field": "resource.captured",
+    "description": "The timestamp at which the evaluated cloud resource's configuration snapshot was captured, as recorded by this event.",
+    "semantic_role": "timestamp",
+    "data_format": "date (per fields.json type)",
+    "hunting_notes": "Confirms how current the underlying resource-configuration data is relative to firstDetected/lastDetected -- an old capture time could mean the finding is based on a stale snapshot.",
+    "join_candidates": [
+      {
+        "to": "lastDetected",
+        "why": "resource snapshot capture time vs. the finding's own last-detected time on the same CloudSecurityIOMEvaluation event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=date, single event CloudSecurityIOMEvaluation, sibling within the resource container; name and type unambiguous."
+  },
+  {
+    "field": "resource.cloudProvider",
+    "description": "The cloud provider (e.g. AWS, Azure, GCP) of the resource evaluated by this misconfiguration finding.",
+    "semantic_role": "platform",
+    "data_format": "unknown (likely a short provider-name string)",
+    "hunting_notes": "Primary field for scoping cloud-security hunting/reporting by cloud provider.",
+    "join_candidates": [
+      {
+        "to": "resource.region",
+        "why": "sibling resource-location fields on the same CloudSecurityIOMEvaluation event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank, single event CloudSecurityIOMEvaluation, sibling within the resource container; name unambiguous."
+  },
+  {
+    "field": "resource.region",
+    "description": "The cloud region of the resource evaluated by this misconfiguration finding.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a region-name string, format depending on resource.cloudProvider)",
+    "hunting_notes": "Useful for scoping cloud-security hunting/reporting by region, and for spotting misconfigured resources in unexpected/unauthorized regions.",
+    "join_candidates": [
+      {
+        "to": "resource.cloudProvider",
+        "why": "sibling resource-location fields on the same CloudSecurityIOMEvaluation event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank, single event CloudSecurityIOMEvaluation, sibling within the resource container; name unambiguous."
+  },
+  {
+    "field": "revision",
+    "description": "A revision number for this cloud misconfiguration finding/evaluation record.",
+    "semantic_role": "count",
+    "data_format": "long integer",
+    "hunting_notes": "Use to distinguish successive re-evaluations of the same finding over time; a rapidly incrementing revision on an unresolved finding indicates ongoing but unremediated drift.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=long, single event CloudSecurityIOMEvaluation; name self-descriptive for a record-versioning counter."
+  },
+  {
+    "field": "ruleName",
+    "description": "The name of the misconfiguration-detection rule that matched, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Primary human-readable field for identifying which specific cloud-security rule flagged this resource; use to group/filter findings by rule across the fleet of cloud resources.",
+    "join_candidates": [
+      {
+        "to": "severity",
+        "why": "sibling finding-classification fields on the same CloudSecurityIOMEvaluation event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank, single event CloudSecurityIOMEvaluation, alongside a sibling ruleId (not requiring AI review); name unambiguous."
+  },
+  {
+    "field": "severity",
+    "description": "The severity of the cloud misconfiguration finding recorded by this event (e.g. Critical, High, Medium, Low).",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a short severity-level string)",
+    "hunting_notes": "Primary field for triaging/prioritizing cloud misconfiguration findings; combine with compliance.* mappings and resource.* location to prioritize remediation of the highest-severity, most compliance-relevant issues first.",
+    "join_candidates": [
+      {
+        "to": "ruleName",
+        "why": "sibling finding-classification fields on the same CloudSecurityIOMEvaluation event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank, single event CloudSecurityIOMEvaluation; 'severity' is standard, unambiguous terminology across security-finding schemas, though the exact value set isn't confirmed by a decode table here."
+  }
+]

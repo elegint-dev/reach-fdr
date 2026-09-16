@@ -1,0 +1,774 @@
+[
+  {
+    "field": "Pcr1",
+    "description": "The value of TPM Platform Configuration Register 1 (PCR1), conventionally used to measure platform/BIOS configuration, as recorded by this event.",
+    "semantic_role": "hash",
+    "data_format": "unknown (stored as match_only_text; likely a hex hash value per the TPM's configured bank)",
+    "hunting_notes": "An unexpected change in PCR1 between boots can indicate BIOS/firmware configuration tampering; use alongside ChangedPcrBitmap to confirm whether PCR1 specifically changed.",
+    "join_candidates": [
+      {
+        "to": "ChangedPcrBitmap",
+        "why": "ChangedPcrBitmap would indicate whether PCR1 specifically is among the registers that changed on the same TcgPcrInfo event",
+        "confidence": "high"
+      },
+      {
+        "to": "Pcr0",
+        "why": "sibling PCR value fields on the same TcgPcrInfo event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event TcgPcrInfo, sibling of Pcr0 (already enriched, batch_009) and ChangedPcrBitmap/BiosChanged (batch_005); PCR1's conventional role (platform/BIOS configuration) follows the TCG PC Client Platform Firmware Profile's standard PCR allocation, though actual firmware measurement into PCR1 can vary by implementation."
+  },
+  {
+    "field": "Pcr2",
+    "description": "The value of TPM Platform Configuration Register 2 (PCR2), conventionally used to measure option ROM code, as recorded by this event.",
+    "semantic_role": "hash",
+    "data_format": "unknown (stored as match_only_text; likely a hex hash value per the TPM's configured bank)",
+    "hunting_notes": "An unexpected change in PCR2 can indicate tampering with option ROM firmware (e.g. a network card or storage controller's firmware); use alongside ChangedPcrBitmap to confirm whether PCR2 specifically changed.",
+    "join_candidates": [
+      {
+        "to": "ChangedPcrBitmap",
+        "why": "ChangedPcrBitmap would indicate whether PCR2 specifically is among the registers that changed on the same TcgPcrInfo event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event TcgPcrInfo, sibling of Pcr0/Pcr1; PCR2's conventional role (option ROM code) follows the TCG PC Client Platform Firmware Profile's standard PCR allocation, though actual measurement can vary by implementation."
+  },
+  {
+    "field": "Pcr3",
+    "description": "The value of TPM Platform Configuration Register 3 (PCR3), conventionally used to measure option ROM configuration and data, as recorded by this event.",
+    "semantic_role": "hash",
+    "data_format": "unknown (stored as match_only_text; likely a hex hash value per the TPM's configured bank)",
+    "hunting_notes": "An unexpected change in PCR3 can indicate tampering with option ROM configuration data; use alongside ChangedPcrBitmap to confirm whether PCR3 specifically changed.",
+    "join_candidates": [
+      {
+        "to": "ChangedPcrBitmap",
+        "why": "ChangedPcrBitmap would indicate whether PCR3 specifically is among the registers that changed on the same TcgPcrInfo event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event TcgPcrInfo; PCR3's conventional role follows the TCG PC Client Platform Firmware Profile's standard PCR allocation."
+  },
+  {
+    "field": "Pcr4",
+    "description": "The value of TPM Platform Configuration Register 4 (PCR4), conventionally used to measure the Initial Program Loader (IPL) code such as the Master Boot Record or early bootloader, as recorded by this event.",
+    "semantic_role": "hash",
+    "data_format": "unknown (stored as match_only_text; likely a hex hash value per the TPM's configured bank)",
+    "hunting_notes": "An unexpected change in PCR4 is a classic bootkit indicator (MBR/bootloader tampering); use alongside ChangedPcrBitmap to confirm whether PCR4 specifically changed.",
+    "join_candidates": [
+      {
+        "to": "ChangedPcrBitmap",
+        "why": "ChangedPcrBitmap would indicate whether PCR4 specifically is among the registers that changed on the same TcgPcrInfo event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event TcgPcrInfo; PCR4's conventional role (IPL/bootloader code) follows the TCG PC Client Platform Firmware Profile's standard PCR allocation."
+  },
+  {
+    "field": "Pcr5",
+    "description": "The value of TPM Platform Configuration Register 5 (PCR5), conventionally used to measure IPL configuration and data (e.g. partition table, boot manager configuration), as recorded by this event.",
+    "semantic_role": "hash",
+    "data_format": "unknown (stored as match_only_text; likely a hex hash value per the TPM's configured bank)",
+    "hunting_notes": "An unexpected change in PCR5 can indicate boot-configuration tampering (e.g. partition table or boot manager config changes); use alongside ChangedPcrBitmap.",
+    "join_candidates": [
+      {
+        "to": "ChangedPcrBitmap",
+        "why": "ChangedPcrBitmap would indicate whether PCR5 specifically is among the registers that changed on the same TcgPcrInfo event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event TcgPcrInfo; PCR5's conventional role follows the TCG PC Client Platform Firmware Profile's standard PCR allocation."
+  },
+  {
+    "field": "Pcr6",
+    "description": "The value of TPM Platform Configuration Register 6 (PCR6), conventionally used to measure state-transition and wake events, as recorded by this event.",
+    "semantic_role": "hash",
+    "data_format": "unknown (stored as match_only_text; likely a hex hash value per the TPM's configured bank)",
+    "hunting_notes": "Less commonly used for security-relevant tampering detection than PCR0/PCR4/PCR7; primarily reflects host power-state transitions.",
+    "join_candidates": [
+      {
+        "to": "ChangedPcrBitmap",
+        "why": "ChangedPcrBitmap would indicate whether PCR6 specifically is among the registers that changed on the same TcgPcrInfo event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event TcgPcrInfo; PCR6's conventional role follows the TCG PC Client Platform Firmware Profile's standard PCR allocation."
+  },
+  {
+    "field": "Pcr7",
+    "description": "The value of TPM Platform Configuration Register 7 (PCR7), conventionally used to measure Secure Boot policy and configuration, as recorded by this event.",
+    "semantic_role": "hash",
+    "data_format": "unknown (stored as match_only_text; likely a hex hash value per the TPM's configured bank)",
+    "hunting_notes": "PCR7 changing can indicate Secure Boot policy tampering (e.g. disabling Secure Boot or altering trusted signature databases) -- a high-value integrity signal; use alongside ChangedPcrBitmap and BiosChanged.",
+    "join_candidates": [
+      {
+        "to": "ChangedPcrBitmap",
+        "why": "ChangedPcrBitmap would indicate whether PCR7 specifically is among the registers that changed on the same TcgPcrInfo event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event TcgPcrInfo; PCR7's conventional role (Secure Boot policy) follows the TCG PC Client Platform Firmware Profile's standard PCR allocation and is well documented across UEFI Secure Boot literature."
+  },
+  {
+    "field": "PermanentPhysicalAddress",
+    "description": "The permanent (factory burned-in) MAC address of the network interface, as recorded by this event, distinct from the possibly-randomized PhysicalAddress currently in use.",
+    "semantic_role": "mac",
+    "data_format": "MAC address string",
+    "hunting_notes": "Compare against PhysicalAddress to detect interfaces using a randomized/spoofed MAC (e.g. Wi-Fi privacy MAC randomization, or deliberate MAC spoofing) -- a mismatch is expected for privacy-randomized adapters but can also indicate spoofing on a wired interface where randomization isn't normally used.",
+    "join_candidates": [
+      {
+        "to": "PhysicalAddress",
+        "why": "permanent vs. currently-in-use MAC address for the same interface on the same LocalIpAddressIP6 event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6, sibling of PhysicalAddress (which has a confirmed CIM mapping to 'mac' in this KB); 'Permanent' qualifier is standard Windows networking terminology (e.g. Get-NetAdapter's PermanentPhysicalAddress vs. MacAddress properties)."
+  },
+  {
+    "field": "PhysicalAddress",
+    "description": "The MAC address currently in use by the network interface associated with this local IP address, as recorded by this event.",
+    "semantic_role": "mac",
+    "data_format": "MAC address string",
+    "hunting_notes": "CrowdStrike's own CIM mapping treats this as the authoritative 'mac' field on LocalIpAddressIP4/IP6 events; use for standard MAC-based asset correlation.",
+    "join_candidates": [
+      {
+        "to": "PermanentPhysicalAddress",
+        "why": "currently-in-use vs. permanent MAC address for the same interface on the same event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "fdr-to-CIM mapping for 'mac': case(event_simpleName IN (\"LocalIpAddressIP4\",\"LocalIpAddressIP6\"), if(PhysicalAddress=\"\", null(), PhysicalAddress)) -- directly confirms this field is CrowdStrike's MAC-address source for these events; appears on 2 events, cim_reachable=true."
+  },
+  {
+    "field": "Platform",
+    "description": "The OS platform (e.g. Windows, Mac, Linux) of the host associated with this DLP detection.",
+    "semantic_role": "platform",
+    "data_format": "unknown (likely a short platform-name string)",
+    "hunting_notes": "Use to scope DLP hunting/triage by operating system when correlating with platform-specific egress channels or tooling.",
+    "join_candidates": [
+      {
+        "to": "PlatformName",
+        "why": "same platform concept on a different detection-summary event family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event Event_DataProtectionDetectionSummaryEvent; 'Platform' is standard terminology across this schema for a host's OS platform, though this specific field lacks a decode table to confirm its exact value set."
+  },
+  {
+    "field": "PlatformName",
+    "description": "The OS platform name (e.g. Windows, Mac, Linux) of the host associated with this detection.",
+    "semantic_role": "platform",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Use to scope detection triage/hunting by operating system.",
+    "join_candidates": [
+      {
+        "to": "Platform",
+        "why": "same platform concept on a different detection-summary event family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event Event_EppDetectionSummaryEvent; name unambiguous."
+  },
+  {
+    "field": "Policy.RuleGroupName",
+    "description": "The name of the rule group the matched file-integrity-monitoring policy rule belongs to, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Use to group/filter FIM matches by the broader rule group they belong to, in addition to the specific Policy.Name/.ID.",
+    "join_candidates": [
+      {
+        "to": "Policy.Name",
+        "why": "sibling Policy.* fields describing the same matched policy on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank, single event Event_FileIntegrityMonitorRuleMatchedEnriched, sibling of Policy.ID/Policy.Name/Policy.RuleBasePath within the already-enriched Policy container (batch_004); name unambiguous."
+  },
+  {
+    "field": "PolicyName",
+    "description": "The name of the data-loss-prevention policy that applied to this data-egress event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Primary field for identifying which DLP policy governed this egress event; use to scope hunting/reporting by policy.",
+    "join_candidates": [
+      {
+        "to": "DataProtectionPolicyRuleAction",
+        "why": "sibling DLP policy fields describing the same egress event's policy and outcome",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DataEgress, alongside already-enriched DataProtectionPolicyRuleAction/DataProtectionUserNotified (batch_006); name unambiguous."
+  },
+  {
+    "field": "PolicyRuleGroupID",
+    "description": "An identifier for the rule group of the matched file-integrity-monitoring policy rule, as recorded by this event.",
+    "semantic_role": "identifier",
+    "data_format": "unknown",
+    "hunting_notes": "Use to group/filter FIM matches by rule group at the ID level, complementing the human-readable Policy.RuleGroupName on the enriched event variant.",
+    "join_candidates": [
+      {
+        "to": "PolicyRuleID",
+        "why": "sibling policy-identifier fields on the same FileIntegrityMonitorRuleMatched event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event FileIntegrityMonitorRuleMatched, sibling of PolicyRuleID/PolicyIdentifier/PolicyRuleSeverity; name self-descriptive."
+  },
+  {
+    "field": "PolicyRuleID",
+    "description": "An identifier for the specific file-integrity-monitoring policy rule that matched, as recorded by this event.",
+    "semantic_role": "identifier",
+    "data_format": "unknown",
+    "hunting_notes": "Primary field for pinpointing exactly which FIM rule fired; use alongside PolicyRuleGroupID/PolicyIdentifier for full rule context.",
+    "join_candidates": [
+      {
+        "to": "PolicyRuleGroupID",
+        "why": "sibling policy-identifier fields on the same FileIntegrityMonitorRuleMatched event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event FileIntegrityMonitorRuleMatched, sibling of PolicyRuleGroupID/PolicyIdentifier/PolicyRuleSeverity; name self-descriptive."
+  },
+  {
+    "field": "PreferredLifetime",
+    "description": "The preferred lifetime of the IPv6 address recorded by this event, after which the address becomes deprecated (RFC 4862 SLAAC concept).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer, seconds)",
+    "hunting_notes": "Standard IPv6 address-lifecycle configuration parameter; useful for network configuration auditing rather than direct threat hunting.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; 'PreferredLifetime' is standard IPv6 SLAAC terminology (RFC 4862)."
+  },
+  {
+    "field": "PrefixOrigin",
+    "description": "The origin (e.g. manual, DHCP, router advertisement) of the IPv6 address prefix recorded by this event.",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a short keyword matching Windows netsh PrefixOrigin values: Manual, WellKnown, Dhcp, RouterAdvertisement, Other)",
+    "hunting_notes": "Use to distinguish manually/statically configured IPv6 addresses from those obtained via SLAAC/DHCPv6 -- a manually-configured address on a host that shouldn't have one could indicate unauthorized network reconfiguration.",
+    "join_candidates": [
+      {
+        "to": "RouteOrigin",
+        "why": "analogous origin classification, applied to a route rather than an address prefix, on the same LocalIpAddressIP6 event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; 'PrefixOrigin' matches the standard Windows IPv6 addressing concept exposed via `Get-NetIPAddress`/`netsh interface ipv6`, though the exact value set isn't confirmed by a decode table here."
+  },
+  {
+    "field": "Prevalence",
+    "description": "A nested container holding file-prevalence data (how common/rare a file is observed to be) for this file-integrity-monitoring match, currently with a single child field, Prevalence.Key.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference Prevalence.Key directly; low file prevalence (rare across the fleet) alongside a FIM match on a sensitive path is a stronger signal than a highly prevalent, widely-seen file.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type blank, single event Event_FileIntegrityMonitorRuleMatchedEnriched, whose only co-occurring child is Prevalence.Key -- confirms a parent/child nested relationship, matching the container-field pattern established elsewhere in this KB; 'Prevalence' is a common security-telemetry term for how widely a file/hash is observed."
+  },
+  {
+    "field": "Prevalence.Key",
+    "description": "A key value (likely a file hash or identifier) used to look up the prevalence (how commonly the file is observed across the fleet/global telemetry) of the file matched by this file-integrity-monitoring rule.",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely a hash string used as a prevalence-lookup key)",
+    "hunting_notes": "The actual prevalence value/score isn't itself present as a separate field here, so this key is likely intended to be joined against an external prevalence dataset/service rather than read directly.",
+    "join_candidates": [
+      {
+        "to": "ContentDiff.SHA256",
+        "why": "if Prevalence.Key is a content hash, it would match the same file's hash recorded elsewhere on this event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, single event Event_FileIntegrityMonitorRuleMatchedEnriched, sole child of the Prevalence container; the name 'Key' rather than 'Value' or 'Score' suggests a lookup key rather than the prevalence result itself, but this isn't confirmed."
+  },
+  {
+    "field": "PreviousFileAttributesLinux",
+    "description": "The Linux file attributes (e.g. chattr-style flags) of the monitored file before the change recorded by this file-integrity-monitoring event, paired with NewFileAttributesLinux.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a bitmask or flag-name string matching Linux chattr-style attributes)",
+    "hunting_notes": "Compare against NewFileAttributesLinux to see exactly which attribute flags changed (e.g. immutable flag being cleared before tampering).",
+    "join_candidates": [
+      {
+        "to": "NewFileAttributesLinux",
+        "why": "before/after pair for the same file's Linux attributes on the same FileIntegrityMonitorRuleMatched event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event FileIntegrityMonitorRuleMatched, sibling of the already-enriched NewFileAttributesLinux field (batch_009); name unambiguous as its pre-change counterpart."
+  },
+  {
+    "field": "PreviousUnixPermissions",
+    "description": "The Unix permission bits (mode) of the monitored file before the change recorded by this file-integrity-monitoring event, paired with NewUnixPermissions.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely an octal permission-bits string, e.g. \"0644\")",
+    "hunting_notes": "Compare against NewUnixPermissions to see exactly how a file's permissions changed (e.g. gaining world-writable or setuid bits).",
+    "join_candidates": [
+      {
+        "to": "NewUnixPermissions",
+        "why": "before/after pair for the same file's Unix permissions on the same FileIntegrityMonitorRuleMatched event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FileIntegrityMonitorRuleMatched, sibling of the already-enriched NewUnixPermissions field (batch_009); name unambiguous as its pre-change counterpart."
+  },
+  {
+    "field": "ProductLanguage",
+    "description": "The language code of the MSI product installed, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely an LCID or short language code)",
+    "hunting_notes": "Software-inventory attribute rather than a direct threat signal; an unexpected language for the region could occasionally hint at a repackaged/counterfeit installer, but this is a weak signal.",
+    "join_candidates": [
+      {
+        "to": "ProductManufacturer",
+        "why": "sibling MSI product-metadata fields on the same MsiTransactionExecuted event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event MsiTransactionExecuted; 'ProductLanguage' is a standard Windows Installer (MSI) property name."
+  },
+  {
+    "field": "ProductManufacturer",
+    "description": "The manufacturer of the MSI product installed, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Use to identify the vendor of installed software; cross-reference against expected/approved software vendors for the environment.",
+    "join_candidates": [
+      {
+        "to": "ProductLanguage",
+        "why": "sibling MSI product-metadata fields on the same MsiTransactionExecuted event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event MsiTransactionExecuted; 'ProductManufacturer' is a standard Windows Installer (MSI) property name."
+  },
+  {
+    "field": "ProfileDisplayName",
+    "description": "The display name of the configuration profile that was modified, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Configuration profiles (e.g. macOS/MDM profiles) are a known mechanism for installing rogue certificates, proxy settings, or restrictions -- an unexpected or unfamiliar profile name is worth investigating alongside ProfileSource.",
+    "join_candidates": [
+      {
+        "to": "ProfileIdentifier",
+        "why": "sibling configuration-profile identity fields on the same ConfigurationProfileModified event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event ConfigurationProfileModified; name unambiguous."
+  },
+  {
+    "field": "ProfileIdentifier",
+    "description": "A stable identifier (e.g. a bundle-identifier-style string) for the configuration profile that was modified, as recorded by this event.",
+    "semantic_role": "identifier",
+    "data_format": "UTF-8 string (reverse-DNS-style identifier)",
+    "hunting_notes": "More reliable than ProfileDisplayName for tracking the same profile across modification events, since display names can be changed.",
+    "join_candidates": [
+      {
+        "to": "ProfileDisplayName",
+        "why": "sibling configuration-profile identity fields on the same ConfigurationProfileModified event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event ConfigurationProfileModified; name unambiguous."
+  },
+  {
+    "field": "ProfileScope",
+    "description": "The scope (e.g. system-wide vs. user-level) of the configuration profile that was modified, as recorded by this event.",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a short scope keyword, e.g. \"System\"/\"User\")",
+    "hunting_notes": "A system-scoped profile affects all users on the host and is generally higher-impact than a user-scoped one; useful for prioritizing profile-modification alerts.",
+    "join_candidates": [
+      {
+        "to": "ProfileSource",
+        "why": "sibling configuration-profile metadata fields on the same ConfigurationProfileModified event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event ConfigurationProfileModified; name self-descriptive though the exact scope vocabulary isn't confirmed by a decode table."
+  },
+  {
+    "field": "ProfileSource",
+    "description": "The source through which the configuration profile was installed/modified (e.g. MDM enrollment vs. manual local installation), as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a short source keyword)",
+    "hunting_notes": "A profile installed manually/locally rather than via the organization's MDM is a stronger signal of unauthorized or attacker-driven configuration -- rogue configuration profiles are a known technique for installing malicious root certificates or proxy redirection.",
+    "join_candidates": [
+      {
+        "to": "ProfileScope",
+        "why": "sibling configuration-profile metadata fields on the same ConfigurationProfileModified event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event ConfigurationProfileModified; name self-descriptive though the exact source vocabulary isn't confirmed by a decode table."
+  },
+  {
+    "field": "PupAdwareDecisionValue",
+    "description": "The local classifier's decision value for whether the activity described by the accompanying FeatureVector represents a Potentially-Unwanted-Program (PUP) or adware, delivered to the cloud by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a numeric or categorical decision value)",
+    "hunting_notes": "Direct local-ML verdict on PUP/adware activity; use alongside the sibling PupAdwareConfidence field (a separate field in this schema with a documented decode table: 0=NO_CONF, 1=LOW_CONF, 2=MEDIUM_CONF, 3=HIGH_CONF, 4=LOWEST_CONF) to gauge how confident the classifier was in this decision.",
+    "join_candidates": [
+      {
+        "to": "PupAdwareConfidence",
+        "why": "the decision value's accompanying confidence level, part of the same local PUP/adware classifier output",
+        "confidence": "high"
+      },
+      {
+        "to": "ModelPrediction",
+        "why": "both represent local-ML classifier outputs delivered via DeliverLocalFXToCloud events, though for potentially different classifiers",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event DeliverLocalFXToCloud; the existing 'PupAdwareConfidence' decode table in this KB's decode_tables.json confirms CrowdStrike has a documented local PUP/Adware classification concept, strongly corroborating this field's role as that classifier's decision output."
+  },
+  {
+    "field": "ReceiveLinkSpeed",
+    "description": "The receive link speed of the network interface, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer, bits per second)",
+    "hunting_notes": "Hardware/network configuration attribute; not a direct threat signal, but useful for identifying unexpected interface types (e.g. an unusually slow link suggesting a tethered/mobile connection) during asset triage.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; name self-descriptive."
+  },
+  {
+    "field": "ReflectiveDllName",
+    "description": "The name of the DLL that was reflectively loaded (loaded directly into memory without going through the normal Windows loader/disk-backed module path), as recorded by this event.",
+    "semantic_role": "file_path",
+    "data_format": "UTF-8 string (module name)",
+    "hunting_notes": "Reflective DLL loading is a well-known in-memory execution/evasion technique used by malware and offensive tooling (e.g. Cobalt Strike, Meterpreter) to avoid leaving a disk artifact; the named DLL and its hash (if available elsewhere) should be checked against known-malicious loader signatures.",
+    "join_candidates": [
+      {
+        "to": "InjectedDll",
+        "why": "both represent in-memory module-loading techniques, though DllInjection is process-injection while ReflectiveDllLoaded is loader-evasion",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event ReflectiveDllLoaded (event name matches concept); name and event together unambiguous."
+  },
+  {
+    "field": "RegConfigIndex",
+    "description": "An index classifying the type/configuration of the registry-based autostart-extensibility-point (ASEP) update flagged as suspicious by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a small integer matching an internal ASEP-classification enumeration)",
+    "hunting_notes": "Likely analogous to the already-documented RegClassification decode table (which enumerates ASEP categories such as SYSTEM_STARTUP_AUTORUN, USER_LOGON_AUTORUN, SERVICE, etc.) -- if the same enumeration applies here, this index would identify which category of autostart location was modified.",
+    "join_candidates": [
+      {
+        "to": "RegClassificationIndex",
+        "why": "both are registry-classification index fields in this schema; may share the same underlying RegClassification enumeration",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, single event SuspiciousRegAsepUpdate; name resembles the already-enriched RegClassificationIndex field (batch_001, tied to the RegClassification decode table in cim/decode_tables.json), but 'Config' rather than 'Classification' in the name and no direct decode-table hit for 'RegConfigIndex' itself keep this at low confidence."
+  },
+  {
+    "field": "RegCreateOptions",
+    "description": "The registry key creation options (e.g. matching Windows REG_OPTION_* flags such as volatile/backup/restore) used when the unsigned module accessed the registry as part of the SAM credential-hash dump recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a bitmask or flag-name string matching Windows registry create-option constants)",
+    "hunting_notes": "This event (SAMHashDumpFromUnsignedModule) is itself a high-severity credential-theft signal; the specific create options used (e.g. backup/restore privileges) can indicate the exact technique used to bypass normal SAM registry-hive access restrictions.",
+    "join_candidates": [
+      {
+        "to": "RegRootObjectName",
+        "why": "sibling registry-access-detail fields on the same SAMHashDumpFromUnsignedModule event",
+        "confidence": "high"
+      },
+      {
+        "to": "RegPostObjectName",
+        "why": "sibling registry-access-detail fields on the same SAMHashDumpFromUnsignedModule event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event SAMHashDumpFromUnsignedModule; 'RegCreateOptions' maps to standard Windows registry API terminology (RegCreateKeyEx's dwOptions parameter)."
+  },
+  {
+    "field": "RegPostObjectName",
+    "description": "The resulting registry object name/path after the registry operation performed during the SAM credential-hash dump recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a registry path string)",
+    "hunting_notes": "Part of the forensic reconstruction of exactly how an unsigned module navigated the registry to reach SAM secrets; use alongside RegRootObjectName/RegCreateOptions for the full access chain.",
+    "join_candidates": [
+      {
+        "to": "RegRootObjectName",
+        "why": "sibling registry-access-detail fields on the same SAMHashDumpFromUnsignedModule event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event SAMHashDumpFromUnsignedModule, sibling of RegRootObjectName/RegCreateOptions; 'Post' suggests the object name after the operation completed, though this KB doesn't confirm the exact semantic relative to RegRootObjectName."
+  },
+  {
+    "field": "RegRootObjectName",
+    "description": "The root registry object name/path (e.g. a hive or top-level key such as the SAM hive) used as the base for the registry access chain during the SAM credential-hash dump recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a registry hive/path string)",
+    "hunting_notes": "Identifies the starting point of the registry access used to reach SAM secrets; strong forensic detail for reconstructing exactly how an unsigned module extracted credential hashes.",
+    "join_candidates": [
+      {
+        "to": "RegPostObjectName",
+        "why": "sibling registry-access-detail fields on the same SAMHashDumpFromUnsignedModule event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event SAMHashDumpFromUnsignedModule; name self-descriptive for the root of a registry access chain."
+  },
+  {
+    "field": "RelatedClassifications",
+    "description": "A nested container of additional data classifications related to (but not the primary match of) this DLP detection, grouping RelatedClassifications.ID and .Name.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference the RelatedClassifications.* child fields directly; these are secondary classification matches alongside the primary MatchedClassification.",
+    "join_candidates": [
+      {
+        "to": "MatchedClassification",
+        "why": "primary vs. related/secondary data classifications on the same Event_DataProtectionDetectionSummaryEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank (nested/object), single event Event_DataProtectionDetectionSummaryEvent, co-occurring set is exactly its two children ID and Name -- confirms parent/child nested relationship, matching the pattern already established for MatchedClassification (batch_008) on the same event."
+  },
+  {
+    "field": "RelatedClassifications.ID",
+    "description": "The identifier of a data classification related to this DLP detection's primary match, paired with .Name.",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely numeric or short code)",
+    "hunting_notes": "Use with RelatedClassifications.Name and the primary MatchedClassification to see the full set of sensitive-data categories associated with this detection.",
+    "join_candidates": [
+      {
+        "to": "RelatedClassifications.Name",
+        "why": "ID/Name pair labeling the same related data classification",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event Event_DataProtectionDetectionSummaryEvent, sibling of Name within RelatedClassifications -- standard ID/Name pairing pattern seen elsewhere in this KB."
+  },
+  {
+    "field": "RelatedClassifications.Name",
+    "description": "The name of a data classification related to this DLP detection's primary match, paired with .ID.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Secondary classification context alongside the primary MatchedClassification.Name.",
+    "join_candidates": [
+      {
+        "to": "RelatedClassifications.ID",
+        "why": "ID/Name pair labeling the same related data classification",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event Event_DataProtectionDetectionSummaryEvent, sibling of ID within RelatedClassifications."
+  },
+  {
+    "field": "RemoteAddressMaskIP4",
+    "description": "The IPv4 address mask specified in the remote-address scope of the firewall rule created or modified, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "IPv4 subnet mask string",
+    "hunting_notes": "Part of understanding the scope of a new/modified firewall rule; pair with LocalAddressMaskIP4 for the full local/remote scope of the rule.",
+    "join_candidates": [
+      {
+        "to": "LocalAddressMaskIP4",
+        "why": "local/remote address mask pair for the same firewall rule on the same FirewallSetRuleIP4 event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FirewallSetRuleIP4, sibling of the already-enriched LocalAddressMaskIP4 field (batch_008); name unambiguous."
+  },
+  {
+    "field": "RemoteAddressMaskIP6",
+    "description": "The IPv6 address mask/prefix specified in the remote-address scope of the firewall rule created or modified, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "IPv6 subnet mask/prefix string",
+    "hunting_notes": "Part of understanding the scope of a new/modified firewall rule; pair with LocalAddressMaskIP6 for the full local/remote scope of the rule.",
+    "join_candidates": [
+      {
+        "to": "LocalAddressMaskIP6",
+        "why": "local/remote address mask pair for the same firewall rule on the same FirewallSetRuleIP6 event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FirewallSetRuleIP6, sibling of the already-enriched LocalAddressMaskIP6 field (batch_008); name unambiguous."
+  },
+  {
+    "field": "ResourceName",
+    "description": "The name of the specific resource (e.g. a process, file, registry key, or service) that tampering was attempted against, as recorded by this sensor-tampering event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "This event (SensorTampering) itself is a high-priority self-protection alert -- ResourceName is the primary field identifying exactly what an attacker or malicious process attempted to interfere with (e.g. the sensor's own process, driver, or configuration), critical for understanding the specific defense-evasion attempt.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event SensorTampering (a self-protection/anti-tampering detection event); name and event context together strongly indicate this identifies the targeted resource."
+  },
+  {
+    "field": "ResponseAction",
+    "description": "The response action taken for the data-loss-prevention detection recorded by this event (e.g. block, allow, audit-only).",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a short action keyword)",
+    "hunting_notes": "Distinguishes DLP detections that were actually enforced/blocked from those merely logged; mirrors DataProtectionPolicyRuleAction on the sensor-side DataEgress event, but at the cloud detection-summary level.",
+    "join_candidates": [
+      {
+        "to": "DataProtectionPolicyRuleAction",
+        "why": "analogous DLP response-action fields, on the cloud detection-summary event vs. the sensor-side DataEgress event respectively",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event Event_DataProtectionDetectionSummaryEvent; name self-descriptive though the exact action vocabulary isn't confirmed by a decode table."
+  },
+  {
+    "field": "RouteAge",
+    "description": "The age (time since added or last refreshed) of a route entry associated with the network interface, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer, seconds)",
+    "hunting_notes": "Standard networking route-table attribute; useful for network configuration auditing rather than direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "RouteMetric",
+        "why": "sibling route-detail fields on the same LocalIpAddressIP6 event",
+        "confidence": "medium"
+      },
+      {
+        "to": "RouteOrigin",
+        "why": "sibling route-detail fields on the same LocalIpAddressIP6 event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; name self-descriptive, standard route-table terminology."
+  },
+  {
+    "field": "RouteMetric",
+    "description": "The routing metric (priority) of a route entry associated with the network interface, as recorded by this event, distinct from the interface-level Metric field.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "A manually-lowered route metric on an unexpected route could indicate route-preference tampering to reroute traffic through an attacker-controlled path, though that reading isn't confirmed here.",
+    "join_candidates": [
+      {
+        "to": "Metric",
+        "why": "related but distinct routing-priority concepts (interface metric vs. per-route metric) on the same LocalIpAddressIP6 event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event LocalIpAddressIP6, sibling of the already-enriched Metric field (batch_008); 'Route' prefix distinguishes this as a per-route rather than per-interface metric."
+  },
+  {
+    "field": "RouteOrigin",
+    "description": "The origin (e.g. manual, DHCP, router advertisement) of a route entry associated with the network interface, as recorded by this event.",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a short keyword matching standard route-origin values)",
+    "hunting_notes": "Use to distinguish manually/statically configured routes from those obtained automatically -- a manually-added route on a host that shouldn't have one could indicate unauthorized network reconfiguration (e.g. for traffic redirection).",
+    "join_candidates": [
+      {
+        "to": "PrefixOrigin",
+        "why": "analogous origin classification, applied to an address prefix rather than a route, on the same LocalIpAddressIP6 event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event LocalIpAddressIP6, sibling of the already-enriched PrefixOrigin field (this batch); 'RouteOrigin' mirrors that same origin-classification concept applied to routes."
+  },
+  {
+    "field": "RouterDiscoveryBehavior",
+    "description": "The configured IPv6 router-discovery behavior (e.g. enabled, disabled, or DHCP-controlled) for the network interface, as recorded by this event.",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a short keyword matching Windows netsh router-discovery values)",
+    "hunting_notes": "Standard IPv6 stack configuration parameter; useful for network configuration auditing rather than direct threat hunting.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; matches the standard Windows IPv6 'RouterDiscovery' interface setting concept, though the exact value set isn't confirmed by a decode table here."
+  },
+  {
+    "field": "RuleMatchCountSinceLastReport",
+    "description": "The number of times the matched firewall rule fired since the sensor's last report of this counter, as recorded by this event.",
+    "semantic_role": "count",
+    "data_format": "long integer",
+    "hunting_notes": "Aggregated hit-count telemetry rather than a single-event log; a sudden spike in match count for a specific rule (e.g. a deny rule) can indicate scanning or repeated connection attempts against a blocked port.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=long, single event FirewallRuleIP4Matched; name unambiguous."
+  },
+  {
+    "field": "SamAccountName",
+    "description": "The sAMAccountName attribute of the Active Directory account created, as recorded by this event.",
+    "semantic_role": "user_id",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Standard AD account identifier; cross-reference new account creations against expected provisioning workflows -- an unexpected new account (especially with a privileged-sounding or lookalike name) is a classic persistence technique.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event ActiveDirectoryAccountCreated; 'sAMAccountName' is a standard, well-documented Active Directory user-object attribute."
+  },
+  {
+    "field": "ScopeZone",
+    "description": "The IPv6 scope zone index for the address recorded by this event, used to disambiguate link-local addresses across multiple interfaces (e.g. the \"%3\" suffix in fe80::1%3).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely small integer, matching the interface's zone index)",
+    "hunting_notes": "Standard IPv6 addressing detail; useful mainly for correctly matching a link-local address to the specific interface it belongs to on a multi-homed host.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; 'ScopeZone' matches the standard IPv6 scoped-address zone-index concept."
+  },
+  {
+    "field": "Score",
+    "description": "A numeric score for the automated threat lead recorded by this event, indicating its priority/confidence.",
+    "semantic_role": "other",
+    "data_format": "long integer",
+    "hunting_notes": "Use to triage/rank automated leads alongside LeadType and the accompanying MitreAttack/ThreatgraphIndicators context; higher scores should represent higher-priority leads for analyst review.",
+    "join_candidates": [
+      {
+        "to": "LeadId",
+        "why": "sibling identifying fields for the same automated lead on the same Event_AutomatedLeadSummaryEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=long, single event Event_AutomatedLeadSummaryEvent, co-occurring with LeadId/LeadType/MitreAttack/ThreatgraphIndicators; 'Score' is a standard scoring-field name and this event's context (an automated lead summary) confirms it's a lead-prioritization score."
+  },
+  {
+    "field": "ScriptInterpreter",
+    "description": "The interpreter (e.g. powershell.exe, wscript.exe, python) used to execute or intended to execute the script flagged as invalid by script control, as recorded by this event.",
+    "semantic_role": "file_path",
+    "data_format": "UTF-8 string (interpreter executable name/path)",
+    "hunting_notes": "Identifies which scripting engine handled the flagged content; useful for grouping detections by scripting technology (e.g. PowerShell vs. VBScript vs. Python) when triaging script-control alerts.",
+    "join_candidates": [
+      {
+        "to": "OriginalScriptContent",
+        "why": "sibling fields describing the same flagged script on the same ScriptControlDetectInvalidInfo event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event ScriptControlDetectInvalidInfo, sibling of the already-enriched OriginalScriptContent field (batch_009); name unambiguous."
+  }
+]

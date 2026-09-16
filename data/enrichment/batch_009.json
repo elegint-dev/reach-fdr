@@ -1,0 +1,739 @@
+[
+  {
+    "field": "NetworkAccesses.LocalAddress",
+    "description": "The local IP address of the network access recorded in this NetworkAccesses list entry.",
+    "semantic_role": "ip",
+    "data_format": "IPv4 or IPv6 string",
+    "hunting_notes": "Use with NetworkAccesses.IsIPV6 to interpret the address family, and with LocalPort/RemoteAddress/RemotePort to reconstruct the full connection tuple for this detection.",
+    "join_candidates": [
+      {
+        "to": "NetworkAccesses.RemoteAddress",
+        "why": "local/remote address pair for the same network access entry",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event Event_EppDetectionSummaryEvent, sibling of NetworkAccesses.RemoteAddress/.LocalPort/.RemotePort/.IsIPV6 within the already-established NetworkAccesses container (batch_008); name unambiguous."
+  },
+  {
+    "field": "NetworkAccesses.Protocol",
+    "description": "The IP protocol number of the network access recorded in this NetworkAccesses list entry (e.g. TCP, UDP, ICMP).",
+    "semantic_role": "enum",
+    "data_format": "decimal string matching IANA protocol numbers (decode table: 1=ICMP, 6=TCP, 17=UDP)",
+    "hunting_notes": "Use to distinguish TCP/UDP/ICMP network accesses within the detection's network-activity timeline.",
+    "join_candidates": [
+      {
+        "to": "NetworkAccesses.RemotePort",
+        "why": "protocol and port together characterize the same network access entry",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event Event_EppDetectionSummaryEvent, sibling within the NetworkAccesses container (batch_008); DECODE TABLE HIT: crowdstrike_Protocol.csv maps 1=ICMP, 6=TCP, 17=UDP."
+  },
+  {
+    "field": "NetworkAccesses.RemoteAddress",
+    "description": "The remote IP address of the network access recorded in this NetworkAccesses list entry.",
+    "semantic_role": "ip",
+    "data_format": "IPv4 or IPv6 string",
+    "hunting_notes": "Primary field for identifying external hosts contacted as part of the activity leading to this detection -- check against threat-intel IP reputation and known C2 infrastructure.",
+    "join_candidates": [
+      {
+        "to": "NetworkAccesses.LocalAddress",
+        "why": "local/remote address pair for the same network access entry",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event Event_EppDetectionSummaryEvent, sibling within the NetworkAccesses container (batch_008); name unambiguous."
+  },
+  {
+    "field": "NetworkConnectCountUdp",
+    "description": "The count of UDP connections established by the process over its lifetime, as recorded in this end-of-process summary event.",
+    "semantic_role": "count",
+    "data_format": "long integer",
+    "hunting_notes": "A high UDP connection count from a process not expected to do networking (e.g. a document viewer or utility) can indicate C2 beaconing, scanning, or DNS-based exfiltration; compare against a TCP-connection-count sibling if present for full network-behavior profiling.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=long, single event EndOfProcess (a process-lifetime summary event); name unambiguous."
+  },
+  {
+    "field": "NewFileAttributesLinux",
+    "description": "The Linux file attributes (e.g. extended flags such as immutable/append-only) of the monitored file after the change recorded by this file-integrity-monitoring event, paired with a PreviousFileAttributesLinux sibling.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a bitmask or flag-name string matching Linux chattr-style attributes)",
+    "hunting_notes": "Comparing New vs. Previous file attributes can reveal an attacker clearing the immutable/append-only flag on a monitored file before tampering with it, or setting it afterward to entrench a change against removal.",
+    "join_candidates": [
+      {
+        "to": "NewUnixPermissions",
+        "why": "sibling new-state fields describing the same post-change file on the same FileIntegrityMonitorRuleMatched event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event FileIntegrityMonitorRuleMatched, co-occurring with PreviousFileAttributesLinux/NewUnixPermissions/PreviousUnixPermissions/ObjectName/ObjectNameNew -- 'Linux' suffix and 'chattr'-style attribute naming pattern confirmed by the event's other Linux-specific fields (IsEBPF, RUID, UID)."
+  },
+  {
+    "field": "NewFileIdentifier",
+    "description": "An identifier for the file after it was renamed, as recorded by this event.",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely an inode-derived or CrowdStrike-internal file identifier)",
+    "hunting_notes": "Renaming a newly-created executable (rather than the file simply appearing with its final name) is a mild evasion/staging pattern worth correlating with the file's original name and hash.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event NewExecutableRenamed (event name matches concept); name self-descriptive for identifying the renamed file, though the exact identifier scheme (inode vs. internal ID) isn't confirmed in this KB."
+  },
+  {
+    "field": "NewUnixPermissions",
+    "description": "The Unix permission bits (mode) of the monitored file after the change recorded by this file-integrity-monitoring event, paired with a PreviousUnixPermissions sibling.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely an octal permission-bits string, e.g. \"0755\")",
+    "hunting_notes": "Comparing New vs. Previous permissions can reveal privilege-widening changes (e.g. a script gaining world-writable or setuid bits) on a monitored file or directory.",
+    "join_candidates": [
+      {
+        "to": "NewFileAttributesLinux",
+        "why": "sibling new-state fields describing the same post-change file on the same FileIntegrityMonitorRuleMatched event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FileIntegrityMonitorRuleMatched, co-occurring with PreviousUnixPermissions/NewFileAttributesLinux; name unambiguous for Unix file-permission semantics."
+  },
+  {
+    "field": "NewUserID",
+    "description": "The user ID (UID) the process switched to, as recorded by this user-substitution (su/sudo-style) event.",
+    "semantic_role": "user_id",
+    "data_format": "decimal string (Unix UID)",
+    "hunting_notes": "Pair with OriginalUserID to see the privilege transition (e.g. an unprivileged user switching to root/UID 0); a switch to UID 0 outside expected admin workflows is a strong privilege-escalation signal.",
+    "join_candidates": [
+      {
+        "to": "OriginalUserID",
+        "why": "before/after UID pair for the same user-substitution event",
+        "confidence": "high"
+      },
+      {
+        "to": "NewUsername",
+        "why": "UID/username pair for the same post-substitution identity",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event ProcessSubstituteUser, co-occurring with OriginalUserID/NewUsername/ExecutionShell (already enriched in batch_006); name unambiguous."
+  },
+  {
+    "field": "NewUsername",
+    "description": "The username corresponding to NewUserID, i.e. the account the process switched to, as recorded by this user-substitution event.",
+    "semantic_role": "user_id",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Human-readable counterpart to NewUserID; use both together since usernames can be ambiguous across systems while the UID is authoritative.",
+    "join_candidates": [
+      {
+        "to": "NewUserID",
+        "why": "UID/username pair for the same post-substitution identity",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event ProcessSubstituteUser; name unambiguous."
+  },
+  {
+    "field": "NlMtu",
+    "description": "The Network Layer MTU configured for the network interface, as recorded by this event (the Windows IPv6 stack's \"NlMtu\" interface parameter).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer, in bytes)",
+    "hunting_notes": "Standard IPv6 stack configuration parameter (visible via `netsh interface ipv6 show interface` on Windows as \"NL MTU\"); useful for network configuration auditing rather than direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "InterfaceMtu",
+        "why": "both describe an MTU value for the same network interface on LocalIpAddressIP6, possibly at different stack layers",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event LocalIpAddressIP6, sibling of InterfaceMtu (already enriched, batch_007); 'NlMtu' matches the Windows netsh IPv6 interface parameter name (Network Layer MTU) exactly."
+  },
+  {
+    "field": "NumberOfDiskDrives",
+    "description": "The number of disk drives present on the host, as recorded by this event.",
+    "semantic_role": "count",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Hardware/asset-inventory field, not a direct threat signal.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DiskCapacity; name unambiguous."
+  },
+  {
+    "field": "NumberOfMeasurements",
+    "description": "The count of measurements taken during the firmware image analysis recorded by this event.",
+    "semantic_role": "count",
+    "data_format": "unknown (likely integer)",
+    "hunting_notes": "Diagnostic/completeness metric for the firmware analysis process; a lower-than-expected count could indicate an incomplete or truncated firmware read, but this is an indirect signal.",
+    "join_candidates": [
+      {
+        "to": "MillisecondsToReadFirmware",
+        "why": "sibling firmware-analysis diagnostic fields on the same FirmwareImageAnalyzed event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event FirmwareImageAnalyzed, sibling of MillisecondsToReadFirmware (already enriched, batch_008); name self-descriptive."
+  },
+  {
+    "field": "OSVersionFileData",
+    "description": "Raw version/release data read from an OS version file (e.g. a release-info file's contents), as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely raw text content)",
+    "hunting_notes": "Provides the underlying raw source data behind the host's parsed OS version fields; useful mainly for verifying or debugging OS-version detection rather than direct threat hunting.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event OsVersionInfo; name self-descriptive for raw OS-version source data."
+  },
+  {
+    "field": "ObjectName",
+    "description": "The name/path of the file or registry object that matched the file-integrity-monitoring rule recorded by this event.",
+    "semantic_role": "file_path",
+    "data_format": "UTF-8 string (file path or registry key path)",
+    "hunting_notes": "Primary field identifying which monitored object changed; pair with ObjectNameNew when the change was a rename, and ObjectType to know whether this is a file or registry object.",
+    "join_candidates": [
+      {
+        "to": "ObjectNameNew",
+        "why": "original vs. renamed-to name for the same monitored object on the same FileIntegrityMonitorRuleMatched event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank, single event FileIntegrityMonitorRuleMatched, co-occurring with ObjectNameNew/ObjectType/ObjectAccessOperationType; name unambiguous."
+  },
+  {
+    "field": "ObjectNameEtw",
+    "description": "The name of the Active Directory object (e.g. a distinguished name or domain) targeted by the directory-replication request captured by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely an AD distinguished name or domain string)",
+    "hunting_notes": "This event (DCSyncAttempted) itself flags a DCSync-style directory-replication request -- a well-known technique for dumping AD credentials (e.g. via mimikatz's lsadump::dcsync); ObjectNameEtw identifies exactly which AD object/domain the replication targeted, which is valuable for scoping the blast radius of a suspected credential-theft attempt.",
+    "join_candidates": [
+      {
+        "to": "ObjectTypeEtw",
+        "why": "sibling ETW-captured object-detail fields on the same DCSyncAttempted event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event DCSyncAttempted (a well-documented AD credential-theft technique), co-occurring with ObjectTypeEtw/SubjectDomainNameEtw/ServiceAccessPropertiesEtw; the 'Etw' suffix indicates this was captured via Windows Event Tracing rather than the sensor's own instrumentation."
+  },
+  {
+    "field": "ObjectNameNew",
+    "description": "The new name/path of the object after being renamed, as recorded by this file-integrity-monitoring event, paired with the original ObjectName.",
+    "semantic_role": "file_path",
+    "data_format": "UTF-8 string (file path or registry key path)",
+    "hunting_notes": "Populated specifically for rename operations; use with ObjectName to see both sides of the rename when investigating a monitored file/key being moved or renamed to evade detection.",
+    "join_candidates": [
+      {
+        "to": "ObjectName",
+        "why": "original vs. renamed-to name for the same monitored object on the same FileIntegrityMonitorRuleMatched event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank, single event FileIntegrityMonitorRuleMatched, sibling of ObjectName; name unambiguous."
+  },
+  {
+    "field": "ObjectTypeEtw",
+    "description": "The type of Active Directory object or replication request targeted, as recorded by this DCSync-detection event.",
+    "semantic_role": "enum",
+    "data_format": "unknown (stored as match_only_text; likely an AD object-class or replication-scope string)",
+    "hunting_notes": "Complements ObjectNameEtw by describing what kind of object/attribute set was requested in the suspected DCSync replication attempt (e.g. user credentials vs. other directory data).",
+    "join_candidates": [
+      {
+        "to": "ObjectNameEtw",
+        "why": "sibling ETW-captured object-detail fields on the same DCSyncAttempted event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event DCSyncAttempted; 'Etw' suffix indicates Event Tracing for Windows capture, consistent with ObjectNameEtw."
+  },
+  {
+    "field": "OciContainerAppName",
+    "description": "The application name reported for the OCI (Docker-compatible) container described by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Use for inventory/identification of what application a container is running; cross-reference against expected container workloads for the host.",
+    "join_candidates": [
+      {
+        "to": "OciContainerName",
+        "why": "sibling container-identity fields on the same OciContainerInfo event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event OciContainerInfo (a container-introspection event whose sibling fields -- ConfigImage, ConfigLabels, Mounts, StatePid, StateOOMKilled -- map directly onto standard Docker/OCI 'inspect' API concepts)."
+  },
+  {
+    "field": "OciContainerConfigImage",
+    "description": "The container image name (e.g. \"nginx:latest\") the container described by this event was created from.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (image name, optionally with tag/digest)",
+    "hunting_notes": "Primary field for identifying which image a running container came from; check against known/approved image registries and tags for unauthorized or suspicious images (e.g. pulled from an unfamiliar registry).",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event OciContainerInfo; maps directly to the standard Docker inspect API's Config.Image field."
+  },
+  {
+    "field": "OciContainerConfigLabels",
+    "description": "The configuration labels (key-value metadata) attached to the container described by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a serialized key-value label set)",
+    "hunting_notes": "Labels often carry orchestration metadata (e.g. Kubernetes pod/namespace labels); useful for attributing a container to its owning workload/orchestrator.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event OciContainerInfo; maps directly to the standard Docker inspect API's Config.Labels field."
+  },
+  {
+    "field": "OciContainerConfigTty",
+    "description": "Whether the container described by this event was configured with a TTY allocated (interactive terminal mode).",
+    "semantic_role": "bool",
+    "data_format": "unknown (stored as match_only_text; likely a stringified boolean)",
+    "hunting_notes": "A TTY-allocated container suggests interactive shell access was expected/used; useful when investigating whether a container was used as an interactive attacker foothold versus a normal background service.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event OciContainerInfo; maps directly to the standard Docker inspect API's Config.Tty field."
+  },
+  {
+    "field": "OciContainerHostConfigPublishAllPorts",
+    "description": "Whether the container described by this event was configured to publish all of its exposed ports to the host.",
+    "semantic_role": "bool",
+    "data_format": "unknown (stored as match_only_text; likely a stringified boolean)",
+    "hunting_notes": "Publishing all container ports widens the host's exposed attack surface; a container running with this enabled unexpectedly is worth flagging during container security review.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event OciContainerInfo; maps directly to the standard Docker inspect API's HostConfig.PublishAllPorts field."
+  },
+  {
+    "field": "OciContainerInfoRetransmitted",
+    "description": "Whether this OciContainerInfo event is a retransmission of previously-sent container information, as recorded by the sensor.",
+    "semantic_role": "bool",
+    "data_format": "unknown (stored as match_only_text; likely a stringified boolean)",
+    "hunting_notes": "Sensor-bookkeeping flag; when true, this event duplicates an earlier one and shouldn't be double-counted when tallying distinct container-info reports.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event OciContainerInfo; name self-descriptive for a retransmission/deduplication flag rather than a Docker API concept (unlike its ConfigImage/ConfigLabels/etc. siblings)."
+  },
+  {
+    "field": "OciContainerMounts",
+    "description": "The volume/bind mounts configured for the container described by this event.",
+    "semantic_role": "file_path",
+    "data_format": "unknown (stored as match_only_text; likely a serialized list of mount source/destination paths)",
+    "hunting_notes": "A container with sensitive host paths bind-mounted in (e.g. the Docker socket, /etc, or root filesystem paths) is a well-known container-escape/privilege-escalation risk -- inspect this field for such mounts.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event OciContainerInfo; maps directly to the standard Docker inspect API's Mounts field."
+  },
+  {
+    "field": "OciContainerName",
+    "description": "The name assigned to the container described by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Human-readable container identifier for inventory and correlation with orchestration platform records.",
+    "join_candidates": [
+      {
+        "to": "OciContainerId",
+        "why": "name/ID pair identifying the same container on the same OciContainerInfo event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event OciContainerInfo; maps directly to the standard Docker inspect API's Name field."
+  },
+  {
+    "field": "OciContainerStateOOMKilled",
+    "description": "Whether the container's main process was killed by the Linux out-of-memory (OOM) killer, as recorded by this event.",
+    "semantic_role": "bool",
+    "data_format": "unknown (stored as match_only_text; likely a stringified boolean)",
+    "hunting_notes": "Mostly an operational/reliability signal; a pattern of repeated OOM kills could indicate a resource-exhaustion attack (e.g. cryptomining or a memory-based DoS) against the container.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event OciContainerInfo; maps directly to the standard Docker inspect API's State.OOMKilled field."
+  },
+  {
+    "field": "OciContainerStatePid",
+    "description": "The host-visible process ID (PID) of the container's main process, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a decimal PID)",
+    "hunting_notes": "Use to pivot from container-level telemetry to host-level process telemetry (e.g. matching against RawProcessId on process events) for the container's main process, keeping in mind OS PIDs are recycled and should be scoped by host and time.",
+    "join_candidates": [
+      {
+        "to": "RawProcessId",
+        "why": "both represent an OS-visible PID; RawProcessId's documented recycling caveat in this KB (translations.json) applies equally here",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event OciContainerInfo; maps directly to the standard Docker inspect API's State.Pid field, which is a host-namespace PID."
+  },
+  {
+    "field": "OdsCPUPriority",
+    "description": "The CPU scheduling priority assigned to the on-demand scan (ODS) process, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a small integer priority value)",
+    "hunting_notes": "Operational/performance-tuning detail for the antivirus on-demand scan; not a direct threat signal.",
+    "join_candidates": [
+      {
+        "to": "OdsPreemptionPriority",
+        "why": "sibling scan-scheduling priority fields on the same OdsStarted event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event OdsStarted, co-occurring with OdsPreemptionPriority/OdsEndpointNotification/OdsQuarantineFile/OdsScanId/OdsScanType/OdsProfileId -- 'Ods' (On-Demand Scan) is standard antivirus-industry terminology for a scheduled/manual malware scan, distinct from real-time protection."
+  },
+  {
+    "field": "OdsEndpointNotification",
+    "description": "The endpoint (user-facing) notification setting for the on-demand scan (ODS), as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a boolean or short enum value)",
+    "hunting_notes": "Operational scan-configuration detail; not a direct threat signal, but relevant when auditing whether users are alerted to scan results/detections.",
+    "join_candidates": [
+      {
+        "to": "OdsQuarantineFile",
+        "why": "sibling on-demand-scan configuration fields on the same OdsStarted event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event OdsStarted; name self-descriptive within the established 'Ods' (On-Demand Scan) field family."
+  },
+  {
+    "field": "OdsIsFileQuarantined",
+    "description": "Whether the malicious file found by the on-demand scan (ODS) was quarantined, as recorded by this event.",
+    "semantic_role": "bool",
+    "data_format": "unknown (likely a stringified boolean)",
+    "hunting_notes": "Per-detection outcome flag -- distinguishes a scan finding that was actually remediated (quarantined) from one that was only detected/logged, important for verifying whether follow-up remediation is still needed.",
+    "join_candidates": [
+      {
+        "to": "OdsQuarantineFile",
+        "why": "per-detection quarantine outcome vs. the scan-level quarantine policy setting on related Ods* events",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event OdsMaliciousFileFound; name unambiguous within the established 'Ods' (On-Demand Scan) field family."
+  },
+  {
+    "field": "OdsPreemptionPriority",
+    "description": "The thread/process preemption priority assigned to the on-demand scan (ODS), as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a small integer priority value)",
+    "hunting_notes": "Operational/performance-tuning detail; not a direct threat signal.",
+    "join_candidates": [
+      {
+        "to": "OdsCPUPriority",
+        "why": "sibling scan-scheduling priority fields on the same OdsStarted event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event OdsStarted; name self-descriptive within the established 'Ods' (On-Demand Scan) field family."
+  },
+  {
+    "field": "OdsQuarantineFile",
+    "description": "Whether the on-demand scan (ODS) is configured to quarantine files it identifies as malicious, as recorded by this event.",
+    "semantic_role": "bool",
+    "data_format": "unknown (likely a stringified boolean)",
+    "hunting_notes": "Scan-policy setting rather than a per-detection outcome; if disabled, malicious files found by this scan may only be logged rather than remediated -- worth checking when a known-bad file wasn't actually quarantined.",
+    "join_candidates": [
+      {
+        "to": "OdsIsFileQuarantined",
+        "why": "scan-level quarantine policy setting vs. the per-detection quarantine outcome on related Ods* events",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event OdsStarted; name self-descriptive within the established 'Ods' (On-Demand Scan) field family."
+  },
+  {
+    "field": "OriginalScriptContent",
+    "description": "The original (pre-processing) content of a script that was flagged as invalid by script control, as recorded by this event.",
+    "semantic_role": "command",
+    "data_format": "UTF-8 text (script source)",
+    "hunting_notes": "High-value field when populated -- the literal source of a script that script control couldn't validate/parse normally, which is itself often a sign of obfuscation or malformed/malicious script content.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event ScriptControlDetectInvalidInfo (event name indicates script control flagged invalid script content); name self-descriptive."
+  },
+  {
+    "field": "OriginalUserID",
+    "description": "The user ID (UID) of the account before the substitution recorded by this event (the original/calling user), paired with NewUserID.",
+    "semantic_role": "user_id",
+    "data_format": "decimal string (Unix UID)",
+    "hunting_notes": "Pair with NewUserID to see the full privilege transition of a su/sudo-style substitution; an unexpected low-privilege-to-root transition is the key signal here.",
+    "join_candidates": [
+      {
+        "to": "NewUserID",
+        "why": "before/after UID pair for the same user-substitution event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event ProcessSubstituteUser, sibling of NewUserID/NewUsername/ExecutionShell; name unambiguous."
+  },
+  {
+    "field": "OutBroadcastOctets",
+    "description": "The count of outbound broadcast octets (bytes) sent on the network interface, as recorded by this event.",
+    "semantic_role": "count",
+    "data_format": "unknown (likely integer counter)",
+    "hunting_notes": "Standard interface traffic counter; coarse baseline rather than a direct detection signal.",
+    "join_candidates": [
+      {
+        "to": "InBroadcastOctets",
+        "why": "inbound/outbound pair of the same broadcast-traffic counter on the same LocalIpAddressIP6 event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; mirrors the already-enriched InBroadcastOctets field (batch_008) as its outbound counterpart, matching standard IF-MIB interface-counter terminology."
+  },
+  {
+    "field": "OutDiscards",
+    "description": "The count of outbound packets discarded on the network interface, as recorded by this event.",
+    "semantic_role": "count",
+    "data_format": "unknown (likely integer counter)",
+    "hunting_notes": "Standard interface error/discard counter; a rising discard count could reflect network congestion or interface misconfiguration rather than malicious activity.",
+    "join_candidates": [
+      {
+        "to": "OutBroadcastOctets",
+        "why": "sibling interface traffic/error counters on the same LocalIpAddressIP6 event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; matches the already-enriched InDiscards field's naming convention (batch_003) as its outbound counterpart, standard IF-MIB terminology."
+  },
+  {
+    "field": "OutMulticastOctets",
+    "description": "The count of outbound multicast octets (bytes) sent on the network interface, as recorded by this event.",
+    "semantic_role": "count",
+    "data_format": "unknown (likely integer counter)",
+    "hunting_notes": "Standard interface traffic counter; coarse baseline rather than a direct detection signal.",
+    "join_candidates": [
+      {
+        "to": "InMulticastOctets",
+        "why": "inbound/outbound pair of the same multicast-traffic counter on the same LocalIpAddressIP6 event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; mirrors the already-enriched InMulticastOctets field (batch_008)."
+  },
+  {
+    "field": "OutNUcastPkts",
+    "description": "The count of outbound non-unicast (broadcast + multicast) packets sent on the network interface, as recorded by this event.",
+    "semantic_role": "count",
+    "data_format": "unknown (likely integer counter)",
+    "hunting_notes": "Standard interface traffic counter; coarse baseline rather than a direct detection signal.",
+    "join_candidates": [
+      {
+        "to": "InNUcastPkts",
+        "why": "inbound/outbound pair of the same non-unicast packet counter on the same LocalIpAddressIP6 event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; mirrors the already-enriched InNUcastPkts field (batch_008)."
+  },
+  {
+    "field": "OutUcastOctets",
+    "description": "The count of outbound unicast octets (bytes) sent on the network interface, as recorded by this event.",
+    "semantic_role": "count",
+    "data_format": "unknown (likely integer counter)",
+    "hunting_notes": "Standard interface traffic counter; coarse baseline rather than a direct detection signal.",
+    "join_candidates": [
+      {
+        "to": "InUcastOctets",
+        "why": "inbound/outbound pair of the same unicast-traffic counter on the same LocalIpAddressIP6 event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; mirrors the already-enriched InUcastOctets field (batch_008)."
+  },
+  {
+    "field": "Parameter1",
+    "description": "A generic parameter value accompanying the error recorded by this event, likely a substitution value for the error message/code.",
+    "semantic_role": "other",
+    "data_format": "unknown",
+    "hunting_notes": "Interpretation depends entirely on which error code/facility this parameter accompanies; without a decode table mapping error codes to their parameter meanings, treat as opaque context data.",
+    "join_candidates": [
+      {
+        "to": "Parameter2",
+        "why": "sibling generic error parameters on the same ErrorEvent",
+        "confidence": "medium"
+      },
+      {
+        "to": "Facility",
+        "why": "the error facility/context that would define this parameter's meaning on the same ErrorEvent",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, single event ErrorEvent, co-occurring with Parameter2/Parameter3/Facility/Line -- generic numbered-parameter naming (similar to Windows Event Log %1/%2/%3 substitution values) whose specific meaning varies by error and isn't resolved by this KB."
+  },
+  {
+    "field": "Parameter2",
+    "description": "A generic parameter value accompanying the error recorded by this event, likely a substitution value for the error message/code.",
+    "semantic_role": "other",
+    "data_format": "unknown",
+    "hunting_notes": "See Parameter1 -- interpretation depends on the specific error/facility.",
+    "join_candidates": [
+      {
+        "to": "Parameter1",
+        "why": "sibling generic error parameters on the same ErrorEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, single event ErrorEvent, sibling of Parameter1/Parameter3; same reasoning as Parameter1."
+  },
+  {
+    "field": "Parameter3",
+    "description": "A generic parameter value accompanying the error recorded by this event, likely a substitution value for the error message/code.",
+    "semantic_role": "other",
+    "data_format": "unknown",
+    "hunting_notes": "See Parameter1 -- interpretation depends on the specific error/facility.",
+    "join_candidates": [
+      {
+        "to": "Parameter1",
+        "why": "sibling generic error parameters on the same ErrorEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, single event ErrorEvent, sibling of Parameter1/Parameter2; same reasoning as Parameter1."
+  },
+  {
+    "field": "Parameter64_1",
+    "description": "A generic 64-bit parameter value accompanying the error recorded by this script-control error event, likely a substitution value for the error message/code.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a 64-bit integer or address)",
+    "hunting_notes": "Interpretation depends entirely on which script-control error code this parameter accompanies; treat as opaque context data without a decode table.",
+    "join_candidates": [
+      {
+        "to": "Parameter64_2",
+        "why": "sibling generic error parameters on the same ScriptControlErrorEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, single event ScriptControlErrorEvent; the '64' suffix suggests these hold 64-bit values (e.g. addresses or large codes) distinct from the plain Parameter1/2/3 fields on the generic ErrorEvent, but the specific per-error meaning isn't resolved by this KB."
+  },
+  {
+    "field": "Parameter64_2",
+    "description": "A generic 64-bit parameter value accompanying the error recorded by this script-control error event, likely a substitution value for the error message/code.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a 64-bit integer or address)",
+    "hunting_notes": "See Parameter64_1 -- interpretation depends on the specific script-control error.",
+    "join_candidates": [
+      {
+        "to": "Parameter64_1",
+        "why": "sibling generic error parameters on the same ScriptControlErrorEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, single event ScriptControlErrorEvent, sibling of Parameter64_1/Parameter64_3; same reasoning as Parameter64_1."
+  },
+  {
+    "field": "Parameter64_3",
+    "description": "A generic 64-bit parameter value accompanying the error recorded by this script-control error event, likely a substitution value for the error message/code.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a 64-bit integer or address)",
+    "hunting_notes": "See Parameter64_1 -- interpretation depends on the specific script-control error.",
+    "join_candidates": [
+      {
+        "to": "Parameter64_1",
+        "why": "sibling generic error parameters on the same ScriptControlErrorEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, single event ScriptControlErrorEvent, sibling of Parameter64_1/Parameter64_2; same reasoning as Parameter64_1."
+  },
+  {
+    "field": "ParentProcessPatternIdList",
+    "description": "A list of detection pattern IDs previously associated with the parent process in the lineage of the handle-operation detection recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of pattern-ID values)",
+    "hunting_notes": "Lets a hunter see whether the immediate parent process in this handle-operation's lineage has triggered other detections; use alongside GrandparentProcessPatternIdList to assess the full ancestry's detection history.",
+    "join_candidates": [
+      {
+        "to": "GrandparentProcessPatternIdList",
+        "why": "sibling ancestry-level pattern-ID list fields on the same FalconProcessHandleOpDetectInfo event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event FalconProcessHandleOpDetectInfo; mirrors the already-enriched GrandparentProcessPatternIdList field (batch_007) one level closer in the process lineage."
+  },
+  {
+    "field": "ParentSHA256HashData",
+    "description": "The SHA256 hash of the parent process's image, as recorded in the process-ancestry information for this event.",
+    "semantic_role": "hash",
+    "data_format": "hex string (SHA256, 64 hex chars)",
+    "hunting_notes": "Extends hash-based process-lineage tracking to the immediate parent process; use to spot a known-bad parent binary and to correlate the same parent across multiple child-process events by hash rather than name/path alone.",
+    "join_candidates": [
+      {
+        "to": "GrandparentSHA256HashData",
+        "why": "sibling ancestry-level hash fields on the same ProcessAncestryInformation event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event ProcessAncestryInformation; mirrors the already-enriched GrandparentSHA256HashData field (batch_007) one level closer in the process lineage."
+  },
+  {
+    "field": "PathMtuDiscoveryTimeout",
+    "description": "The configured timeout for Path MTU Discovery on the network interface, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer, seconds)",
+    "hunting_notes": "Standard TCP/IP stack configuration parameter; useful for network configuration auditing rather than direct threat hunting.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; 'Path MTU Discovery' is standard TCP/IP terminology (RFC 1191/1981)."
+  },
+  {
+    "field": "PatternDispositionFlags.ContainmentFileSystem",
+    "description": "Whether filesystem-scoped containment was applied by the sensor as part of remediating this detection, distinct from the full-machine network containment captured by PatternDispositionFlags.QuarantineMachine.",
+    "semantic_role": "bool",
+    "data_format": "boolean (bit of the PatternDispositionValue bitmask)",
+    "hunting_notes": "Part of the standard CrowdStrike detection-response bitmask; interpret alongside sibling PatternDispositionFlags.* fields to understand the full remediation/response state of a detection.",
+    "join_candidates": [
+      {
+        "to": "PatternDispositionDescription",
+        "why": "the text description summarizes the same overall pattern-disposition bitmask this flag is one bit of",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=boolean, single event Event_EppDetectionSummaryEvent, sub-field of the PatternDispositionFlags bitmask alongside already-enriched siblings (QuarantineMachine, RegistryOperationBlocked, FsOperationBlocked, etc. from batch_004); 'ContainmentFileSystem' plausibly reads as filesystem-scoped containment by analogy with the other operation-scoped Blocked/Contained flags in this bitmask, but CrowdStrike's exact distinction between this flag and QuarantineMachine isn't documented in this KB."
+  },
+  {
+    "field": "Pcr0",
+    "description": "The value of TPM Platform Configuration Register 0 (PCR0), which measures the host's core root of trust/BIOS firmware code, as recorded by this event.",
+    "semantic_role": "hash",
+    "data_format": "unknown (stored as match_only_text; likely a hex hash value, e.g. SHA1 or SHA256 per the TPM's configured bank)",
+    "hunting_notes": "PCR0 changing between boots (outside of an expected firmware update) is strong evidence of firmware/bootkit tampering; use alongside BiosChanged/ChangedPcrBitmap to confirm whether PCR0 specifically was affected.",
+    "join_candidates": [
+      {
+        "to": "ChangedPcrBitmap",
+        "why": "ChangedPcrBitmap would indicate whether PCR0 specifically is among the registers that changed on the same TcgPcrInfo event",
+        "confidence": "high"
+      },
+      {
+        "to": "BiosChanged",
+        "why": "PCR0 (BIOS/CRTM measurement) changing is the direct TPM evidence behind a BiosChanged flag on the same TcgPcrInfo event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event TcgPcrInfo, alongside already-enriched BiosChanged/ChangedPcrBitmap (batch_005); 'PCR0' is standard TCG/TPM terminology for the first Platform Configuration Register, universally defined as measuring core/firmware boot code."
+  }
+]

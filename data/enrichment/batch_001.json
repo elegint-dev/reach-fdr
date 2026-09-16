@@ -1,0 +1,739 @@
+[
+  {
+    "field": "EventOrigin",
+    "description": "An integer code present on almost all FDR events (236/275) that appears to identify which internal sensor subsystem, code path, or collection mechanism generated the event. No decode table or CIM mapping is available for it, so the specific meaning of each value cannot be confirmed from this KB.",
+    "semantic_role": "enum",
+    "data_format": "small integer (decimal)",
+    "hunting_notes": "Because it rides on nearly every event, some hunters treat it as a coarse provenance/quality signal (e.g. distinguishing kernel-mode vs user-mode or ETW vs driver-sourced telemetry) but no authoritative mapping is available here, so do not build detection logic on specific values without confirming them against CrowdStrike's own schema docs.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "Name convention only ('origin' suggests provenance/source). type=integer, present on 236 of 275 events with no common co-occurring fields beyond the universal envelope, decode_field=None, no rows in cim/decode_tables.csv, cim_reachable=False. No documentation source on disk defines its value space."
+  },
+  {
+    "field": "ComputerName",
+    "description": "The NetBIOS/hostname of the endpoint the sensor is running on (or, on cloud-asset events such as AwsEc2Instance/AzureVirtualMachine, the reported instance name). Distinct from 'aid', which is CrowdStrike's opaque agent ID.",
+    "semantic_role": "identifier",
+    "data_format": "UTF-8 string (hostname)",
+    "hunting_notes": "Primary human-readable host identifier for pivoting and reporting; use alongside 'aid' since hostnames can be reused/renamed while aid is stable. Also appears on cloud inventory events (Azure/AWS/GCP), where it may reflect the cloud resource's configured name rather than an OS hostname.",
+    "join_candidates": [
+      {
+        "to": "aid",
+        "why": "aid is the stable per-sensor identifier for the same host that ComputerName names in human-readable form",
+        "confidence": "high"
+      },
+      {
+        "to": "ClientComputerName",
+        "why": "ClientComputerName names a remote/client host in auth and SMB/WMI events; joining lets you resolve both sides of a cross-host interaction to hostnames",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Name convention is unambiguous; appears on 57 varied events including host-identity events (AgentOnline with BiosManufacturer/SystemManufacturer/SystemProductName) and cloud asset events, consistent with a hostname field. type field was blank in fields.json (likely keyword/text), cim_reachable=False."
+  },
+  {
+    "field": "FileIdentifier",
+    "description": "An internal sensor-assigned identifier for a specific file object, used to correlate multiple FDR records (e.g. FileCategory, Size, TargetFileName) that describe the same file-write event. It is not a content hash \u2014 separate SHA1/SHA256/MD5 fields exist for that.",
+    "semantic_role": "identifier",
+    "data_format": "keyword (opaque string/number, exact form unconfirmed)",
+    "hunting_notes": "Useful for stitching together same-file records within a single file-write pipeline, but do not confuse it with a hash for cross-host or cross-time file identity matching \u2014 SHA256HashData/TargetFileName are the fields for that.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, appears on 50 events, all in the *FileWritten family (AppleScriptFileWritten, AsifFileWritten, BZip2FileWritten, ...); co-occurs consistently with FileCategory, Size, TargetFileName, IsOnRemovableDisk. Intersection across all 50 events is just ['EventOrigin'], confirming it's scoped to the file-write event family rather than a general envelope field."
+  },
+  {
+    "field": "UserName",
+    "description": "The account name (not SID) of the user associated with the event \u2014 e.g. the logged-on user for a process, file write, or logon/logoff event.",
+    "semantic_role": "user_id",
+    "data_format": "UTF-8 string (sAMAccountName-style, no domain)",
+    "hunting_notes": "High-value pivot field for 'what did this user do' hunts; note the Splunk TA's own EVAL logic falls back to UserPrincipal when UserName is empty on UserLogon, implying UserName can be blank/unreliable on some platforms \u2014 pair with UserPrincipal and UserSid for robustness.",
+    "join_candidates": [
+      {
+        "to": "UserSid",
+        "why": "same logical user, SID form; SID is stable across renames and works cross-locale",
+        "confidence": "high"
+      },
+      {
+        "to": "UserPrincipal",
+        "why": "UPN form of the same user identity, used by the TA as a fallback for UserName",
+        "confidence": "high"
+      },
+      {
+        "to": "RemoteAccount",
+        "why": "logon events pair UserName with RemoteAccount to distinguish local vs. remote-originated account context",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "cim_reachable=True with multiple EVAL mappings (user, user_name, src_user_name, object) driven by event_simpleName across UserLogon/UserLogoff/ProcessRollup2/etc; appears on 94 events; name is unambiguous and corroborated by CIM's own field name choice ('user')."
+  },
+  {
+    "field": "FileCategory",
+    "description": "An enum classifying the type/format of a file that was written to disk (the *FileWritten event family: BmpFileWritten, CabFileWritten, DmgFileWritten, PdfFileWritten, etc.), likely holding a value like the literal file type name or a corresponding code.",
+    "semantic_role": "enum",
+    "data_format": "keyword (short code or type name)",
+    "hunting_notes": "Lets a hunter filter file-write telemetry by file type class without enumerating every *FileWritten event_simpleName individually; useful for spotting anomalous categories (e.g. executable-category writes to unusual paths).",
+    "join_candidates": [
+      {
+        "to": "FileIdentifier",
+        "why": "both scoped to the same *FileWritten event family and same file instance",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 37 events, all *FileWritten types; intersection across all its events = ['EventOrigin','FileIdentifier','IsOnRemovableDisk','Size','TargetFileName'], i.e. it always travels with the core file-write field set. No decode table entry found under this exact name in cim/decode_tables.csv, so exact enum values are unconfirmed."
+  },
+  {
+    "field": "Attacks",
+    "description": "A container/object field grouping ATT&CK-style attack metadata (its children Attacks.Tactic and Attacks.Technique) attached to file-write and other detection-adjacent events.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Treat as the parent object for Attacks.Tactic/Attacks.Technique; querying tools that don't flatten nested objects may need to reference the child fields directly instead of this parent.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type field blank in fields.json (consistent with a nested/object container); 29 events, and its intersection-with-itself co-occurrence is exactly its two children ['Attacks.Tactic','Attacks.Technique'], confirming a parent/child nested relationship."
+  },
+  {
+    "field": "Attacks.Tactic",
+    "description": "The MITRE ATT&CK tactic name (e.g. 'Defense Evasion', 'Execution') associated with a file-write or detection event, mirroring the top-level Tactic/MitreAttack.Tactic fields used elsewhere in the schema.",
+    "semantic_role": "enum",
+    "data_format": "UTF-8 string (ATT&CK tactic name)",
+    "hunting_notes": "Directly usable for ATT&CK-based hunting/coverage mapping; because the same concept appears under three different field names in this schema (Attacks.Tactic, Tactic, MitreAttack.Tactic depending on event type), normalize across all three before building a single ATT&CK dashboard.",
+    "join_candidates": [
+      {
+        "to": "Tactic",
+        "why": "same MITRE ATT&CK tactic vocabulary, used on a different event family (detection summary events)",
+        "confidence": "medium"
+      },
+      {
+        "to": "Attacks.Technique",
+        "why": "sibling field on the same nested Attacks object, technique detail for this tactic",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Name convention (ATT&CK 'Tactic' terminology) corroborated by an identical top-level 'Tactic' field used on cloud detection-summary events and by 'MitreAttack.Tactic' on others \u2014 three parallel spellings of the same concept across the schema is strong corroboration despite no direct decode table."
+  },
+  {
+    "field": "Attacks.Technique",
+    "description": "The MITRE ATT&CK technique name/ID associated with a file-write or detection event, sibling to Attacks.Tactic.",
+    "semantic_role": "enum",
+    "data_format": "UTF-8 string (ATT&CK technique name or ID)",
+    "hunting_notes": "Pair with Attacks.Tactic for full ATT&CK context; same normalization caveat as Attacks.Tactic applies (Technique / MitreAttack.Technique are parallel fields elsewhere).",
+    "join_candidates": [
+      {
+        "to": "Technique",
+        "why": "same MITRE ATT&CK technique vocabulary, used on the cloud detection-summary event family",
+        "confidence": "medium"
+      },
+      {
+        "to": "Attacks.Tactic",
+        "why": "sibling field on the same nested Attacks object",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same basis as Attacks.Tactic: consistent naming pattern against 'Technique' and 'MitreAttack.Technique' elsewhere in the schema, and always co-occurs with Attacks.Tactic on the same 29 events."
+  },
+  {
+    "field": "FileObject",
+    "description": "A raw Windows kernel FILE_OBJECT pointer/handle used by the filesystem minifilter driver to correlate related IRP-level events for the same open file instance (e.g. DirectoryCreate, FsPostOpenSnapshotFile).",
+    "semantic_role": "identifier",
+    "data_format": "hex pointer/address (keyword)",
+    "hunting_notes": "Only meaningful for correlating events within a single session on a single host \u2014 kernel object addresses are not stable across reboots or hosts, so never join across aid/time boundaries on this field alone.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, 21 events, always co-occurring with MajorFunction, MinorFunction, IrpFlags, OperationFlags \u2014 the classic Windows I/O Request Packet (IRP) field set used by filesystem minifilter drivers, which strongly corroborates 'FileObject' as the Windows kernel FILE_OBJECT term."
+  },
+  {
+    "field": "MajorFunction",
+    "description": "The Windows IRP (I/O Request Packet) major function code identifying the type of filesystem operation (e.g. IRP_MJ_CREATE, IRP_MJ_WRITE) captured by the minifilter driver.",
+    "semantic_role": "enum",
+    "data_format": "keyword (IRP_MJ_* code, name or numeric)",
+    "hunting_notes": "Standard Windows kernel constant; useful to filter minifilter telemetry down to specific operation types (e.g. only creates) across DirectoryCreate/FsPostOpenSnapshotFile/FileOpenInfo-style events.",
+    "join_candidates": [
+      {
+        "to": "MinorFunction",
+        "why": "IRP major/minor function codes are always interpreted together per Windows I/O manager convention",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 21 events, always co-occurring with MinorFunction, FileObject, IrpFlags, OperationFlags \u2014 this is the standard Windows Filter Manager/IRP field set; name matches the well-known IRP_MJ_* constant family exactly."
+  },
+  {
+    "field": "MinorFunction",
+    "description": "The Windows IRP minor function code, refining MajorFunction with a more specific sub-operation (e.g. IRP_MN_NORMAL) for the same filesystem minifilter callback.",
+    "semantic_role": "enum",
+    "data_format": "keyword (IRP_MN_* code, name or numeric)",
+    "hunting_notes": "Always interpret alongside MajorFunction; rarely useful alone.",
+    "join_candidates": [
+      {
+        "to": "MajorFunction",
+        "why": "IRP major/minor function codes are always interpreted together",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same event set and co-occurrence pattern as MajorFunction (21 events, filesystem minifilter family); name matches the standard Windows IRP_MN_* terminology."
+  },
+  {
+    "field": "DesiredAccess",
+    "description": "The Windows access-rights bitmask requested when opening a handle to a file or process (the DesiredAccess parameter of NtCreateFile/NtOpenProcess), e.g. GENERIC_READ, PROCESS_VM_READ.",
+    "semantic_role": "enum",
+    "data_format": "keyword (hex bitmask)",
+    "hunting_notes": "Central to handle-access hunting \u2014 e.g. LSASS handle opens requesting PROCESS_VM_READ/PROCESS_ALL_ACCESS are a credential-dumping indicator; this field appears specifically on the *HandleOpDetectInfo/*FromUnsignedModule events built for that purpose.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, 12 events including LsassHandleFromUnsignedModule, FalconProcessHandleOpDetectInfo, PrivilegedProcessHandleFromUnsignedModule (all handle-access detections) and file-open events (DirectoryCreate, FileOpenInfo) \u2014 exactly the contexts where Windows DesiredAccess is captured."
+  },
+  {
+    "field": "RpcOpNum",
+    "description": "The MS-RPC operation number (opnum) identifying which remote procedure was invoked on the RPC interface named by InterfaceGuid/InterfaceVersion.",
+    "semantic_role": "enum",
+    "data_format": "integer (keyword)",
+    "hunting_notes": "Useful for spotting known-malicious RPC opnums against sensitive interfaces (e.g. DCSync-style directory-replication calls, service-control or scheduled-task RPC abuse) once mapped to the interface's IDL \u2014 requires an external opnum-to-method table since no decode is present here.",
+    "join_candidates": [
+      {
+        "to": "InterfaceGuid",
+        "why": "an opnum is only meaningful in the context of the RPC interface it belongs to",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 12 events (BITSJobCreated, HostedServiceStarted, ScheduledTaskRegistered/Modified/Deleted, ServiceStarted, UserAccountAddedToGroup, NetShareSecurityModify) all co-occurring with InterfaceGuid, InterfaceVersion, RpcNestingLevel, RpcClientProcessId/ThreadId \u2014 the standard MS-RPC call-context field set."
+  },
+  {
+    "field": "BoundingLimitDuration",
+    "description": "Paired with BoundingLimitCount, likely the time-window (duration) over which the sensor caps/throttles how many instances of a given event or detection it will emit, to prevent event floods.",
+    "semantic_role": "count",
+    "data_format": "keyword (numeric, unit unconfirmed \u2014 possibly seconds or ms)",
+    "hunting_notes": "If present with a low BoundingLimitCount, indicates the underlying event stream was rate-limited during that window \u2014 a hunter relying on raw counts from these event types (DetectionExcluded, FileWrittenWithEntropyHigh, RansomwareOpenFile) should check this pair before treating volume as ground truth.",
+    "join_candidates": [
+      {
+        "to": "BoundingLimitCount",
+        "why": "the two fields always co-occur and together define a rate-limit window (count per duration)",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 11 events, intersection across all of them = ['BoundingLimitCount','EventOrigin'] \u2014 always paired with BoundingLimitCount specifically, on events known to be rate/volume-sensitive (RansomwareOpenFile, FileWrittenWithEntropyHigh, DetectionExcluded). Exact units not confirmed by any decode table."
+  },
+  {
+    "field": "InContext",
+    "description": "A field on network connection events (NetworkConnectIP4/6, NetworkCloseIP4/6, NetworkListenIP4/6, etc.) whose exact meaning is unclear; the name suggests it flags whether the connection was captured with full process/thread context attached versus observed out-of-band.",
+    "semantic_role": "bool",
+    "data_format": "keyword (likely boolean-like value)",
+    "hunting_notes": "If it does mark process-context completeness, connections with InContext=false (or equivalent) may be worth extra scrutiny since they'd lack reliable process attribution via ContextProcessId \u2014 but this interpretation is not confirmed by any decode table.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, 11 events, all network connection lifecycle events, always co-occurring with ConnectionDirection, ConnectionFlags, LocalPort, Protocol, RemotePort. No decode table entry and no CIM mapping found, so this is a name-convention guess only."
+  },
+  {
+    "field": "FileEcpBitmask",
+    "description": "A bitmask capturing Windows filter-manager 'Extra Create Parameters' (ECP) flags present on the file-create IRP \u2014 additional create-time context such as transactional or reparse-related parameters.",
+    "semantic_role": "flag",
+    "data_format": "keyword (bitmask, likely hex)",
+    "hunting_notes": "The Splunk TA references a bitmask lookup table for this field (crowdstrike_ta_bitmask_lookup_FileEcpBitmask) that is not present in this KB's decode_tables.csv, so bit-level meaning can't be resolved here \u2014 treat individual bit values as unknown until that lookup is sourced.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "cim_reachable=True via a LOOKUP-type CIM mapping ('FileEcpBitmask_meaning' from crowdstrike_ta_bitmask_lookup_FileEcpBitmask), confirming it is a decodable bitmask in CrowdStrike's own TA, though the actual lookup values aren't present in cim/decode_tables.csv. Appears on 19 filesystem minifilter events (DirectoryCreate, DmpFileWritten, FsPostOpenSnapshotFile, ...) alongside FileObject/MajorFunction/MinorFunction."
+  },
+  {
+    "field": "InterfaceIndex",
+    "description": "The Windows network interface index (ifIndex) of the network adapter involved in the event \u2014 the standard integer handle used by Windows networking APIs to identify a NIC.",
+    "semantic_role": "identifier",
+    "data_format": "long (integer index)",
+    "hunting_notes": "Useful to correlate a DNS request or interface-state event to a specific physical/virtual adapter on the host, especially on multi-homed hosts (VPN adapters, VMs, etc.).",
+    "join_candidates": [
+      {
+        "to": "NetLuidIndex",
+        "why": "both identify the same network adapter via different Windows networking identifier schemes and co-occur on the same LocalIpAddress* events",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=long, appears on DnsRequest, LocalIpAddressIP4/IP6, LocalIpAddressRemovedIP4/IP6, NeighborListIP4/IP6, SuspiciousDnsRequest \u2014 all networking/adapter-state events, alongside InterfaceAlias/InterfaceType/PhysicalAddress, matching the standard Windows adapter-enumeration field set."
+  },
+  {
+    "field": "RegClassificationIndex",
+    "description": "An internal CrowdStrike index/code classifying the type or sensitivity of a registry key/value being modified, paired with RegClassification and RegClassificationFlags.",
+    "semantic_role": "enum",
+    "data_format": "keyword (small integer code)",
+    "hunting_notes": "Likely usable to filter registry telemetry to specific classes of interest (e.g. autostart/ASEP-relevant keys) without string-matching RegObjectName, but the index-to-meaning mapping is not present in this KB.",
+    "join_candidates": [
+      {
+        "to": "RegClassification",
+        "why": "co-occurs identically across all 6 registry-update events and is presumably the numeric form of the same classification RegClassification names",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 6 events (AsepValueUpdate-adjacent RegCrowdstrikeValueUpdate, RegGenericKeyUpdate, RegGenericValueUpdate, RegSystemConfigKeyUpdate/ValueUpdate, RegistryOperationDetectInfo), always co-occurring with RegClassification/RegClassificationFlags/RegObjectName. No decode table entry found under this name."
+  },
+  {
+    "field": "RegValueName",
+    "description": "The name of the registry value that was created, modified, or deleted (the value-name component of a registry path, as opposed to the key path itself).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Combine with RegObjectName (key path) and RegStringValue/RegType to reconstruct the full registry change; classic autostart/persistence hunting field (e.g. spotting new Run-key values).",
+    "join_candidates": [
+      {
+        "to": "RegObjectName",
+        "why": "RegObjectName is the key path; RegValueName is the value within it \u2014 together they form the full registry location",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 6 registry-update events, always co-occurring with RegObjectName, RegType, RegStringValue \u2014 standard Windows registry terminology and structure."
+  },
+  {
+    "field": "ShareAccess",
+    "description": "The Windows file-sharing mode flags (FILE_SHARE_READ/WRITE/DELETE) requested when a file handle was opened, alongside DesiredAccess.",
+    "semantic_role": "enum",
+    "data_format": "keyword (bitmask)",
+    "hunting_notes": "Useful to spot unusual open modes (e.g. a process opening another process's file with no sharing allowed, blocking legitimate access) in file-open telemetry.",
+    "join_candidates": [
+      {
+        "to": "DesiredAccess",
+        "why": "both are parameters of the same NtCreateFile-style open call captured on the same events",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 6 events (DirectoryCreate, FileOpenInfo, FsPostOpenSnapshotFile, NewExecutableWritten, NewScriptWritten, RansomwareOpenFile), always co-occurring with DesiredAccess and Status \u2014 the standard Windows file-open parameter set."
+  },
+  {
+    "field": "Tags",
+    "description": "A free-form tag/label list whose specific meaning varies by event: sensor grouping tags on CurrentSystemTags, detection tags on Event_DetectionSummaryEvent, and upload-context tags on LfoUpload*/ProcessRollup2/RansomwareFileAccessPattern.",
+    "semantic_role": "other",
+    "data_format": "keyword (string or array of strings)",
+    "hunting_notes": "Because the field is reused across unrelated event families with different content, do not assume a single vocabulary \u2014 check event_simpleName before interpreting a Tags value.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, 6 events spanning unrelated families (CurrentSystemTags, Event_DetectionSummaryEvent, LfoUploadDataComplete/Start, ProcessRollup2, RansomwareFileAccessPattern) with no shared co-occurring fields beyond envelope \u2014 the field name is generic and the contexts are too heterogeneous to pin down one meaning confidently."
+  },
+  {
+    "field": "UTCTimestamp",
+    "description": "An epoch timestamp (distinct from the envelope's 'timestamp' and 'ContextTimeStamp') present on cloud-generated detection/lead summary events, likely marking when the underlying detection/signal occurred as reported by the cloud analytics pipeline.",
+    "semantic_role": "timestamp",
+    "data_format": "ms epoch (assumed, unconfirmed)",
+    "hunting_notes": "On detection-summary events this may be the most reliable 'when did this really happen' field if it differs from ingestion-time 'timestamp' \u2014 worth comparing the two to detect backfill/delay in the detection pipeline.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "Appears only on Event_AutomatedLeadSummaryEvent, Event_DataProtectionDetectionSummaryEvent, Event_DetectionSummaryEvent, Event_EppDetectionSummaryEvent, Event_FileIntegrityMonitorRuleMatchedEnriched \u2014 all cloud-side 'Event_*' detection/summary types (distinct from raw sensor telemetry), which is why it exists alongside but separately from the envelope 'timestamp'. Field type was blank in fields.json."
+  },
+  {
+    "field": "CustomerIdString",
+    "description": "A string-form customer/tenant identifier on cloud-generated detection summary events, likely a longer or differently-formatted representation of the tenant than the short envelope 'cid'.",
+    "semantic_role": "identifier",
+    "data_format": "UTF-8 string (possibly GUID)",
+    "hunting_notes": "Use for tenant scoping on Event_*SummaryEvent records specifically; verify it matches 'cid' if cross-referencing with raw sensor telemetry for the same tenant.",
+    "join_candidates": [
+      {
+        "to": "cid",
+        "why": "both identify the customer/tenant; CustomerIdString is the string form used on cloud summary events while cid is the short form on raw telemetry",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "Appears only on the 5 Event_*SummaryEvent types, always alongside 'cid' in the same records (per envelope), and the name directly parallels 'cid' (customer id)."
+  },
+  {
+    "field": "Information",
+    "description": "The IO_STATUS_BLOCK.Information value returned by the Windows I/O manager on a file-create/open operation, indicating the operation's disposition (e.g. FILE_CREATED, FILE_OPENED, FILE_OVERWRITTEN, FILE_SUPERSEDED).",
+    "semantic_role": "enum",
+    "data_format": "keyword (small integer/status code)",
+    "hunting_notes": "Distinguishes 'file already existed and was opened' from 'file was newly created' from 'file was overwritten' \u2014 useful to separate genuine new-file-write detections from routine opens of pre-existing files.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, 5 filesystem minifilter events (DirectoryCreate, FsPostOpenSnapshotFile, NewExecutableWritten, NewScriptWritten, RansomwareOpenFile), always co-occurring with Status, MajorFunction, MinorFunction, IrpFlags \u2014 exactly the IRP-completion field set where Windows' IO_STATUS_BLOCK.Information lives."
+  },
+  {
+    "field": "Nonce",
+    "description": "An unsigned integer present on cloud-generated detection/lead summary events, likely a dedup/idempotency token or correlation nonce generated by the cloud pipeline rather than the sensor.",
+    "semantic_role": "other",
+    "data_format": "unsigned_long",
+    "hunting_notes": "",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=unsigned_long, appears only on the 5 Event_*SummaryEvent cloud detection types. The name is a standard cryptographic/idempotency term but no decode table, CIM mapping, or further context confirms its exact role here."
+  },
+  {
+    "field": "ODNodeName",
+    "description": "The macOS Open Directory node name (e.g. '/Local/Default') on which a directory-service operation (attribute add/remove/set, user creation, password modification) occurred.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (OD node path)",
+    "hunting_notes": "Useful for macOS local-account and directory-service hunting \u2014 pairs with ODRecordName/ODRecordType/ODAttributeName to fully describe the directory-service change.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, 5 events, all OpenDirectory* (macOS-specific) events, always co-occurring with ODAttributeName, ODDatabasePath, ODErrorCode, ODRecordName/ODRecordType \u2014 unambiguous macOS Open Directory terminology."
+  },
+  {
+    "field": "Options",
+    "description": "The Windows CreateOptions flags passed to NtCreateFile (e.g. FILE_DIRECTORY_FILE, FILE_NON_DIRECTORY_FILE, FILE_SEQUENTIAL_ONLY) on a file-create/open operation.",
+    "semantic_role": "enum",
+    "data_format": "keyword (bitmask)",
+    "hunting_notes": "Combine with DesiredAccess/ShareAccess/Information for a full picture of how a file was opened.",
+    "join_candidates": [
+      {
+        "to": "DesiredAccess",
+        "why": "both are parameters of the same NtCreateFile call captured on the same filesystem minifilter events",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 5 filesystem minifilter events, always co-occurring with DesiredAccess, ShareAccess, FileAttributes, Information \u2014 the standard NtCreateFile parameter set."
+  },
+  {
+    "field": "ParentCommandLine",
+    "description": "The full command line of the parent process of the process associated with the event (typically a detection).",
+    "semantic_role": "command",
+    "data_format": "UTF-8 string (command line)",
+    "hunting_notes": "Core process-lineage hunting field \u2014 inspect alongside CommandLine and GrandparentCommandLine to reconstruct a process ancestry chain for suspicious executions.",
+    "join_candidates": [
+      {
+        "to": "CommandLine",
+        "why": "same process-lineage record; ParentCommandLine describes the direct parent of the process CommandLine describes",
+        "confidence": "medium"
+      },
+      {
+        "to": "GrandparentCommandLine",
+        "why": "extends the same ancestry chain one level further up",
+        "confidence": "high"
+      },
+      {
+        "to": "ParentProcessId",
+        "why": "ParentProcessId is the numeric identity of the same parent process this field's command line belongs to",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Appears on Event_DetectionSummaryEvent/Event_EppDetectionSummaryEvent and FalconProcessHandleOpDetectInfo always alongside GrandparentCommandLine/GrandparentImageFileName and ParentProcessId \u2014 standard process-ancestry field naming used throughout the schema."
+  },
+  {
+    "field": "ThreadStartAddress",
+    "description": "The memory address at which an injected/created thread began execution, captured by thread-injection detection telemetry.",
+    "semantic_role": "other",
+    "data_format": "hex address (keyword)",
+    "hunting_notes": "Classic code-injection hunting field \u2014 an unusual start address (not aligned to a loaded module's code section) is a strong indicator of shellcode/reflective injection; compare against loaded-module ranges for the target process.",
+    "join_candidates": [
+      {
+        "to": "SourceThreadStartAddress",
+        "why": "sibling field capturing the equivalent start address in the source/injecting process's context",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 5 events, all in the injected-thread family (BrowserInjectedThread, DllInjection, DocumentProgramInjectedThread, InjectedThread, JavaInjectedThread), always co-occurring with SourceThreadStartAddress, ThreadStartContext, RawThreadId/TargetThreadId, UserThread."
+  },
+  {
+    "field": "ThreadStartContext",
+    "description": "A value accompanying ThreadStartAddress on injected-thread events; likely either a pointer to the thread's initial CONTEXT/register state or a classification code describing how the thread's start was constructed. The exact interpretation is not confirmed.",
+    "semantic_role": "other",
+    "data_format": "keyword (unconfirmed \u2014 address or code)",
+    "hunting_notes": "Analyze together with ThreadStartAddress and InjectedThreadFlag when triaging injection detections; treat as supplementary context rather than a primary indicator until its exact semantics are confirmed.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, same 5 injected-thread events as ThreadStartAddress, always co-occurring with it. No decode table or CIM mapping found, and the name is ambiguous between 'context record' and 'context classification' readings."
+  },
+  {
+    "field": "eid",
+    "description": "A short integer field on cloud-generated Event_*SummaryEvent records, alongside 'cid'; likely a numeric event/schema identifier for the summary-event type, distinct from the sensor-side event_simpleName/id fields.",
+    "semantic_role": "identifier",
+    "data_format": "integer",
+    "hunting_notes": "",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=integer, appears only on the 5 Event_*SummaryEvent cloud detection types, always paired with 'cid' rather than the usual raw-telemetry envelope (aid/id/name/event_platform are absent on these events). No decode table or documentation confirms the exact meaning."
+  },
+  {
+    "field": "RegObjectName",
+    "description": "The full registry object path (hive plus key path) that a registry operation targeted; CrowdStrike's own CIM mapping splits it into registry_hive, registry_path, and registry_value_name.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (registry path)",
+    "hunting_notes": "Primary field for registry-based persistence/tamper hunting; the CIM split into hive/path/value_name shows this is a composite path string that a hunter may want to parse similarly.",
+    "join_candidates": [
+      {
+        "to": "RegValueName",
+        "why": "RegObjectName is the key path context that RegValueName's value name lives under",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "cim_reachable=True with cim_fields=['registry_hive','registry_path','registry_value_name'], confirming it is CIM-normalized as the composite registry path; appears on 9 registry-operation events (AsepKeyUpdate, AsepValueUpdate, RegGenericKeyUpdate/ValueUpdate, RegistryOperationDetectInfo, SuspiciousRegAsepUpdate, ...)."
+  },
+  {
+    "field": "ClientComputerName",
+    "description": "The hostname of the remote/client machine involved in a network logon, SMB share access, or WMI/DCSync-style directory-service operation \u2014 distinct from ComputerName, which names the local host running the sensor.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (hostname)",
+    "hunting_notes": "Useful for lateral-movement hunting (e.g. which remote host initiated a logon or SMB session against this endpoint); CIM maps it to dest_name/object/src depending on event, so the 'direction' (source vs destination) is event-specific \u2014 verify against event_simpleName before assuming src vs. dst semantics.",
+    "join_candidates": [
+      {
+        "to": "ComputerName",
+        "why": "if the remote host is also monitored, its own ComputerName record can be joined to enrich ClientComputerName with that host's other telemetry",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "cim_reachable=True (dest_name/object/src), 8 events (DCSyncAttempted, ProcessExecOnSMBFile, SensitiveWmiQuery, SmbClientShareClosedEtw/OpenedEtw, UserLogon, UserLogonFailed2, WmiProviderRegistrationEtw) \u2014 all remote-interaction event types, consistent with a remote/client host name."
+  },
+  {
+    "field": "DeviceDescriptorUniqueIdentifier",
+    "description": "An identifier tying together the set of USB descriptor sub-events (configuration, endpoint, HID, interface) that belong to the same physical USB device enumeration, alongside DeviceDescriptorSetHash.",
+    "semantic_role": "identifier",
+    "data_format": "keyword (opaque identifier)",
+    "hunting_notes": "Use to reassemble the full USB descriptor set for a single device-connect event across the DcUsb* event family rather than relying on timestamp proximity alone.",
+    "join_candidates": [
+      {
+        "to": "DeviceDescriptorSetHash",
+        "why": "both scope to the same USB descriptor set and co-occur on all four DcUsb* descriptor events",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 4 events, all DcUsb*Descriptor events (DcUsbConfigurationDescriptor, DcUsbEndpointDescriptor, DcUsbHIDDescriptor, DcUsbInterfaceDescriptor), always co-occurring with DeviceDescriptorSetHash and DeviceTimeStamp."
+  },
+  {
+    "field": "ExtendedKeyUsages",
+    "description": "The X.509 Extended Key Usage (EKU) OIDs from the code-signing certificate of a module/file involved in an unsigned-module or handle-access detection.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (OID list)",
+    "hunting_notes": "Legitimate code-signing certs typically carry the 'Code Signing' EKU; unexpected or missing EKUs on a signing cert attached to a sensitive-handle-open event is a useful triage signal.",
+    "join_candidates": [
+      {
+        "to": "Certificate",
+        "why": "ExtendedKeyUsages is an attribute of the same signing certificate captured in the Certificate field",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 4 events (LsassHandleFromUnsignedModule, PrivilegedProcessHandleFromUnsignedModule, SAMHashDumpFromUnsignedModule, UnsignedModuleLoad), always co-occurring with Certificate, PublicKeys, SignInfoFlags \u2014 standard PKI/code-signing terminology and context."
+  },
+  {
+    "field": "FalconHostLink",
+    "description": "A URL linking directly to the corresponding detection's page in the Falcon console (the product's former name, 'Falcon Host').",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (URL)",
+    "hunting_notes": "Handy for auto-generating pivot links from a SIEM/SOAR alert straight into the Falcon UI for analyst triage.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, 4 events, all cloud detection-summary types (Event_AutomatedLeadSummaryEvent, Event_DataProtectionDetectionSummaryEvent, Event_DetectionSummaryEvent, Event_EppDetectionSummaryEvent); name directly references the 'Falcon Host' product and a console link is a standard feature of CrowdStrike's detection-summary webhooks."
+  },
+  {
+    "field": "LocalIpAddressPipelineSource",
+    "description": "A field on network-adapter state events (LocalIpAddressIP4/IP6 and their Removed variants) whose name suggests it identifies which OS telemetry pipeline or API (e.g. WMI, netlink, ETW) supplied the adapter data. Exact semantics are unconfirmed.",
+    "semantic_role": "other",
+    "data_format": "keyword (unconfirmed)",
+    "hunting_notes": "",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, 4 events (LocalIpAddressIP4, LocalIpAddressIP6, LocalIpAddressRemovedIP4, LocalIpAddressRemovedIP6), always co-occurring with InterfaceIndex/NetLuidIndex. No decode table or CIM mapping found; 'pipeline source' is a plausible but unconfirmed reading of the name."
+  },
+  {
+    "field": "NetLuidIndex",
+    "description": "The Windows NET_LUID index of the network interface \u2014 a locally-unique identifier Windows assigns to each network adapter instance, alongside the more familiar InterfaceIndex.",
+    "semantic_role": "identifier",
+    "data_format": "long (integer)",
+    "hunting_notes": "Use interchangeably with InterfaceIndex to pin an event to a specific adapter; NET_LUID is the newer Windows identifier scheme and may be more stable across adapter renumbering than ifIndex.",
+    "join_candidates": [
+      {
+        "to": "InterfaceIndex",
+        "why": "both identify the same network adapter via parallel Windows identifier schemes and co-occur on the same LocalIpAddress* events",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=long, 4 events (LocalIpAddressIP4/IP6, LocalIpAddressRemovedIP4/IP6), always co-occurring with InterfaceIndex \u2014 'NET_LUID' is a standard, unambiguous Windows networking API term."
+  },
+  {
+    "field": "PasswordLastSet",
+    "description": "The timestamp of when the authenticating user's password was last changed, captured on logon/logoff and user-identity events.",
+    "semantic_role": "timestamp",
+    "data_format": "keyword (likely epoch or Windows FILETIME string, unconfirmed exact encoding)",
+    "hunting_notes": "Useful for spotting logons using very old (or suspiciously never-changed) passwords, and for correlating with password-spray/credential-stuffing hunts.",
+    "join_candidates": [
+      {
+        "to": "UserSid",
+        "why": "attribute of the same authenticating user identity captured alongside it on UserLogon/UserLogoff/UserIdentity",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 4 events (UserIdentity, UserLogoff, UserLogon, UserLogonFailed), always co-occurring with LogonTime/LogonType/UserSid/UserName \u2014 standard Windows authentication field naming, though exact timestamp encoding is not confirmed by a conversions entry."
+  },
+  {
+    "field": "PublicKeys",
+    "description": "The public key(s) extracted from the code-signing certificate of a module/file involved in an unsigned-module or sensitive-handle detection.",
+    "semantic_role": "other",
+    "data_format": "keyword (encoded key material)",
+    "hunting_notes": "Can be used to cluster files signed by the same key/certificate even when the certificate's display fields differ, useful for tracking a threat actor's signing infrastructure.",
+    "join_candidates": [
+      {
+        "to": "Certificate",
+        "why": "PublicKeys is extracted from the same signing certificate captured in the Certificate field",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 4 events (LsassHandleFromUnsignedModule, PrivilegedProcessHandleFromUnsignedModule, SAMHashDumpFromUnsignedModule, UnsignedModuleLoad), always co-occurring with Certificate, ExtendedKeyUsages, SignInfoFlags."
+  },
+  {
+    "field": "RemoteAccount",
+    "description": "A field on logon/logoff and user-identity events whose name suggests it flags or names an account associated with a remote (network) logon, as opposed to an interactive local logon.",
+    "semantic_role": "other",
+    "data_format": "keyword (unconfirmed \u2014 could be boolean-like or a name)",
+    "hunting_notes": "If it does flag remote-originated accounts, it's a useful complement to LogonType for distinguishing network logons (Type 3) from interactive ones \u2014 but this reading is unconfirmed.",
+    "join_candidates": [
+      {
+        "to": "UserName",
+        "why": "co-occurs on the same logon/logoff/identity events and likely refers to the same or a related account context",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, 4 events (LogonBehaviorCompositionDetectInfo, UserIdentity, UserLogoff, UserLogon), always co-occurring with LogonDomain/LogonType/UserName/UserSid. No decode table entry found under this name, so the exact value space (boolean flag vs. account name) is not confirmed."
+  },
+  {
+    "field": "ServiceDisplayName",
+    "description": "The human-readable display name of a Windows service (as shown in the Services MMC snap-in), distinct from the service's internal short name.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Useful for spotting services impersonating legitimate-sounding display names while having suspicious ImagePath/binary; combine with ServiceImagePath-style fields (ModifyServiceBinary's ServiceImagePath) for full context.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "cim_reachable=True (service, service_name), 8 events (DriverLoad, HostedServiceStarted/Stopped, KernelServiceStarted, ModifyServiceBinary, ServiceStarted/Stopped, ServicesStatusInfo) \u2014 standard Windows Service Control Manager terminology."
+  },
+  {
+    "field": "SourceThreadStartAddress",
+    "description": "The start address of the thread in the source/injecting process's context, paired with ThreadStartAddress which captures the equivalent address in the target process, on thread-injection detection events.",
+    "semantic_role": "other",
+    "data_format": "hex address (keyword)",
+    "hunting_notes": "Compare against ThreadStartAddress and the source process's loaded-module ranges to determine whether the injection originated from legitimate code or from an unbacked/suspicious region.",
+    "join_candidates": [
+      {
+        "to": "ThreadStartAddress",
+        "why": "sibling field on the same injected-thread events; together they describe both sides (source and target) of the injection",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 4 events (BrowserInjectedThread, DocumentProgramInjectedThread, InjectedThread, JavaInjectedThread), always co-occurring with ThreadStartAddress/ThreadStartContext/UserThread. 'Source' naming convention strongly implies a source-vs-target pairing but the exact process-side semantics aren't documented on disk."
+  },
+  {
+    "field": "Tactic",
+    "description": "The MITRE ATT&CK tactic name associated with a cloud detection-summary event (Event_DataProtectionDetectionSummaryEvent, Event_DetectionSummaryEvent, Event_EppDetectionSummaryEvent) or a ReflectiveDllLoaded detection, paired with Technique.",
+    "semantic_role": "enum",
+    "data_format": "UTF-8 string (ATT&CK tactic name)",
+    "hunting_notes": "Same ATT&CK-mapping value as Attacks.Tactic/MitreAttack.Tactic elsewhere in the schema \u2014 normalize the three spellings together for a single ATT&CK coverage view.",
+    "join_candidates": [
+      {
+        "to": "Attacks.Tactic",
+        "why": "same MITRE ATT&CK tactic vocabulary, used on the raw file-write event family instead of cloud detection-summary events",
+        "confidence": "medium"
+      },
+      {
+        "to": "Technique",
+        "why": "sibling field giving the specific technique for this tactic",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Appears on the cloud detection-summary event family plus ReflectiveDllLoaded, always paired with Technique; name is the standard MITRE ATT&CK term and matches Attacks.Tactic/MitreAttack.Tactic used elsewhere in this same schema."
+  },
+  {
+    "field": "Technique",
+    "description": "The MITRE ATT&CK technique name/ID associated with a cloud detection-summary event or ReflectiveDllLoaded detection, sibling to Tactic.",
+    "semantic_role": "enum",
+    "data_format": "UTF-8 string (ATT&CK technique name or ID)",
+    "hunting_notes": "Same ATT&CK-mapping value as Attacks.Technique/MitreAttack.Technique elsewhere in the schema.",
+    "join_candidates": [
+      {
+        "to": "Attacks.Technique",
+        "why": "same MITRE ATT&CK technique vocabulary, used on the raw file-write event family instead of cloud detection-summary events",
+        "confidence": "medium"
+      },
+      {
+        "to": "Tactic",
+        "why": "sibling field giving the parent tactic for this technique",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same basis as Tactic: appears on the same 4 events always paired with Tactic, and the name matches Attacks.Technique/MitreAttack.Technique used elsewhere in this schema."
+  },
+  {
+    "field": "UserThread",
+    "description": "A field on thread-injection detection events (BrowserInjectedThread, DocumentProgramInjectedThread, InjectedThread, JavaInjectedThread) whose name suggests it flags whether the target thread is a user-mode thread, or otherwise characterizes the thread's execution context.",
+    "semantic_role": "other",
+    "data_format": "keyword (unconfirmed \u2014 possibly boolean-like)",
+    "hunting_notes": "",
+    "join_candidates": [
+      {
+        "to": "TargetThreadId",
+        "why": "co-occurs as an attribute of the same target thread identified by TargetThreadId on injection events",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, 4 events, always co-occurring with ThreadStartAddress/ThreadStartContext/SourceThreadStartAddress/RawThreadId/TargetThreadId. No decode table or CIM mapping found; name is ambiguous."
+  },
+  {
+    "field": "VolumeDriveLetter",
+    "description": "The drive letter (e.g. 'D:') assigned to a volume when it is mounted, on volume-mount and removable-media events.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (single letter + colon)",
+    "hunting_notes": "Direct hunting value for removable-media and volume-mount monitoring (e.g. correlating a new drive letter with a subsequent burst of file-write activity on that same letter).",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, 4 events (FsVolumeMounted, MountedVolume, RemovableMediaVolumeMounted, VolumeSnapshotDeleted), co-occurring with VolumeFileSystemDevice/Driver, VolumeMountPoint, VolumeName \u2014 standard Windows storage-stack field family; name is unambiguous."
+  },
+  {
+    "field": "VolumeFileSystemDevice",
+    "description": "The name of the underlying file-system device object for a mounted volume (e.g. a \\Device\\HarddiskVolumeN-style path).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (Windows device path)",
+    "hunting_notes": "Useful to correlate a drive letter/mount point back to the physical/virtual device backing it, e.g. distinguishing a real disk from a mounted image or virtual disk.",
+    "join_candidates": [
+      {
+        "to": "VolumeFileSystemDriver",
+        "why": "sibling field naming the driver that services this same device object",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 4 events (FsVolumeMounted, MountedVolume, RemovableMediaVolumeMounted, SnapshotVolumeMounted), co-occurring with VolumeDriveLetter, VolumeFileSystemDriver, VolumeMountPoint \u2014 standard Windows storage-stack terminology."
+  },
+  {
+    "field": "VolumeFileSystemDriver",
+    "description": "The name of the file-system driver servicing a mounted volume (e.g. NTFS, FAT32, exFAT, ReFS).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (driver/filesystem name)",
+    "hunting_notes": "Lets a hunter flag unusual filesystem types on removable/mounted volumes (e.g. exFAT USB drives vs. expected NTFS internal volumes).",
+    "join_candidates": [
+      {
+        "to": "VolumeFileSystemDevice",
+        "why": "sibling field naming the device object this driver services",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 4 volume-mount events as VolumeFileSystemDevice, always co-occurring with it and VolumeFileSystemType \u2014 standard Windows filesystem terminology."
+  },
+  {
+    "field": "VolumeIsEncrypted",
+    "description": "Whether the mounted volume is encrypted (e.g. via BitLocker), on volume-mount events.",
+    "semantic_role": "bool",
+    "data_format": "keyword (string boolean, e.g. 'true'/'false' or '0'/'1')",
+    "hunting_notes": "Useful for data-loss-prevention hunting on removable media (e.g. flagging unencrypted removable volumes being mounted) and for encryption-compliance auditing.",
+    "join_candidates": [
+      {
+        "to": "VolumeEncryptionStatus",
+        "why": "co-occurs on the same events and likely carries the more detailed encryption state that this boolean summarizes",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword but name and context (co-occurs with VolumeEncryptionStatus on MountedVolume/RemovableMediaVolumeMounted/SnapshotVolumeMounted) make the boolean semantics unambiguous despite the underlying ES field type being 'keyword' rather than 'boolean'."
+  }
+]

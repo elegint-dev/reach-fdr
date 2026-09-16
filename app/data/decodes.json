@@ -1,0 +1,2386 @@
+{
+ "AccessoryConnectionType": {
+  "lookup": "crowdstrike_AccessoryConnectionType.csv",
+  "meaning_field": "AccessoryConnectionType_meaning",
+  "values": {
+   "0": "BLUETOOTH",
+   "1": "USB_HOST",
+   "2": "USB_DEVICE"
+  }
+ },
+ "AccountStatus": {
+  "lookup": "crowdstrike_AccountStatus.csv",
+  "meaning_field": "AccountStatus_meaning",
+  "values": {
+   "0": "PROVISIONED",
+   "1": "OPERATIONAL",
+   "2": "REGRESSION"
+  }
+ },
+ "AllocationType": {
+  "lookup": "crowdstrike_AllocationType.csv",
+  "meaning_field": "AllocationType_meaning",
+  "values": {
+   "16384": "MEM_DECOMMIT",
+   "32768": "MEM_RELEASE",
+   "4096": "MEM_COMMIT",
+   "524288": "MEM_RESET",
+   "65536": "MEM_FREE",
+   "8192": "MEM_RESERVE"
+  }
+ },
+ "AmsiRegistrationState": {
+  "lookup": "crowdstrike_AmsiRegistrationState.csv",
+  "meaning_field": "AmsiRegistrationState_meaning",
+  "values": {
+   "0": "AMSI_REGISTRATION_DISABLED",
+   "1": "AMSI_REGISTRATION_ENABLED"
+  }
+ },
+ "AmsiStatusCode": {
+  "lookup": "crowdstrike_AmsiStatusCode.csv",
+  "meaning_field": "AmsiStatusCode_meaning",
+  "values": {
+   "1": "AMSI_REGISTER_SUCCESS",
+   "2": "AMSI_REGISTER_FAILED",
+   "3": "AMSI_UNREGISTER_SUCCESS",
+   "4": "AMSI_UNREGISTER_FAILED"
+  }
+ },
+ "AndroidManifestFragmentType": {
+  "lookup": "crowdstrike_AndroidManifestFragmentType.csv",
+  "meaning_field": "AndroidManifestFragmentType_meaning",
+  "values": {
+   "1": "BROADCAST_RECEIVERS",
+   "2": "USES_PERMISSIONS",
+   "3": "SERVICES",
+   "4": "ACTIVITIES"
+  }
+ },
+ "AndroidModuleId": {
+  "lookup": "crowdstrike_AndroidModuleId.csv",
+  "meaning_field": "AndroidModuleId_meaning",
+  "values": {
+   "1": "CONTAINER",
+   "2": "VPN",
+   "3": "NETWORK_PREVENTION",
+   "4": "NETWORK_DETECTION"
+  }
+ },
+ "AndroidModuleState": {
+  "lookup": "crowdstrike_AndroidModuleState.csv",
+  "meaning_field": "AndroidModuleState_meaning",
+  "values": {
+   "1": "DISABLED",
+   "2": "ENABLED",
+   "3": "PENDING_ACTIVATION",
+   "4": "ERROR"
+  }
+ },
+ "AppPathFlag": {
+  "lookup": "crowdstrike_AppPathFlag.csv",
+  "meaning_field": "AppPathFlag_meaning",
+  "values": {
+   "0": "APP_PATH_INVALID",
+   "1": "DIRECTORY_CUSTOM",
+   "10": "FILE_MSI_LOCAL_PACKAGE",
+   "11": "FAILED_NO_MSI_FILE",
+   "12": "FAILED_NO_UNINSTALL_INFO",
+   "13": "NOT_AVAILABLE_CUSTOM",
+   "14": "FILESYSTEM_INDEX",
+   "2": "FILE_CUSTOM",
+   "3": "FILE_DISPLAY_ICON",
+   "4": "FILE_UNINSTALL_STRING",
+   "5": "FILE_MODIFY_PATH",
+   "6": "FILE_CLSID_LOCAL_SERVER32",
+   "7": "FILE_CLSID_INPROC_SERVER32",
+   "8": "DIRECTORY_INSTALL_LOCATION",
+   "9": "DIRECTORY_INSTALL_LOCATION_FAILED_MSI"
+  }
+ },
+ "AppProvider": {
+  "lookup": "crowdstrike_AppProvider.csv",
+  "meaning_field": "AppProvider_meaning",
+  "values": {
+   "0": "UNKNOWN",
+   "1": "RPM",
+   "2": "DPKG",
+   "3": "APPLE_MAC_APP_STORE"
+  }
+ },
+ "AppType": {
+  "lookup": "crowdstrike_AppType.csv",
+  "meaning_field": "AppType_meaning",
+  "values": {
+   "0": "TYPE_ALL",
+   "1": "TYPE_UNINSTALL",
+   "1000": "TYPE_INVALID",
+   "2": "TYPE_CLSID",
+   "3": "TYPE_CUSTOM",
+   "4": "TYPE_APPLE_BUNDLE"
+  }
+ },
+ "AsepClass": {
+  "lookup": "crowdstrike_AsepClass.csv",
+  "meaning_field": "AsepClass_meaning",
+  "values": {
+   "0": "UNKNOWN",
+   "1": "SYSTEM_STARTUP_AUTORUN",
+   "10": "CUSTOM_PROCESSES",
+   "100": "BOOT_CONFIGURATION_DATA",
+   "101": "CROWDSTRIKE_KEY",
+   "11": "CORE_SERVICES",
+   "12": "CORE_SERVICE_PLUGINS",
+   "13": "SERVER_PLUGINS",
+   "14": "NETWORK_SERVICE_PLUGINS",
+   "15": "LANG_SERVICE_PLUGINS",
+   "16": "MULTIMEDIA_PLUGINS",
+   "17": "SHELL_PLUGINS",
+   "18": "IE_COM_PLUGINS",
+   "19": "COM_REGISTRATION",
+   "2": "SYSTEM_SHUTDOWN_AUTORUN",
+   "20": "PRINTERS",
+   "21": "TERMINAL_SERVER",
+   "22": "GRAPHICS_CORE",
+   "23": "SYSTEM_CONFIG",
+   "3": "USER_LOGON_AUTORUN",
+   "4": "USER_LOGOFF_AUTORUN",
+   "5": "APP_START_AUTORUN",
+   "6": "APP_EXTENSION",
+   "7": "SERVICE",
+   "8": "AUTHENTICATION",
+   "9": "CORE_PROCESSES"
+  }
+ },
+ "AsepValueType": {
+  "lookup": "crowdstrike_AsepValueType.csv",
+  "meaning_field": "AsepValueType_meaning",
+  "values": {
+   "0": "UNKNOWN",
+   "1": "CMD_LINE",
+   "2": "DLL_PATH",
+   "3": "DLL_NAME",
+   "4": "APP_NAME",
+   "5": "GUID"
+  }
+ },
+ "AuthenticationId": {
+  "lookup": "crowdstrike_AuthenticationId.csv",
+  "meaning_field": "AuthenticationId_meaning",
+  "values": {
+   "0": "INVALID_LUID",
+   "1000": "RESERVED_LUID_MAX",
+   "996": "NETWORK_SERVICE",
+   "997": "LOCAL_SERVICE",
+   "999": "SYSTEM"
+  }
+ },
+ "BatteryStatus": {
+  "lookup": "crowdstrike_BatteryStatus.csv",
+  "meaning_field": "BatteryStatus_meaning",
+  "values": {
+   "0": "CHARGING",
+   "1": "DISCHARGING",
+   "2": "FULL",
+   "3": "NOT_CHARGING",
+   "4": "UNKNOWN"
+  }
+ },
+ "BillingType": {
+  "lookup": "crowdstrike_BillingType.csv",
+  "meaning_field": "BillingType_meaning",
+  "values": {
+   "0": "DEFAULT_BILLING",
+   "1": "METERED_BILLING"
+  }
+ },
+ "BlockingClassId": {
+  "lookup": "crowdstrike_BlockingClassId.csv",
+  "meaning_field": "BlockingClassId_meaning",
+  "values": {
+   "0": "CLID_INVALID_SOURCE",
+   "16778217": "CLID_PROCESS_SOURCE",
+   "16778225": "CLID_FS_SOURCE",
+   "67109947": "CLID_FS_PEWRITTEN"
+  }
+ },
+ "BluetoothStatus": {
+  "lookup": "crowdstrike_BluetoothStatus.csv",
+  "meaning_field": "BluetoothStatus_meaning",
+  "values": {
+   "0": "UNKNOWN",
+   "1": "UNAVAILABLE",
+   "2": "UNAUTHORIZED",
+   "3": "OFF",
+   "4": "ON"
+  }
+ },
+ "BootTimeFunctionalityLevel": {
+  "lookup": "crowdstrike_BootTimeFunctionalityLevel.csv",
+  "meaning_field": "BootTimeFunctionalityLevel_meaning",
+  "values": {
+   "255": "BOOT_FUNCTIONALITY_LEVEL_UNKNOWN"
+  }
+ },
+ "BuildType": {
+  "lookup": "crowdstrike_BuildType.csv",
+  "meaning_field": "BuildType_meaning",
+  "values": {
+   "1": "RTM",
+   "2": "LDR",
+   "3": "GDR"
+  }
+ },
+ "CSAStatus": {
+  "lookup": "crowdstrike_CSAStatus.csv",
+  "meaning_field": "CSAStatus_meaning",
+  "values": {
+   "0": "STATUS_SUCCESS"
+  }
+ },
+ "CallStackModuleNamesVersion": {
+  "lookup": "crowdstrike_CallStackModuleNamesVersion.csv",
+  "meaning_field": "CallStackModuleNamesVersion_meaning",
+  "values": {
+   "0": "INVALID_VERSION",
+   "5": "CSMN_FORMAT_5",
+   "6": "CSMN_FORMAT_6",
+   "7": "CSMN_FORMAT_7",
+   "8": "CSMN_FORMAT_8"
+  }
+ },
+ "ChannelId": {
+  "lookup": "crowdstrike_ChannelId.csv",
+  "meaning_field": "ChannelId_meaning",
+  "values": {
+   "13": "SBWL",
+   "4294967295": "ALL",
+   "58": "SPOTLIGHT_CLSID",
+   "90": "UMPPC_IOCTL_SUPPLEMENT",
+   "91": "DRIVER_PREVENTION"
+  }
+ },
+ "ClientId": {
+  "lookup": "crowdstrike_ClientId.csv",
+  "meaning_field": "ClientId_meaning",
+  "values": {
+   "1": "RANSOMWARE_DIRECTORY_TRAVERSAL",
+   "16": "RANSOMWARE_SCENARIO_1",
+   "17": "RANSOMWARE_SCENARIO_2",
+   "18": "RANSOMWARE_SCENARIO_4",
+   "19": "RANSOMWARE_SCENARIO_3",
+   "2": "RANSOMWARE_DIRECTORY_TRAVERSAL_HIGH_CONFIDENCE",
+   "3": "RANSOMWARE_DIRECTORY_TRAVERSAL_V2",
+   "32": "SENSITIVE_FILES",
+   "48": "WEBSHELL_RECON_SHORT",
+   "49": "WEBSHELL_RECON_LONG",
+   "50": "WEBSHELL_SUSPICIOUS_CMD"
+  }
+ },
+ "CloudErrorCode": {
+  "lookup": "crowdstrike_CloudErrorCode.csv",
+  "meaning_field": "CloudErrorCode_meaning",
+  "values": {
+   "1": "RR_INITIALIZATION_ERROR",
+   "2": "RR_INSTANTIATION_ERROR",
+   "3": "RR_EXECUTION_ERROR",
+   "4": "RR_EXCEPTION_ERROR",
+   "5": "RR_ENTITLEMENT_ERROR",
+   "6": "RR_INVALID_COMMAND_ERROR",
+   "7": "RR_DISABLED_ERROR",
+   "8": "RR_NOT_IMPLEMENTED_ERROR"
+  }
+ },
+ "CloudPlatform": {
+  "lookup": "crowdstrike_CloudPlatform.csv",
+  "meaning_field": "CloudPlatform_meaning",
+  "values": {
+   "1": "AWS",
+   "2": "AZURE",
+   "3": "GCP"
+  }
+ },
+ "ConnectType": {
+  "lookup": "crowdstrike_ConnectType.csv",
+  "meaning_field": "ConnectType_meaning",
+  "values": {
+   "0": "CONNECT_INVALID",
+   "1": "CONNECT_DIRECT",
+   "10": "CONNECT_CACHE_PROXYFORURL_WPAD",
+   "11": "CONNECT_CACHE_PROXYFORURL_PACURL",
+   "12": "CONNECT_CACHE_PROXYFORURL_IE_PACURL",
+   "2": "CONNECT_WPAD",
+   "3": "CONNECT_IE_AUTOPROXY",
+   "4": "CONNECT_IE_PROXY",
+   "5": "CONNECT_SIMPLESTORE_AUTOCONFIG",
+   "6": "CONNECT_CACHE_PROXY",
+   "7": "CONNECT_PERSISTED_PROXY",
+   "8": "CONNECT_APP_PROXY",
+   "9": "CONNECT_DIRECT_DNS_BYPASS"
+  }
+ },
+ "ConnectionCipher": {
+  "lookup": "crowdstrike_ConnectionCipher.csv",
+  "meaning_field": "ConnectionCipher_meaning",
+  "values": {
+   "0": "NO_ENCRYPTION",
+   "26113": "CALG_DES",
+   "26114": "CALG_RC2",
+   "26115": "CALG_3DES",
+   "26126": "CALG_AES_128",
+   "26128": "CALG_AES_256",
+   "26625": "CALG_RC4"
+  }
+ },
+ "ConnectionDirection": {
+  "lookup": "crowdstrike_ConnectionDirection.csv",
+  "meaning_field": "ConnectionDirection_meaning",
+  "values": {
+   "0": "DIRECTION_OUTBOUND",
+   "1": "DIRECTION_INBOUND",
+   "2": "DIRECTION_NEITHER",
+   "3": "DIRECTION_BOTH"
+  }
+ },
+ "ConnectionExchange": {
+  "lookup": "crowdstrike_ConnectionExchange.csv",
+  "meaning_field": "ConnectionExchange_meaning",
+  "values": {
+   "41984": "CALG_RSA_KEYX",
+   "43522": "CALG_DH_EPHEM"
+  }
+ },
+ "ConnectionHash": {
+  "lookup": "crowdstrike_ConnectionHash.csv",
+  "meaning_field": "ConnectionHash_meaning",
+  "values": {
+   "32771": "CALG_MD5",
+   "32772": "CALG_SHA",
+   "32780": "CALG_SHA_256",
+   "32781": "CALG_SHA_384"
+  }
+ },
+ "ConnectionProtocol": {
+  "lookup": "crowdstrike_ConnectionProtocol.csv",
+  "meaning_field": "ConnectionProtocol_meaning",
+  "values": {
+   "1": "SP_PROT_PCT1_SERVER",
+   "1024": "SP_PROT_TLS1_2_SERVER",
+   "128": "SP_PROT_TLS1_CLIENT",
+   "16": "SP_PROT_SSL3_SERVER",
+   "2": "SP_PROT_PCT1_CLIENT",
+   "2048": "SP_PROT_TLS1_2_CLIENT",
+   "256": "SP_PROT_TLS1_1_SERVER",
+   "32": "SP_PROT_SSL3_CLIENT",
+   "4": "SP_PROT_SSL2_SERVER",
+   "512": "SP_PROT_TLS1_1_CLIENT",
+   "64": "SP_PROT_TLS1_SERVER",
+   "8": "SP_PROT_SSL2_CLIENT"
+  }
+ },
+ "ContainerizationErrorCode": {
+  "lookup": "crowdstrike_ContainerizationErrorCode.csv",
+  "meaning_field": "ContainerizationErrorCode_meaning",
+  "values": {
+   "0": "NO_ERROR",
+   "1": "UNKNOWN_ERROR",
+   "2": "NOT_ENOUGH_SPACE_ERROR",
+   "3": "METERED_NETWORK_ERROR",
+   "4": "NETWORK_ERROR",
+   "5": "IO_ERROR"
+  }
+ },
+ "ControlStatus": {
+  "lookup": "crowdstrike_ControlStatus.csv",
+  "meaning_field": "ControlStatus_meaning",
+  "values": {
+   "0": "SCAN_STARTED",
+   "1": "SCAN_FINISHED",
+   "2": "SCAN_ERROR_ENCOUNTERED",
+   "3": "ACCOUNT_STATUS_CHANGED",
+   "4": "SEARCH_STARTED",
+   "5": "SEARCH_FINISHED"
+  }
+ },
+ "CpuVendor": {
+  "lookup": "crowdstrike_CpuVendor.csv",
+  "meaning_field": "CpuVendor_meaning",
+  "values": {
+   "0": "INTEL",
+   "1": "AMD"
+  }
+ },
+ "CrashLoadedModulesVersion": {
+  "lookup": "crowdstrike_CrashLoadedModulesVersion.csv",
+  "meaning_field": "CrashLoadedModulesVersion_meaning",
+  "values": {
+   "0": "INITIAL_VERSION"
+  }
+ },
+ "CrashThreadCallStackVersion": {
+  "lookup": "crowdstrike_CrashThreadCallStackVersion.csv",
+  "meaning_field": "CrashThreadCallStackVersion_meaning",
+  "values": {
+   "0": "INITIAL_VERSION"
+  }
+ },
+ "CreateProcessType": {
+  "lookup": "crowdstrike_CreateProcessType.csv",
+  "meaning_field": "CreateProcessType_meaning",
+  "values": {
+   "0": "UNAVAILABLE",
+   "1": "UNKNOWN",
+   "2": "NTCREATEPROCESS",
+   "3": "CREATEPROCESS",
+   "4": "SHELLEXECUTE",
+   "5": "CRT_SYSTEM"
+  }
+ },
+ "CurrentFunctionalityLevel": {
+  "lookup": "crowdstrike_CurrentFunctionalityLevel.csv",
+  "meaning_field": "CurrentFunctionalityLevel_meaning",
+  "values": {
+   "255": "CURRENT_FUNCTIONALITY_LEVEL_UNKNOWN"
+  }
+ },
+ "DcPolicyAction": {
+  "lookup": "crowdstrike_DcPolicyAction.csv",
+  "meaning_field": "DcPolicyAction_meaning",
+  "values": {
+   "0": "ALLOW",
+   "1": "BLOCK",
+   "2": "MASSSTORAGE"
+  }
+ },
+ "DcPolicyBlockTechnique": {
+  "lookup": "crowdstrike_DcPolicyBlockTechnique.csv",
+  "meaning_field": "DcPolicyBlockTechnique_meaning",
+  "values": {
+   "0": "NONE",
+   "1": "ANY",
+   "2": "INSTALLATION_STRINGS",
+   "3": "START_IRP"
+  }
+ },
+ "DcPolicyMatchMethod": {
+  "lookup": "crowdstrike_DcPolicyMatchMethod.csv",
+  "meaning_field": "DcPolicyMatchMethod_meaning",
+  "values": {
+   "1": "DEVICECLASS",
+   "2": "DEVICECLASS_VID",
+   "3": "DEVICECLASS_VID_PID",
+   "4": "DEVICECLASS_VID_PID_SERIAL",
+   "5": "DEVICECLASS_SUBCLASS_PROTOCOL",
+   "6": "ANYCLASS_VID",
+   "7": "ANYCLASS_VID_PID",
+   "8": "ANYCLASS_VID_PID_SERIAL"
+  }
+ },
+ "DeactivationErrorCode": {
+  "lookup": "crowdstrike_DeactivationErrorCode.csv",
+  "meaning_field": "DeactivationErrorCode_meaning",
+  "values": {
+   "0": "NO_ERROR",
+   "1": "UNKNOWN_ERROR",
+   "2": "CONTAINER_SHUTDOWN_ERROR",
+   "3": "CONTAINER_WIPE_ERROR"
+  }
+ },
+ "DeviceConnectionStatus": {
+  "lookup": "crowdstrike_DeviceConnectionStatus.csv",
+  "meaning_field": "DeviceConnectionStatus_meaning",
+  "values": {
+   "1": "CONNECTED",
+   "10": "RESET",
+   "2": "FAILED_ENUMERATION",
+   "3": "GENERAL_FAILURE",
+   "4": "CAUSED_OVER_CURRENT",
+   "5": "NOT_ENOUGH_POWER",
+   "6": "NOT_ENOUGH_BANDWIDTH",
+   "7": "HUB_NESTED_TOO_DEEPLY",
+   "8": "IN_LEGACY_HUB",
+   "9": "ENUMERATING"
+  }
+ },
+ "DnsResponseType": {
+  "lookup": "crowdstrike_DnsResponseType.csv",
+  "meaning_field": "DnsResponseType_meaning",
+  "values": {
+   "0": "UNKNOWN",
+   "1": "CACHE",
+   "2": "WIRE"
+  }
+ },
+ "DriverLoadFlags": {
+  "lookup": "crowdstrike_DriverLoadFlags.csv",
+  "meaning_field": "DriverLoadFlags_meaning",
+  "values": {
+   "0": "NONE",
+   "1": "DRIVER_RUNDOWN"
+  }
+ },
+ "EndpointDescriptorAttributes": {
+  "lookup": "crowdstrike_EndpointDescriptorAttributes.csv",
+  "meaning_field": "EndpointDescriptorAttributes_meaning",
+  "values": {
+   "0": "CONTROL_TRANSFER",
+   "1": "ISOCHRONOUS_NOSYNCH_DATA_TRANSFER",
+   "13": "ISOCHRONOUS_SYNCH_DATA_TRANSFER",
+   "17": "ISOCHRONOUS_NOSYNCH_FEEDBACK_TRANSFER",
+   "19": "NOTIFICATION_INTERRUPT_TRANSFER",
+   "2": "BULK_TRANSFER",
+   "21": "ISOCHRONOUS_ASYNCH_FEEDBACK_TRANSFER",
+   "25": "ISOCHRONOUS_ADAPTIVE_FEEDBACK_TRANSFER",
+   "29": "ISOCHRONOUS_SYNCH_FEEDBACK_TRANSFER",
+   "3": "PERIODIC_INTERRUPT_TRANSFER",
+   "33": "ISOCHRONOUS_NOSYNCH_IMPLICIT_FEEDBACK_TRANSFER",
+   "37": "ISOCHRONOUS_ASYNCH_IMPLICIT_FEEDBACK_TRANSFER",
+   "41": "ISOCHRONOUS_ADAPTIVE_IMPLICIT_FEEDBACK_TRANSFER",
+   "45": "ISOCHRONOUS_SYNCH_IMPLICIT_FEEDBACK_TRANSFER",
+   "5": "ISOCHRONOUS_ASYNCH_DATA_TRANSFER",
+   "9": "ISOCHRONOUS_ADAPTIVE_DATA_TRANSFER"
+  }
+ },
+ "ErrorSource": {
+  "lookup": "crowdstrike_ErrorSource.csv",
+  "meaning_field": "ErrorSource_meaning",
+  "values": {
+   "0": "ERROR_SOURCE_INVALID_LOW",
+   "1": "ERROR_SOURCE_ETW_LIB",
+   "2": "ERROR_SOURCE_ETW_CONSUMER"
+  }
+ },
+ "ErrorStatus": {
+  "lookup": "crowdstrike_ErrorStatus.csv",
+  "meaning_field": "ErrorStatus_meaning",
+  "values": {
+   "1611792385": "WARNING_CONFIGZERO_FALLBACK",
+   "3759276032": "ERROR_UNSPECIFIC_FAILURE",
+   "3759276033": "ERROR_UNHANDLED_EVENT_TYPE",
+   "3759276034": "ERROR_REGISTRY_LEFT_OPEN",
+   "3759276035": "ERROR_SERVICE_RESTART",
+   "3759276036": "ERROR_RPC_PROXY_TYPE",
+   "3759276037": "ERROR_RELEASE_MISMATCH",
+   "3759276038": "ERROR_MISSING_AID",
+   "3759276039": "ERROR_OSFM_FEATURE_MISSING",
+   "3759276040": "ERROR_UPDATE_FAILURE",
+   "3759276041": "ERROR_UNSUPPORTED_COMPUTER_CONFIGURATION",
+   "3759276042": "ERROR_USER_CALLBACK_REGISTRATION_FAILED",
+   "3759276043": "ERROR_UM_INJECTION_ABORTED",
+   "3759276044": "ERROR_UNLOAD_FAILURE",
+   "3759276045": "ERROR_UM_INJECTION_FAILURE",
+   "3759276046": "ERROR_INLINE_HOOKING_FAILED",
+   "3759276047": "ERROR_DEVICE_CONTROL_ECL_INTERFACE_CONNECTION_FAILED",
+   "3759276048": "ERROR_DEVICE_CONTROL_NOTIFY_CALLBACK_FAILED",
+   "3759276049": "ERROR_DEVICE_CONTROL_INTERFACE_COMMAND_FAILED",
+   "3759276050": "ERROR_DEVICE_CONTROL_NO_INSTANCE_ID",
+   "3759276051": "ERROR_DEVICE_CONTROL_INTERFACE_FDO_FAILED",
+   "3759276052": "ERROR_DEVICE_CONTROL_SAFE_MODE_DETECTED",
+   "3759276053": "ERROR_DEVICE_CONTROL_DEVICE_ATTACH_FAILED",
+   "3759276054": "ERROR_DEVICE_CONTROL_NO_PARENT_HUB_INFO",
+   "3759276055": "ERROR_DEVICE_CONTROL_ENUMERATION_FAILED",
+   "3759276056": "ERROR_DEVICE_CONTROL_DEVICE_START_FAILED",
+   "3759276057": "ERROR_UM_PROXYDISCOVERY_FAILURE",
+   "3759276058": "ERROR_UMPPA_INITIALIZATION_FAILURE",
+   "3759276059": "ERROR_REMOTE_FILE_TOO_LARGE",
+   "3759276060": "ERROR_UM_INJECTION_BAD_ALERT",
+   "3759276061": "ERROR_CSA_THREAD_TERMINATING",
+   "3759276062": "ERROR_DEVICE_CONTROL_POLICY_MANAGER_FAILURE",
+   "3759276063": "ERROR_FS_DEVICE_INSTANCE_ID_RETRIEVAL_FAILURE",
+   "3759276064": "ERROR_QUARANTINE_DELETE_RETRIES_EXCEEDED",
+   "3759276065": "ERROR_DEVICE_CONTROL_SERIAL_NUMBER_MISSING",
+   "3759276066": "ERROR_UM_INVALID_THREAD",
+   "3759276067": "ERROR_UM_CFG_CHECK",
+   "3759276068": "ERROR_UM_FILE_SECTION",
+   "3759276069": "ERROR_UM_ADDRESS_LOOKUP",
+   "3759276070": "ERROR_UM_INSERT_APC",
+   "3759276071": "ERROR_UM_COPY_FAILURE",
+   "3759276072": "ERROR_UMPPC_FAILED_TO_LOAD",
+   "3759276073": "ERROR_UMPPC_LOAD_ERROR",
+   "3759276074": "ERROR_CLEARCASE_MVFS_FILE_TOO_LARGE",
+   "3759276075": "ERROR_UMPPA_INIT_UMPPC",
+   "3759276076": "ERROR_UMPPA_INIT_EXTENSIONS",
+   "3759276077": "ERROR_MODULE_LOAD_DISABLED",
+   "3759276078": "ERROR_UMPPA_CHANNEL_NOTIFICATION_FAILURE",
+   "3759276079": "ERROR_PROCESS_RUNDOWN_PROCESS_LIST_FAILURE",
+   "3759276080": "ERROR_PROCESS_RUNDOWN_SPR2_FAILURE",
+   "3759276081": "ERROR_SPOTLIGHT_ENUMERATION_FAILED",
+   "3759276082": "ERROR_ZTA_FILE_WRITE_FAILED",
+   "3759276083": "ERROR_ZTA_HASH_STORE_FAILED",
+   "3759276084": "ERROR_ZTA_CURRENT_DISABLED",
+   "3759276085": "ERROR_ZTA_FILE_EMPTY",
+   "3759276086": "ERROR_ZTA_FILE_ACCESS_FAILED",
+   "3759276087": "ERROR_ZTA_LOCATION_UNSUPPORTED",
+   "3759276088": "ERROR_ZTA_ACL_UNSUPPORTED",
+   "3759276089": "ERROR_ZTA_FILE_HANDLE_INVALID",
+   "3759276090": "ERROR_USERIDENTITY_LOGONDATA_FAILURE",
+   "3759276091": "ERROR_EVENT_MISSING_REQUIRED_FIELD",
+   "3759276092": "ERROR_FIELD_DOES_NOT_EXIST"
+  }
+ },
+ "EtwChannelType": {
+  "lookup": "crowdstrike_EtwChannelType.csv",
+  "meaning_field": "EtwChannelType_meaning",
+  "values": {
+   "0": "NULL_SECURE_CHANNEL",
+   "1": "MSV_AP_SECURE_CHANNEL_",
+   "2": "WORKSTATION_SECURE_CHANNEL",
+   "3": "TRUSTED_DNS_DOMAIN_SECURE_CHANNEL",
+   "4": "TRUSTED_COMAIN_SECURE_CHANNEL",
+   "5": "UAS_SERVER_SECURE_CHANNEL",
+   "6": "SERVER_SECURE_CHANNEL",
+   "7": "CDC_SERVER_SECURE_CHANNEL"
+  }
+ },
+ "ExceptionCode": {
+  "lookup": "crowdstrike_ExceptionCode.csv",
+  "meaning_field": "ExceptionCode_meaning",
+  "values": {
+   "0": "STATUS_SUCCESS",
+   "1611595795": "STATUS_UMPP_DELAY_HOOK",
+   "3221225477": "EXCEPTION_ACCESS_VIOLATION",
+   "3221225501": "STATUS_ILLEGAL_INSTRUCTION",
+   "3221225622": "STATUS_PRIVILEGED_INSTRUCTION",
+   "3759079483": "STATUS_UMPP_NO_HOOK_ACG",
+   "3759079500": "STATUS_UMPP_INJECTION_UWP_ABORTED",
+   "3759079520": "STATUS_UMPP_INJECTION_SECUREPROCESS_ABORTED",
+   "3759079521": "STATUS_UMPP_INJECTION_PROTECTEDPROCESS_ABORTED",
+   "3759079522": "STATUS_UMPP_INJECTION_MITIGATIONS_ABORTED",
+   "3759079523": "STATUS_UMPP_INJECTION_AVCOMPAT_ABORTED"
+  }
+ },
+ "ExceptionInformation0": {
+  "lookup": "crowdstrike_ExceptionInformation0.csv",
+  "meaning_field": "ExceptionInformation0_meaning",
+  "values": {
+   "0": "INVALID_READ",
+   "1": "INVALID_WRITE",
+   "8": "INVALID_EXECUTE"
+  }
+ },
+ "ExclusionSource": {
+  "lookup": "crowdstrike_ExclusionSource.csv",
+  "meaning_field": "ExclusionSource_meaning",
+  "values": {
+   "1": "PPDM_PROCESS_EXCLUSION",
+   "2": "PPDM_TREE_EXCLUSION",
+   "4": "LEGACY_SBDM_EXCLUSION",
+   "5": "ALLOWED_BY_ENGINE",
+   "6": "CUSTOMER_EXCLUSION"
+  }
+ },
+ "ExclusionType": {
+  "lookup": "crowdstrike_ExclusionType.csv",
+  "meaning_field": "ExclusionType_meaning",
+  "values": {
+   "1": "BEHAVIORAL_IOA",
+   "2": "HASH_BASED_IOC"
+  }
+ },
+ "ExecutionPivot": {
+  "lookup": "crowdstrike_ExecutionPivot.csv",
+  "meaning_field": "ExecutionPivot_meaning",
+  "values": {
+   "0": "NONE",
+   "1": "NEW_THREAD",
+   "2": "THREAD_CONTEXT",
+   "4": "PROTECT_EXEC"
+  }
+ },
+ "FalconServiceComponent": {
+  "lookup": "crowdstrike_FalconServiceComponent.csv",
+  "meaning_field": "FalconServiceComponent_meaning",
+  "values": {
+   "0": "FALCON_SERVICE_INVALID_SOURCE",
+   "1": "FALCON_SERVICE_SERVLET_UNIT",
+   "2": "FALCON_SERVICE_CORE",
+   "3": "FALCON_SERVICE_SERVLET_FXML"
+  }
+ },
+ "FalconServiceState": {
+  "lookup": "crowdstrike_FalconServiceState.csv",
+  "meaning_field": "FalconServiceState_meaning",
+  "values": {
+   "0": "FALCON_STATE_INVALID",
+   "1": "FALCON_STATE_RUNNING",
+   "2": "FALCON_STATE_STOPPED",
+   "3": "FALCON_STATE_ERROR"
+  }
+ },
+ "FileEventType": {
+  "lookup": "crowdstrike_FileEventType.csv",
+  "meaning_field": "FileEventType_meaning",
+  "values": {
+   "0": "FILE_RENAMED",
+   "1": "FILE_MODIFIED",
+   "2": "FILE_DELETED"
+  }
+ },
+ "FileKnownStatus": {
+  "lookup": "crowdstrike_FileKnownStatus.csv",
+  "meaning_field": "FileKnownStatus_meaning",
+  "values": {
+   "0": "FILE_KNOWN",
+   "1": "FILE_UNKNOWN",
+   "2": "UNSURE",
+   "3": "LIGHTNING_TIMEOUT",
+   "4": "SENSOR_OFFLINE",
+   "5": "FILE_EXCLUDED"
+  }
+ },
+ "FileSubType": {
+  "lookup": "crowdstrike_FileSubType.csv",
+  "meaning_field": "FileSubType_meaning",
+  "values": {
+   "0": "NONE",
+   "1": "PE_PACKER_ASPACK",
+   "2": "PE_PACKER_MPRESS",
+   "3": "PE_PACKER_THEMIDA",
+   "4": "PE_PACKER_UPX",
+   "5": "PE_PACKER_VMPROTECT"
+  }
+ },
+ "FileSystemOperationType": {
+  "lookup": "crowdstrike_FileSystemOperationType.csv",
+  "meaning_field": "FileSystemOperationType_meaning",
+  "values": {
+   "0": "OP_INVALID",
+   "1": "OP_RENAME",
+   "2": "OP_DELETE"
+  }
+ },
+ "FileWrittenFlags": {
+  "lookup": "crowdstrike_FileWrittenFlags.csv",
+  "meaning_field": "FileWrittenFlags_meaning",
+  "values": {
+   "0": "HASH_IS_VALID",
+   "1": "HASH_FAILED",
+   "2": "HASH_ABORTED_TOO_LARGE"
+  }
+ },
+ "FirewallAction": {
+  "lookup": "crowdstrike_FirewallAction.csv",
+  "meaning_field": "FirewallAction_meaning",
+  "values": {
+   "0": "INVALID_ACTION",
+   "1": "ALLOW",
+   "2": "DENY"
+  }
+ },
+ "FirewallProfile": {
+  "lookup": "crowdstrike_FirewallProfile.csv",
+  "meaning_field": "FirewallProfile_meaning",
+  "values": {
+   "0": "INVALID",
+   "1": "DOMAIN",
+   "2": "STANDARD",
+   "3": "PUBLIC"
+  }
+ },
+ "FirmwareAnalysisErrorSource": {
+  "lookup": "crowdstrike_FirmwareAnalysisErrorSource.csv",
+  "meaning_field": "FirmwareAnalysisErrorSource_meaning",
+  "values": {
+   "0": "FA_ERROR_SOURCE_INVALID_LOW",
+   "1": "FA_ERROR_SOURCE_IMAGE_PARSER",
+   "2": "FA_ERROR_SOURCE_IMAGE_ANALYSIS_ACTOR",
+   "3": "FA_ERROR_SOURCE_SECURITY_ANALYSIS_ACTOR"
+  }
+ },
+ "FirmwareType": {
+  "lookup": "crowdstrike_FirmwareType.csv",
+  "meaning_field": "FirmwareType_meaning",
+  "values": {
+   "0": "FIRMWARE_TYPE_INVALID_LOW",
+   "1": "FIRMWARE_TYPE_UEFI"
+  }
+ },
+ "FontLoadOperation": {
+  "lookup": "crowdstrike_FontLoadOperation.csv",
+  "meaning_field": "FontLoadOperation_meaning",
+  "values": {
+   "0": "FONT_ADD_FROM_FILE",
+   "1": "FONT_ADD_FROM_MEM",
+   "2": "FONT_ADD_TO_DC"
+  }
+ },
+ "FsOperationClassification": {
+  "lookup": "crowdstrike_FsOperationClassification.csv",
+  "meaning_field": "FsOperationClassification_meaning",
+  "values": {
+   "0": "CLASS_INVALID",
+   "1": "CLASS_SUPPRESS",
+   "10": "CLASS_CS_PROGRAM_FILES_MODIFY",
+   "11": "CLASS_SUPPRESS_V1",
+   "12": "CLASS_GENERIC_V1",
+   "13": "CLASS_INJECTED_DLLS_MODIFY_V1",
+   "14": "CLASS_SERVICE_BINS_MODIFY_V1",
+   "15": "CLASS_CORE_DRIVERS_MODIFY_V1",
+   "16": "CLASS_EXTRA_DRIVERS_MODIFY_V1",
+   "17": "CLASS_SUPPORT_TOOLS_MODIFY_V1",
+   "18": "CLASS_INSTALLER_CACHES_MODIFY_V1",
+   "19": "CLASS_OSFM_AND_CHANNELS_MODIFY_V1",
+   "2": "CLASS_GENERIC",
+   "20": "ANTI_TAMPERING_END_BOUNDARY_V1",
+   "21": "CLASS_INJECTED_DLLS_MODIFY_V2",
+   "22": "CLASS_SERVICE_BINS_MODIFY_V2",
+   "23": "CLASS_CORE_DRIVERS_MODIFY_V2",
+   "24": "CLASS_EXTRA_DRIVERS_MODIFY_V2",
+   "25": "CLASS_INSTALLER_CACHES_MODIFY_V2",
+   "26": "CLASS_OSFM_AND_CHANNELS_MODIFY_V2",
+   "27": "ANTI_TAMPERING_END_BOUNDARY_V2",
+   "3": "CLASS_INJECTED_DLLS_MODIFY",
+   "31": "CLASS_TAMPER_END_BOUNDARY",
+   "32": "CLASS_GENERIC_START_BOUNDARY",
+   "4": "CLASS_SERVICE_BINS_MODIFY",
+   "5": "CLASS_CORE_DRIVERS_MODIFY",
+   "511": "CLASS_GENERIC_END_BOUNDARY",
+   "6": "CLASS_EXTRA_DRIVERS_MODIFY",
+   "7": "CLASS_SUPPORT_TOOLS_MODIFY",
+   "8": "CLASS_INSTALLER_CACHES_MODIFY",
+   "9": "CLASS_OSFM_AND_CHANNELS_MODIFY"
+  }
+ },
+ "HIDDescriptorCountryCode": {
+  "lookup": "crowdstrike_HIDDescriptorCountryCode.csv",
+  "meaning_field": "HIDDescriptorCountryCode_meaning",
+  "values": {
+   "0": "NOT_SUPPORTED",
+   "1": "ARABIC",
+   "10": "GREEK",
+   "11": "HEBREW",
+   "12": "HUNGARY",
+   "13": "INTERNATIONAL_ISO",
+   "14": "ITALIAN",
+   "15": "JAPAN_KATAKANA",
+   "16": "KOREAN",
+   "17": "LATIN_AMERICAN",
+   "18": "NETHERLANDS_DUTCH",
+   "19": "NORWEGIAN",
+   "2": "BELGIAN",
+   "20": "PERSIAN_FARSI",
+   "21": "POLAND",
+   "22": "PORTUGUESE",
+   "23": "RUSSIA",
+   "24": "SLOVAKIA",
+   "25": "SPANISH",
+   "26": "SWEDISH",
+   "27": "SWISS_FRENCH",
+   "28": "SWISS_GERMAN",
+   "29": "SWITZERLAND",
+   "3": "CANADIAN_BILINGUAL",
+   "30": "TAIWAN",
+   "31": "TURKISH_Q",
+   "32": "UK",
+   "33": "US",
+   "34": "YUGOSLAVIA",
+   "35": "TURKISH_F",
+   "4": "CANADIAN_FRENCH",
+   "5": "CZECH_REPUBLIC",
+   "6": "DANISH",
+   "7": "FINNISH",
+   "8": "FRENCH",
+   "9": "GERMAN"
+  }
+ },
+ "HarmfulAppCategory": {
+  "lookup": "crowdstrike_HarmfulAppCategory.csv",
+  "meaning_field": "HarmfulAppCategory_meaning",
+  "values": {
+   "1": "HARMFUL_CATEGORY_RANSOMWARE",
+   "10": "HARMFUL_CATEGORY_SPYWARE",
+   "11": "HARMFUL_CATEGORY_GENERIC_MALWARE",
+   "12": "HARMFUL_CATEGORY_HARMFUL_SITE",
+   "13": "HARMFUL_CATEGORY_WINDOWS_MALWARE",
+   "14": "HARMFUL_CATEGORY_HOSTILE_DOWNLOADER",
+   "15": "HARMFUL_CATEGORY_NON_ANDROID_THREAT",
+   "16": "HARMFUL_CATEGORY_ROOTING",
+   "17": "HARMFUL_CATEGORY_PRIVILEGE_ESCALATION",
+   "18": "HARMFUL_CATEGORY_TRACKING",
+   "19": "HARMFUL_CATEGORY_SPAM",
+   "2": "HARMFUL_CATEGORY_PHISHING",
+   "20": "HARMFUL_CATEGORY_DENIAL_OF_SERVICE",
+   "21": "HARMFUL_CATEGORY_DATA_COLLECTION",
+   "3": "HARMFUL_CATEGORY_TROJAN",
+   "4": "HARMFUL_CATEGORY_UNCOMMON",
+   "5": "HARMFUL_CATEGORY_FRAUDWARE",
+   "6": "HARMFUL_CATEGORY_TOLL_FRAUD",
+   "7": "HARMFUL_CATEGORY_WAP_FRAUD",
+   "8": "HARMFUL_CATEGORY_CALL_FRAUD",
+   "9": "HARMFUL_CATEGORY_BACKDOOR"
+  }
+ },
+ "HookId": {
+  "lookup": "crowdstrike_HookId.csv",
+  "meaning_field": "HookId_meaning",
+  "values": {
+   "0": "WH_JOURNALRECORD",
+   "1": "WH_JOURNALPLAYBACK",
+   "10": "WH_SHELL",
+   "11": "WH_FOREGROUNDIDLE",
+   "12": "WH_CALLWNDPROCRET",
+   "13": "WH_KEYBOARD_LL",
+   "14": "WH_MOUSE_LL",
+   "2": "WH_KEYBOARD",
+   "3": "WH_GETMESSAGE",
+   "4": "WH_CALLWNDPROC",
+   "4294967295": "WH_MSGFILTER",
+   "5": "WH_CBT",
+   "6": "WH_SYSMSGFILTER",
+   "7": "WH_MOUSE",
+   "8": "WH_HARDWARE",
+   "9": "WH_DEBUG"
+  }
+ },
+ "HookedObjectType": {
+  "lookup": "crowdstrike_HookedObjectType.csv",
+  "meaning_field": "HookedObjectType_meaning",
+  "values": {
+   "0": "INVALID",
+   "1": "DRIVER_OBJECT",
+   "2": "NDIS_PROTOCOL_BLOCK",
+   "3": "NDIS_OPEN_BLOCK",
+   "4": "NDIS_FILTER_BLOCK",
+   "5": "NDIS_MINIPORT_BLOCK"
+  }
+ },
+ "HookedPointerType": {
+  "lookup": "crowdstrike_HookedPointerType.csv",
+  "meaning_field": "HookedPointerType_meaning",
+  "values": {
+   "0": "INVALID",
+   "1": "INIT",
+   "10": "IRPMJQUERYINFORMATION",
+   "11": "IRPMJSETINFORMATION",
+   "12": "IRPMJQUERYEA",
+   "13": "IRPMJSETEA",
+   "14": "IRPMJFLUSHBUFFERS",
+   "15": "IRPMJQUERYVOLUMEINFORMATION",
+   "16": "IRPMJSETVOLUMEINFORMATION",
+   "17": "IRPMJDIRECTORYCONTROL",
+   "18": "IRPMJFILESYSTEMCONTROL",
+   "19": "IRPMJDEVICECONTROL",
+   "2": "STARTIO",
+   "20": "IRPMJINTERNALDEVICECONTROL",
+   "21": "IRPMJSHUTDOWN",
+   "22": "IRPMJLOCKCONTROL",
+   "23": "IRPMJCLEANUP",
+   "24": "IRPMJCREATEMAILSLOT",
+   "25": "IRPMJQUERYSECURITY",
+   "26": "IRPMJSETSECURITY",
+   "27": "IRPMJPOWER",
+   "28": "IRPMJSYSTEMCONTROL",
+   "29": "IRPMJDEVICECHANGE",
+   "3": "UNLOAD",
+   "30": "IRPMJQUERYQUOTA",
+   "31": "IRPMJSETQUOTA",
+   "32": "FASTIOREAD",
+   "33": "FASTIOWRITE",
+   "34": "FASTIOQUERYBASICINFO",
+   "35": "FASTIOQUERYSTANDARDINFO",
+   "36": "FASTIODEVICECONTROL",
+   "37": "FASTIOQUERYNETWORKOPENINFO",
+   "38": "FASTIOMDLREAD",
+   "39": "FASTIOMDLREADCOMPLETE",
+   "4": "DEVICEOBJECTDRIVEROBJECT",
+   "40": "FASTIOPREPAREMDLWRITE",
+   "41": "FASTIOMDLWRITECOMPLETE",
+   "42": "FASTIOREADCOMPRESSED",
+   "43": "FASTIOWRITECOMPRESSED",
+   "44": "FASTIOMDLREADCOMPLETECOMPRESSED",
+   "45": "FASTIOMDLWRITECOMPLETECOMPRESSED",
+   "46": "FASTIOQUERYOPEN",
+   "47": "NDIS5OPENBLOCKRECEIVEHANDLER",
+   "48": "NDIS5OPENBLOCKRECEIVECOMPLETEHANDLER",
+   "49": "NDIS5OPENBLOCKRECEIVEPACKETHANDLER",
+   "5": "IRPMJCREATE",
+   "50": "NDIS5OPENBLOCKSENDHANDLER",
+   "51": "NDIS5OPENBLOCKSENDCOMPLETEHANDLER",
+   "52": "NDIS5OPENBLOCKSENDPACKETSHANDLER",
+   "53": "NDIS5OPENBLOCKTRANSFERDATAHANDLER",
+   "54": "NDIS5OPENBLOCKTRANSFERDATACOMPLETEHANDLER",
+   "55": "NDIS5OPENBLOCKRECEIVENETBUFFERLISTSHANDLER",
+   "56": "NDIS6OPENBLOCKPROTOCOLSENDNETBUFFERLISTSCOMPLETEHANDLER",
+   "57": "NDIS6OPENBLOCKPROTOCOLRECEIVENETBUFFERLISTSHANDLER",
+   "58": "NDIS5MINIPORTBLOCKSENDPACKETSHANDLER",
+   "59": "NDIS6PROTOCOLBLOCKRECEIVENETBUFFERLISTSHANDLER",
+   "6": "IRPMJCREATENAMEDPIPE",
+   "60": "NDIS6PROTOCOLBLOCKSENDNETBUFFERLISTSCOMPLETEHANDLER",
+   "61": "NDIS6FILTERBLOCKNEXTSENDNETBUFFERLISTSCOMPLETEHANDLER",
+   "62": "NDIS6FILTERBLOCKRETURNNETBUFFERLISTSHANDLER",
+   "63": "NDIS6FILTERBLOCKFILTERSENDNETBUFFERLISTSHANDLER",
+   "7": "IRPMJCLOSE",
+   "8": "IRPMJREAD",
+   "9": "IRPMJWRITE"
+  }
+ },
+ "HostProcessType": {
+  "lookup": "crowdstrike_HostProcessType.csv",
+  "meaning_field": "HostProcessType_meaning",
+  "values": {
+   "0": "OTHERS",
+   "1": "POWERSHELL",
+   "2": "POWERSHELL_ISE",
+   "3": "WSCRIPT",
+   "4": "CSCRIPT",
+   "5": "OFFICEEXE"
+  }
+ },
+ "HttpInternalSource": {
+  "lookup": "crowdstrike_HttpInternalSource.csv",
+  "meaning_field": "HttpInternalSource_meaning",
+  "values": {
+   "0": "HTTP_INVALID_SOURCE",
+   "1": "HTTP_WFP_NETWORK_EVENT_SOURCE",
+   "2": "HTTP_ETW_WININET_SOURCE",
+   "3": "HTTP_ETW_WININET_CAPTURE_SOURCE"
+  }
+ },
+ "HttpMethod": {
+  "lookup": "crowdstrike_HttpMethod.csv",
+  "meaning_field": "HttpMethod_meaning",
+  "values": {
+   "0": "HTTP_METHOD_UNKNOWN",
+   "1": "HTTP_METHOD_GET",
+   "2": "HTTP_METHOD_HEAD",
+   "3": "HTTP_METHOD_POST",
+   "4": "HTTP_METHOD_PUT",
+   "5": "HTTP_METHOD_DELETE",
+   "6": "HTTP_METHOD_OPTIONS",
+   "7": "HTTP_METHOD_CONNECT",
+   "8": "HTTP_METHOD_TRACE",
+   "9": "HTTP_METHOD_PATCH"
+  }
+ },
+ "HttpVisibilityState": {
+  "lookup": "crowdstrike_HttpVisibilityState.csv",
+  "meaning_field": "HttpVisibilityState_meaning",
+  "values": {
+   "0": "HTTP_INITIAL",
+   "1": "HTTP_STOPPED",
+   "2": "HTTP_STARTED",
+   "3": "HTTP_ERROR_START",
+   "4": "HTTP_ERROR_STOP",
+   "5": "HTTP_UNKNOWN"
+  }
+ },
+ "HttpVisibilityStatusReason": {
+  "lookup": "crowdstrike_HttpVisibilityStatusReason.csv",
+  "meaning_field": "HttpVisibilityStatusReason_meaning",
+  "values": {
+   "1": "REASON_ENABLED",
+   "10": "REASON_BAD_INDICATED_LENGTH",
+   "11": "REASON_BAD_REQUIRED_LENGTH",
+   "12": "REASON_BAD_BUFFER_LIMIT",
+   "13": "REASON_BAD_CAPTURE",
+   "14": "REASON_ERROR_THROW",
+   "15": "REASON_ERROR_QUEUE",
+   "16": "REASON_PERIODIC",
+   "17": "REASON_MISSING_PROCESS",
+   "18": "REASON_BAD_HEADER_URL",
+   "19": "REASON_BAD_HEADER_UNICODE",
+   "2": "REASON_DISABLED",
+   "3": "REASON_ERROR_COULD_NOT_START",
+   "4": "REASON_ERROR_COULD_NOT_START_STOP",
+   "5": "REASON_ERROR_DISABLED",
+   "6": "REASON_ERROR_COULD_NOT_STOP",
+   "7": "REASON_BAD_DATA",
+   "8": "REASON_BAD_HEADER_END",
+   "9": "REASON_BAD_HEADER_CODE"
+  }
+ },
+ "ImageSubsystem": {
+  "lookup": "crowdstrike_ImageSubsystem.csv",
+  "meaning_field": "ImageSubsystem_meaning",
+  "values": {
+   "0": "IMAGE_SUBSYSTEM_UNKNOWN",
+   "1": "IMAGE_SUBSYSTEM_NATIVE",
+   "2": "IMAGE_SUBSYSTEM_WINDOWS_GUI",
+   "256": "IMAGE_SUBSYSTEM_WSL",
+   "3": "IMAGE_SUBSYSTEM_WINDOWS_CUI",
+   "7": "IMAGE_SUBSYSTEM_POSIX_CUI"
+  }
+ },
+ "ImpersonationLevel": {
+  "lookup": "crowdstrike_ImpersonationLevel.csv",
+  "meaning_field": "ImpersonationLevel_meaning",
+  "values": {
+   "0": "ANONYMOUS",
+   "1": "IDENTIFICATION",
+   "2": "IMPERSONATION",
+   "3": "DELEGATION"
+  }
+ },
+ "InjectedThreadFlag": {
+  "lookup": "crowdstrike_InjectedThreadFlag.csv",
+  "meaning_field": "InjectedThreadFlag_meaning",
+  "values": {
+   "0": "NONE",
+   "1": "PREV_MODE_KERNEL",
+   "128": "START_ADDRESS_IN_NTDLL",
+   "16": "SOURCE_PROCESS_IS_SYSTEM",
+   "2": "START_ADDRESS_IN_NAMED_PE",
+   "256": "START_ADDRESS_IN_WIN_DLL",
+   "32": "TARGET_ANALYSIS_FAILED",
+   "4": "START_ADDRESS_IN_SYS_RANGE",
+   "512": "START_ADDRESS_PRIVATE_MEM",
+   "64": "CONTEXT_ANALYSIS_FAILED",
+   "8": "SYSTEM_THREAD"
+  }
+ },
+ "InstanceMetadataProvider": {
+  "lookup": "crowdstrike_InstanceMetadataProvider.csv",
+  "meaning_field": "InstanceMetadataProvider_meaning",
+  "values": {
+   "1": "AWS_EC2",
+   "2": "AZURE",
+   "3": "GCP"
+  }
+ },
+ "IntegrityLevel": {
+  "lookup": "crowdstrike_IntegrityLevel.csv",
+  "meaning_field": "IntegrityLevel_meaning",
+  "values": {
+   "0": "UNTRUSTED",
+   "12288": "HIGH",
+   "16384": "SYSTEM",
+   "20480": "PROTECTED",
+   "4096": "LOW",
+   "8192": "MEDIUM",
+   "8448": "MEDIUM_PLUS"
+  }
+ },
+ "InterfaceGuid": {
+  "lookup": "crowdstrike_InterfaceGuid.csv",
+  "meaning_field": "InterfaceGuid_meaning",
+  "values": {
+   "121367533005861681461576054847531180172": "VSSPROVCREATESNAPSHOTSET",
+   "159960145448404702327966120361641609644": "SAMR",
+   "172443849722322458118105166679598174211": "SVCCTL",
+   "204515944799677958888377619406178631879": "IWBEMSERVICES",
+   "2412069341428182633207713507271774211": "WINREG",
+   "266744886918508568919187450154098661104": "SSPIRPRC",
+   "292758075101678573331253975571375072234": "EVENTSVCLEGACY",
+   "301991270698496353333203549261415115356": "IUSERPROFILE",
+   "329231840064844765340085534139467969404": "EVENTSVC",
+   "73841726827644574320132068595241126674": "BITSJOB",
+   "82508809336647230654648091337707475455": "VSSSOFTWARESNAPSHOTPROVIDER",
+   "97500048380073784365750892119335238924": "ITASKSCHEDULERSERVICE"
+  }
+ },
+ "IoControlCode": {
+  "lookup": "crowdstrike_IoControlCode.csv",
+  "meaning_field": "IoControlCode_meaning",
+  "values": {
+   "3670095": "IOCTL_ICA_CONNECT_ACCEPT",
+   "3736576": "IOCTL_CNG_CVE_2020_17087"
+  }
+ },
+ "LfoUploadCloudStatus": {
+  "lookup": "crowdstrike_LfoUploadCloudStatus.csv",
+  "meaning_field": "LfoUploadCloudStatus_meaning",
+  "values": {
+   "0": "LFO_SUCCESS"
+  }
+ },
+ "LfoUploadExtendedStatus": {
+  "lookup": "crowdstrike_LfoUploadExtendedStatus.csv",
+  "meaning_field": "LfoUploadExtendedStatus_meaning",
+  "values": {
+   "0": "LFO_SUCCESS",
+   "1": "LFO_WAIT_RECEIVE_ERROR",
+   "16": "LFO_NEW_CONNECT_SOCKET_CREATE_ERROR",
+   "17": "LFO_NEW_CONNECT_INIT_CONNECT_MSG_ERROR",
+   "18": "LFO_NEW_CONNECT_ENDPOINT_CREATE_ERROR",
+   "19": "LFO_NEW_CONNECT_GET_ENDPOINT_ERROR",
+   "2": "LFO_RECEIVE_TIMEOUT",
+   "20": "LFO_NEW_CONNECT_CONNECT_ERROR",
+   "21": "LFO_NEW_CONNECT_SEND_ERROR",
+   "22": "LFO_NEW_CONNECT_RECEIVE_ERROR",
+   "23": "LFO_NEW_CONNECT_RECEIVE_TIMEOUT",
+   "24": "LFO_NEW_CONNECT_RESPONSE_SIZE_INVALID",
+   "25": "LFO_NEW_CONNECT_RESPONSE_MAGIC_INVALID",
+   "32": "LFO_RECEIVE_ERROR",
+   "33": "LFO_RECEIVE_DATA_SIZE_TOO_SMALL",
+   "34": "LFO_RECEIVE_DATA_SIZE_INVALID",
+   "35": "LFO_RECEIVE_MAGIC_INVALID",
+   "36": "LFO_RECEIVE_VERSION_INVALID",
+   "37": "LFO_RECEIVE_STREAM_ID_UNKNOWN",
+   "38": "LFO_RECEIVE_ITEM_STATE_INVALID",
+   "39": "LFO_RECEIVE_PAYLOAD_REASON_ERROR",
+   "40": "LFO_RECEIVE_UPLOAD_FLAGS_ERROR",
+   "41": "LFO_RECEIVE_PARTIAL_MESSAGE",
+   "42": "LFO_RECEIVE_TERMINATION",
+   "48": "LFO_REQUEST_STATE_INVALID",
+   "49": "LFO_TOO_MANY_RETRIES",
+   "50": "LFO_UNIMPLEMENTED",
+   "51": "LFO_FILE_PATH_EXCLUDED",
+   "52": "LFO_FILE_ALREADY_UPLOADED",
+   "64": "LFO_PUT_REQUEST_FILE_OPEN_ERROR",
+   "65": "LFO_PUT_REQUEST_HASH_ERROR",
+   "66": "LFO_PUT_REQUEST_FILE_SIZE_ERROR",
+   "67": "LFO_PUT_REQUEST_FILE_SIZE_TOO_LARGE",
+   "68": "LFO_PUT_REQUEST_FILE_NAME_TOO_LONG",
+   "69": "LFO_PUT_REQUEST_MESSAGE_ALLOC_ERROR",
+   "70": "LFO_PUT_REQUEST_UTF8_ENCODE_ERROR",
+   "71": "LFO_PUT_REQUEST_SOCKET_SEND_ERROR",
+   "72": "LFO_PUT_REQUEST_GET_QUARANTINED_FILES_ERROR",
+   "73": "LFO_PUT_REQUEST_COULD_NOT_FIND_QUARANTINED_FILE",
+   "74": "LFO_PUT_REQUEST_FILE_OPEN_QUARANTINE_ERROR",
+   "75": "LFO_PUT_REQUEST_QUARANTINE_DECODE_METADATA_ERROR",
+   "76": "LFO_PUT_REQUEST_QUARANTINE_FILE_NOT_FOUND_ERROR",
+   "77": "LFO_PUT_REQUEST_QUARANTINE_FILE_STRING_DUPLICATE_ERROR",
+   "80": "LFO_PUT_PAYLOAD_FILE_OPEN_ERROR",
+   "81": "LFO_PUT_PAYLOAD_FILE_SIZE_ERROR",
+   "82": "LFO_PUT_PAYLOAD_FILE_SIZE_INVALID",
+   "83": "LFO_PUT_PAYLOAD_DATA_ALLOC_ERROR",
+   "84": "LFO_PUT_PAYLOAD_FILE_SIZE_TOO_LARGE",
+   "85": "LFO_PUT_PAYLOAD_SEND_HDR_ERROR",
+   "86": "LFO_PUT_PAYLOAD_SEND_READ_FILE_ERROR",
+   "87": "LFO_PUT_PAYLOAD_SEND_SEND_DATA_ERROR",
+   "88": "LFO_PUT_PAYLOAD_SEND_CHECKSUM_ERROR"
+  }
+ },
+ "LightningLatencyState": {
+  "lookup": "crowdstrike_LightningLatencyState.csv",
+  "meaning_field": "LightningLatencyState_meaning",
+  "values": {
+   "1": "ASYNC_ON_FIRST",
+   "2": "DISCONNECTED",
+   "3": "ACTIVE"
+  }
+ },
+ "LinkedAuthenticationId": {
+  "lookup": "crowdstrike_LinkedAuthenticationId.csv",
+  "meaning_field": "LinkedAuthenticationId_meaning",
+  "values": {
+   "0": "INVALID_LUID"
+  }
+ },
+ "LocationStatus": {
+  "lookup": "crowdstrike_LocationStatus.csv",
+  "meaning_field": "LocationStatus_meaning",
+  "values": {
+   "0": "UNKNOWN",
+   "1": "UNAVAILABLE",
+   "2": "UNAUTHORIZED",
+   "3": "OFF",
+   "4": "ON"
+  }
+ },
+ "LogonType": {
+  "lookup": "crowdstrike_LogonType.csv",
+  "meaning_field": "LogonType_meaning",
+  "values": {
+   "10": "REMOTE_INTERACTIVE",
+   "11": "CACHED_INTERACTIVE",
+   "12": "CACHED_REMOTE_INTERACTIVE",
+   "13": "CACHED_UNLOCK",
+   "2": "INTERACTIVE",
+   "3": "NETWORK",
+   "4": "BATCH",
+   "5": "SERVICE",
+   "6": "PROXY",
+   "7": "UNLOCK",
+   "8": "NETWORK_CLEARTEXT",
+   "9": "NEW_CREDENTIALS"
+  }
+ },
+ "MachOSubType": {
+  "lookup": "crowdstrike_MachOSubType.csv",
+  "meaning_field": "MachOSubType_meaning",
+  "values": {
+   "0": "UNKNOWN",
+   "1": "EXECUTABLE64",
+   "2": "DYLIB64",
+   "3": "BUNDLE64",
+   "4": "KEXT64",
+   "5": "EXECUTABLE32",
+   "6": "DYLIB32",
+   "7": "BUNDLE32"
+  }
+ },
+ "Malicious": {
+  "lookup": "crowdstrike_Malicious.csv",
+  "meaning_field": "Malicious_meaning",
+  "values": {
+   "0": "NO_CONF",
+   "1": "LOW_CONF",
+   "2": "MEDIUM_CONF",
+   "3": "HIGH_CONF",
+   "4": "LOWEST_CONF",
+   "5": "TARGET_FP_RATE_TEN_PERC",
+   "6": "TARGET_FP_RATE_ONE_PERC"
+  }
+ },
+ "MeasurementType": {
+  "lookup": "crowdstrike_MeasurementType.csv",
+  "meaning_field": "MeasurementType_meaning",
+  "values": {
+   "0": "MEASUREMENT_TYPE_INVALID_LOW",
+   "1": "MEASUREMENT_TYPE_PE_IMAGE",
+   "2": "MEASUREMENT_TYPE_REGION",
+   "4": "MEASUREMENT_TYPE_APPLE_EFICHECK"
+  }
+ },
+ "MemoryDescriptionFlags": {
+  "lookup": "crowdstrike_MemoryDescriptionFlags.csv",
+  "meaning_field": "MemoryDescriptionFlags_meaning",
+  "values": {
+   "0": "NONE",
+   "1": "INVALID_ADDRESS",
+   "1024": "PRIVATE_MEMORY",
+   "1056": "PRIVATE_MODULE_MEMORY",
+   "1088": "PRIVATE_OR_MAPPED",
+   "128": "REFLECTIVE_PE",
+   "152": "MZ_CODE_REFLECTIVE",
+   "16": "CODE",
+   "2": "CURRENT_STACK",
+   "200": "MZ_MAPPED_REFLECTIVE",
+   "2048": "KNOWN_FUNCTION",
+   "256": "JIT_FLASH",
+   "32": "MODULE",
+   "4": "JIT_DOTNET",
+   "4096": "FREE_MEMORY",
+   "512": "PRIMARY_MODULE",
+   "64": "MAPPED",
+   "8": "MZ",
+   "80": "CODE_MAPPED"
+  }
+ },
+ "MemoryRegionProtection": {
+  "lookup": "crowdstrike_MemoryRegionProtection.csv",
+  "meaning_field": "MemoryRegionProtection_meaning",
+  "values": {
+   "1": "PAGE_NOACCESS",
+   "128": "PAGE_EXECUTE_WRITECOPY",
+   "16": "PAGE_EXECUTE",
+   "2": "PAGE_READONLY",
+   "32": "PAGE_EXECUTE_READ",
+   "4": "PAGE_READWRITE",
+   "64": "PAGE_EXECUTE_READWRITE",
+   "8": "PAGE_WRITECOPY"
+  }
+ },
+ "ModuleLoadMechanism": {
+  "lookup": "crowdstrike_ModuleLoadMechanism.csv",
+  "meaning_field": "ModuleLoadMechanism_meaning",
+  "values": {
+   "0": "STANDARD",
+   "1": "REFLECTIVE"
+  }
+ },
+ "NetworkContainmentState": {
+  "lookup": "crowdstrike_NetworkContainmentState.csv",
+  "meaning_field": "NetworkContainmentState_meaning",
+  "values": {
+   "0": "NETWORK_CONTAINMENT_STATE_UNCONTAINED",
+   "1": "NETWORK_CONTAINMENT_STATE_CONTAINED"
+  }
+ },
+ "NetworkExtensionType": {
+  "lookup": "crowdstrike_NetworkExtensionType.csv",
+  "meaning_field": "NetworkExtensionType_meaning",
+  "values": {
+   "0": "UNKNOWN",
+   "1": "CONTENT_FILTER",
+   "2": "APP_PROXY"
+  }
+ },
+ "NetworkProfile": {
+  "lookup": "crowdstrike_NetworkProfile.csv",
+  "meaning_field": "NetworkProfile_meaning",
+  "values": {
+   "0": "NET_PROFILE_INVALID",
+   "1": "NET_PROFILE_DOMAIN",
+   "2": "NET_PROFILE_PUBLIC",
+   "255": "NET_PROFILE_ANY",
+   "4": "NET_PROFILE_PRIVATE"
+  }
+ },
+ "OciContainerEngineType": {
+  "lookup": "crowdstrike_OciContainerEngineType.csv",
+  "meaning_field": "OciContainerEngineType_meaning",
+  "values": {
+   "0": "UNKNOWN",
+   "1": "DOCKER",
+   "2": "PODMAN"
+  }
+ },
+ "ParentAuthenticationId": {
+  "lookup": "crowdstrike_ParentAuthenticationId.csv",
+  "meaning_field": "ParentAuthenticationId_meaning",
+  "values": {
+   "0": "INVALID_LUID"
+  }
+ },
+ "PatternHandlingErrorType": {
+  "lookup": "crowdstrike_PatternHandlingErrorType.csv",
+  "meaning_field": "PatternHandlingErrorType_meaning",
+  "values": {
+   "0": "MISSING_EVENT_TYPE_TAG",
+   "1": "MISSING_TRANSMISSION_TAG",
+   "2": "INVALID_PATTERNDISPOSITION"
+  }
+ },
+ "PayloadClassification": {
+  "lookup": "crowdstrike_PayloadClassification.csv",
+  "meaning_field": "PayloadClassification_meaning",
+  "values": {
+   "0": "UNKNOWN",
+   "1": "ANTIVIRUS",
+   "2": "GENERIC_MALWARE",
+   "3": "RAT"
+  }
+ },
+ "PayloadClassificationFlags": {
+  "lookup": "crowdstrike_PayloadClassificationFlags.csv",
+  "meaning_field": "PayloadClassificationFlags_meaning",
+  "values": {
+   "0": "NONE",
+   "1": "KNOWN_BENIGN",
+   "2": "SUSPICIOUS",
+   "4": "KNOWN_MALICIOUS",
+   "8": "ENABLE_VISIBILITY"
+  }
+ },
+ "PciAttachmentState": {
+  "lookup": "crowdstrike_PciAttachmentState.csv",
+  "meaning_field": "PciAttachmentState_meaning",
+  "values": {
+   "0": "ATTACHMENT_SUCCESS",
+   "1": "ATTACHMENT_NOT_ATTACHED",
+   "2": "ATTACHMENT_COLLECTION_FAILED",
+   "3": "ATTACHMENT_NOT_STARTED",
+   "4": "ATTACHMENT_STOPPED_REMOVED",
+   "65533": "ATTACHMENT_DUPLICATE_ERROR",
+   "65534": "ATTACHMENT_ERROR",
+   "65535": "ATTACHMENT_UNKNOWN"
+  }
+ },
+ "PosixFileType": {
+  "lookup": "crowdstrike_PosixFileType.csv",
+  "meaning_field": "PosixFileType_meaning",
+  "values": {
+   "0": "NON",
+   "1": "REG",
+   "2": "DIR",
+   "3": "BLK",
+   "4": "CHR",
+   "5": "LNK",
+   "6": "SOCK",
+   "7": "FIFO"
+  }
+ },
+ "PowerPluggedType": {
+  "lookup": "crowdstrike_PowerPluggedType.csv",
+  "meaning_field": "PowerPluggedType_meaning",
+  "values": {
+   "0": "AC",
+   "1": "USB",
+   "2": "WIRELESS"
+  }
+ },
+ "PreviousMemoryRegionProtection": {
+  "lookup": "crowdstrike_PreviousMemoryRegionProtection.csv",
+  "meaning_field": "PreviousMemoryRegionProtection_meaning",
+  "values": {
+   "1": "PAGE_NOACCESS",
+   "128": "PAGE_EXECUTE_WRITECOPY",
+   "16": "PAGE_EXECUTE",
+   "2": "PAGE_READONLY",
+   "32": "PAGE_EXECUTE_READ",
+   "4": "PAGE_READWRITE",
+   "64": "PAGE_EXECUTE_READWRITE",
+   "8": "PAGE_WRITECOPY"
+  }
+ },
+ "ProcessCreateFlags": {
+  "lookup": "crowdstrike_ProcessCreateFlags.csv",
+  "meaning_field": "ProcessCreateFlags_meaning",
+  "values": {
+   "1": "DEBUG_PROCESS",
+   "1024": "CREATE_UNICODE_ENVIRONMENT",
+   "1048576": "PROCESS_MODE_BACKGROUND_BEGIN",
+   "1073741824": "PROFILE_SERVER",
+   "134217728": "CREATE_NO_WINDOW",
+   "16": "CREATE_NEW_CONSOLE",
+   "16777216": "CREATE_BREAKAWAY_FROM_JOB",
+   "2": "DEBUG_ONLY_THIS_PROCESS",
+   "2048": "CREATE_SEPARATE_WOW_VDM",
+   "2097152": "PROCESS_MODE_BACKGROUND_END",
+   "2147483648": "CREATE_IGNORE_SYSTEM_DEFAULT",
+   "262144": "CREATE_PROTECTED_PROCESS",
+   "268435456": "PROFILE_USER",
+   "33554432": "CREATE_PRESERVE_CODE_AUTHZ_LEVEL",
+   "4": "CREATE_SUSPENDED",
+   "4096": "CREATE_SHARED_WOW_VDM",
+   "512": "CREATE_NEW_PROCESS_GROUP",
+   "524288": "EXTENDED_STARTUPINFO_PRESENT",
+   "536870912": "PROFILE_KERNEL",
+   "65536": "INHERIT_PARENT_AFFINITY",
+   "67108864": "CREATE_DEFAULT_ERROR_MODE",
+   "67634196": "COMMON_EXPLORER_SUSPENDED_SET",
+   "8": "DETACHED_PROCESS",
+   "8192": "CREATE_FORCEDOS"
+  }
+ },
+ "Protocol": {
+  "lookup": "crowdstrike_Protocol.csv",
+  "meaning_field": "Protocol_meaning",
+  "values": {
+   "1": "ICMP",
+   "17": "UDP",
+   "6": "TCP"
+  }
+ },
+ "ProvisionState": {
+  "lookup": "crowdstrike_ProvisionState.csv",
+  "meaning_field": "ProvisionState_meaning",
+  "values": {
+   "0": "SENSOR_NOT_PROVISIONED",
+   "1": "SENSOR_PROVISIONED"
+  }
+ },
+ "PtAnalysisTrigger": {
+  "lookup": "crowdstrike_PtAnalysisTrigger.csv",
+  "meaning_field": "PtAnalysisTrigger_meaning",
+  "values": {
+   "1": "CREATE_PROCESS_TRIGGER",
+   "2": "LOAD_IMAGE_TRIGGER"
+  }
+ },
+ "PtCompatibilityFlags": {
+  "lookup": "crowdstrike_PtCompatibilityFlags.csv",
+  "meaning_field": "PtCompatibilityFlags_meaning",
+  "values": {
+   "1": "PT_SUPPORTED"
+  }
+ },
+ "PupAdwareConfidence": {
+  "lookup": "crowdstrike_PupAdwareConfidence.csv",
+  "meaning_field": "PupAdwareConfidence_meaning",
+  "values": {
+   "0": "NO_CONF",
+   "1": "LOW_CONF",
+   "2": "MEDIUM_CONF",
+   "3": "HIGH_CONF",
+   "4": "LOWEST_CONF"
+  }
+ },
+ "QuarantinedFileState": {
+  "lookup": "crowdstrike_QuarantinedFileState.csv",
+  "meaning_field": "QuarantinedFileState_meaning",
+  "values": {
+   "0": "QUARANTINE_STATE_UNKNOWN",
+   "1": "QUARANTINE_STATE_QUARANTINED",
+   "2": "QUARANTINE_STATE_RELEASED",
+   "3": "QUARANTINE_STATE_DELETED",
+   "4": "QUARANTINE_STATE_ERROR",
+   "5": "QUARANTINE_STATE_UNWHITELISTED",
+   "6": "QUARANTINE_STATE_PURGED"
+  }
+ },
+ "QueryStatus": {
+  "lookup": "crowdstrike_QueryStatus.csv",
+  "meaning_field": "QueryStatus_meaning",
+  "values": {
+   "0": "NoError",
+   "1": "FormErr",
+   "10": "NotZone",
+   "11": "DSOTYPENI",
+   "16": "BADSIG",
+   "17": "BADKEY",
+   "18": "BADTIME",
+   "19": "BADMODE",
+   "2": "ServFail",
+   "20": "BADNAME",
+   "21": "BADALG",
+   "22": "BADTRUNC",
+   "23": "BADCOOKIE",
+   "3": "NXDomain",
+   "4": "NotImp",
+   "4278190081": "CS_ERROR_SINGLE_RESPONSE_EXPECTING_DUAL",
+   "4278190082": "CS_ERROR_DUAL_RECORDS",
+   "5": "Refused",
+   "6": "YXDomain",
+   "65535": "Reserved",
+   "7": "YXRRSet",
+   "8": "NXRRSet",
+   "9": "NotAuth",
+   "9003": "DNS_ERROR_RCODE_NAME_ERROR",
+   "9701": "DNS_ERROR_RECORD_DOES_NOT_EXIST"
+  }
+ },
+ "RFMState": {
+  "lookup": "crowdstrike_RFMState.csv",
+  "meaning_field": "RFMState_meaning",
+  "values": {
+   "0": "REDUCED_FUNCTIONALITY_MODE_FALSE",
+   "1": "REDUCED_FUNCTIONALITY_MODE_TRUE"
+  }
+ },
+ "ReasonOfFunctionalityLevel": {
+  "lookup": "crowdstrike_ReasonOfFunctionalityLevel.csv",
+  "meaning_field": "ReasonOfFunctionalityLevel_meaning",
+  "values": {
+   "0": "REASON_ERROR",
+   "1": "REASON_ROLLBACK",
+   "1024": "REASON_LOWER_FUNCTIONALITY_LEVEL_NOT_APPLIED",
+   "2": "REASON_ERROR_ACQUIRE_INTERFACES",
+   "3": "REASON_SKIPPED_ACQUIRING_INTERFACES",
+   "513": "REASON_FEATURE_CONTROL_NOT_EXIST",
+   "514": "REASON_CHIPSET_TABLE_NOT_EXIST",
+   "515": "REASON_MANUAL_DISABLED",
+   "516": "REASON_TAG_DISABLE",
+   "517": "REASON_SAFE_MODE",
+   "769": "REASON_TAG_ENABLE",
+   "770": "REASON_MANUAL_ENABLE"
+  }
+ },
+ "RegClassification": {
+  "lookup": "crowdstrike_RegClassification.csv",
+  "meaning_field": "RegClassification_meaning",
+  "values": {
+   "0": "UNKNOWN",
+   "1": "SYSTEM_STARTUP_AUTORUN",
+   "10": "CUSTOM_PROCESSES",
+   "100": "ASEP_CLASS_MARGIN",
+   "101": "CROWDSTRIKE_DATA",
+   "102": "CROWDSTRIKE_FIREWALL_RULE",
+   "103": "TAMPER_RELATED_OS_KEY",
+   "105": "CROWDSTRIKE_CLASS_MARGIN",
+   "106": "SECURITY_CONFIG",
+   "107": "FIREWALL",
+   "108": "BOOT_CONFIGURATION_DATA",
+   "109": "THIRD_PARTY_AV_VENDOR",
+   "11": "CORE_SERVICES",
+   "110": "AUTHENTICATION_POLICY",
+   "111": "PRODAPP_SECURITY",
+   "112": "PRODAPP_CONFIG_SECURITY",
+   "113": "KERNEL_SERVICE_CONFIG",
+   "12": "CORE_SERVICE_PLUGINS",
+   "13": "SERVER_PLUGINS",
+   "14": "NETWORK_SERVICE_PLUGINS",
+   "15": "LANG_SERVICE_PLUGINS",
+   "150": "SYSTEM_CONFIG_CLASS_MARGIN",
+   "151": "GENERIC_SUSPICIOUS",
+   "154": "GENERIC_SUSPICIOUS_CLASS_MARGIN",
+   "16": "MULTIMEDIA_PLUGINS",
+   "17": "SHELL_PLUGINS",
+   "18": "IE_COM_PLUGINS",
+   "19": "COM_REGISTRATION",
+   "2": "SYSTEM_SHUTDOWN_AUTORUN",
+   "20": "PRINTERS",
+   "21": "TERMINAL_SERVER",
+   "22": "GRAPHICS_CORE",
+   "23": "SYSTEM_CONFIG",
+   "3": "USER_LOGON_AUTORUN",
+   "4": "USER_LOGOFF_AUTORUN",
+   "5": "APP_START_AUTORUN",
+   "6": "APP_EXTENSION",
+   "7": "SERVICE",
+   "8": "AUTHENTICATION",
+   "9": "CORE_PROCESSES"
+  }
+ },
+ "RegConfigClass": {
+  "lookup": "crowdstrike_RegConfigClass.csv",
+  "meaning_field": "RegConfigClass_meaning",
+  "values": {
+   "0": "BOOT_CONFIGURATION_DATA",
+   "1": "CROWDSTRIKE_KEY"
+  }
+ },
+ "RegConfigValueType": {
+  "lookup": "crowdstrike_RegConfigValueType.csv",
+  "meaning_field": "RegConfigValueType_meaning",
+  "values": {
+   "0": "UNKNOWN"
+  }
+ },
+ "RegCreateDisposition": {
+  "lookup": "crowdstrike_RegCreateDisposition.csv",
+  "meaning_field": "RegCreateDisposition_meaning",
+  "values": {
+   "1": "REG_CREATED_NEW_KEY",
+   "2": "REG_OPENED_EXISTING_KEY"
+  }
+ },
+ "RegOperationType": {
+  "lookup": "crowdstrike_RegOperationType.csv",
+  "meaning_field": "RegOperationType_meaning",
+  "values": {
+   "1": "REG_SET_VALUE_KEY",
+   "101": "REG_SET_VALUE_KEY_ANTI_TAMPER",
+   "102": "REG_DELETE_VALUE_KEY_ANTI_TAMPER",
+   "2": "REG_DELETE_VALUE_KEY",
+   "3": "REG_CREATE_KEY",
+   "4": "REG_DELETE_KEY",
+   "5": "REG_SET_KEY_SECURITY",
+   "6": "REG_LOAD_KEY",
+   "7": "REG_RENAME_KEY",
+   "8": "REG_OPEN_KEY",
+   "9": "REG_QUERY_NAME_KEY"
+  }
+ },
+ "RegTamperType": {
+  "lookup": "crowdstrike_RegTamperType.csv",
+  "meaning_field": "RegTamperType_meaning",
+  "values": {
+   "0": "GENERAL",
+   "1": "NETWORK_CONFIG",
+   "2": "SERVICE"
+  }
+ },
+ "RegType": {
+  "lookup": "crowdstrike_RegType.csv",
+  "meaning_field": "RegType_meaning",
+  "values": {
+   "0": "REG_NONE",
+   "1": "REG_SZ",
+   "10": "REG_RESOURCE_REQUIREMENTS_LIST",
+   "11": "REG_QWORD",
+   "2": "REG_EXPAND_SZ",
+   "3": "REG_BINARY",
+   "4": "REG_DWORD",
+   "5": "REG_DWORD_BIG_ENDIAN",
+   "6": "REG_LINK",
+   "7": "REG_MULTI_SZ",
+   "8": "REG_RESOURCE_LIST",
+   "9": "REG_FULL_RESOURCE_DESCRIPTOR"
+  }
+ },
+ "RequestType": {
+  "lookup": "crowdstrike_RequestType.csv",
+  "meaning_field": "RequestType_meaning",
+  "values": {
+   "0": "Reserved",
+   "1": "A",
+   "10": "NULL",
+   "100": "UINFO",
+   "101": "UID",
+   "102": "GID",
+   "103": "UNSPEC",
+   "104": "NID",
+   "105": "L32",
+   "106": "L64",
+   "107": "LP",
+   "108": "EUI48",
+   "109": "EUI64",
+   "11": "WKS",
+   "12": "PTR",
+   "13": "HINFO",
+   "14": "MINFO",
+   "15": "MX",
+   "16": "TXT",
+   "17": "RP",
+   "18": "AFSDB",
+   "19": "X25",
+   "2": "NS",
+   "20": "ISDN",
+   "21": "RT",
+   "22": "NSAP",
+   "23": "NSAP-PTR",
+   "24": "SIG",
+   "249": "TKEY",
+   "25": "KEY",
+   "250": "TSIG",
+   "251": "IXFR",
+   "252": "AXFR",
+   "253": "MAILB",
+   "254": "MAILA",
+   "255": "*",
+   "256": "URI",
+   "257": "CAA",
+   "258": "AVC",
+   "259": "DOA",
+   "26": "PX",
+   "260": "AMTRELAY",
+   "27": "GPOS",
+   "28": "AAAA",
+   "29": "LOC",
+   "3": "MD",
+   "30": "NXT",
+   "31": "EID",
+   "32": "NIMLOC",
+   "32768": "TA",
+   "32769": "DLV",
+   "33": "SRV",
+   "34": "ATMA",
+   "35": "NAPTR",
+   "36": "KX",
+   "37": "CERT",
+   "38": "A6",
+   "39": "DNAME",
+   "4": "MF",
+   "40": "SINK",
+   "41": "OPT",
+   "42": "APL",
+   "43": "DS",
+   "44": "SSHFP",
+   "45": "IPSECKEY",
+   "46": "RRSIG",
+   "47": "NSEC",
+   "48": "DNSKEY",
+   "49": "DHCID",
+   "5": "CNAME",
+   "50": "NSEC3",
+   "51": "NSEC3PARAM",
+   "52": "TLSA",
+   "53": "SMIMEA",
+   "55": "HIP",
+   "56": "NINFO",
+   "57": "RKEY",
+   "58": "TALINK",
+   "59": "CDS",
+   "6": "SOA",
+   "60": "CDNSKEY",
+   "61": "OPENPGPKEY",
+   "62": "CSYNC",
+   "63": "ZONEMD",
+   "64": "SVCB",
+   "65": "HTTPS",
+   "65535": "Reserved",
+   "7": "MB",
+   "8": "MG",
+   "9": "MR",
+   "99": "SPF"
+  }
+ },
+ "RuleAction": {
+  "lookup": "crowdstrike_RuleAction.csv",
+  "meaning_field": "RuleAction_meaning",
+  "values": {
+   "0": "RULE_ACTION_INVALID",
+   "1": "RULE_ACTION_ALLOW",
+   "2": "RULE_ACTION_DENY"
+  }
+ },
+ "SEHValidationFailureFlags": {
+  "lookup": "crowdstrike_SEHValidationFailureFlags.csv",
+  "meaning_field": "SEHValidationFailureFlags_meaning",
+  "values": {
+   "0": "VALID",
+   "1": "TEB_PROBE_FAIL",
+   "1024": "HANDLER_NOT_IN_IMAGE",
+   "128": "RECORD_ORDER",
+   "16": "HANDLER_QUERY_FAIL",
+   "2": "NULL_RECORD",
+   "2048": "RECORD_PROBE_FAIL",
+   "2147483648": "INVALID",
+   "256": "UNREASONABLE_RECURSION",
+   "32": "HANDLER_RWX",
+   "4": "RECORD_NOT_ON_STACK",
+   "4096": "LAST_HANDLER_OUTSIDE_NTDLL",
+   "512": "TERMINATES",
+   "64": "HANDLER_NX",
+   "8": "HANDLER_NULL",
+   "8192": "IMPROPER_STACK"
+  }
+ },
+ "SELinuxEnforcementPolicy": {
+  "lookup": "crowdstrike_SELinuxEnforcementPolicy.csv",
+  "meaning_field": "SELinuxEnforcementPolicy_meaning",
+  "values": {
+   "0": "ENFORCED",
+   "1": "PERMISSIVE",
+   "2": "DISABLED",
+   "3": "UNKNOWN"
+  }
+ },
+ "SHA256HashData": {
+  "lookup": "crowdstrike_SHA256HashData.csv",
+  "meaning_field": "SHA256HashData_meaning",
+  "values": {
+   "39328314281799439668232089789546237790403030920341874829807915670489544399352": "STATIC_SHA256_DOPPELGANGING"
+  }
+ },
+ "SafetyNetFailureType": {
+  "lookup": "crowdstrike_SafetyNetFailureType.csv",
+  "meaning_field": "SafetyNetFailureType_meaning",
+  "values": {
+   "1": "DISABLED",
+   "2": "INVALID_RESPONSE"
+  }
+ },
+ "ScreenshotType": {
+  "lookup": "crowdstrike_ScreenshotType.csv",
+  "meaning_field": "ScreenshotType_meaning",
+  "values": {
+   "1": "BLIT_OPERATION",
+   "2": "SNAPSHOT_OPERATION"
+  }
+ },
+ "ScriptContentSource": {
+  "lookup": "crowdstrike_ScriptContentSource.csv",
+  "meaning_field": "ScriptContentSource_meaning",
+  "values": {
+   "0": "INCONCLUSIVE",
+   "1": "FILE",
+   "2": "COMMAND",
+   "3": "ENCODEDCOMMAND",
+   "4": "STDIN",
+   "5": "DYNAMIC",
+   "6": "INTERACTIVE"
+  }
+ },
+ "ScriptControlErrorCode": {
+  "lookup": "crowdstrike_ScriptControlErrorCode.csv",
+  "meaning_field": "ScriptControlErrorCode_meaning",
+  "values": {
+   "0": "SC_MIN",
+   "1": "SC_HOOK_CREATION_FAILED",
+   "2": "SC_LOAD_CALLBACK_FAILED",
+   "3": "SC_DELAYED_LOAD_MANAGED_DLL_FAILED",
+   "4": "SC_MANAGED_DLL_ON_ASSEMBLY_LOAD_FAILED",
+   "5": "SC_MANAGED_DLL_CONSOLE_HOST_INITIALIZE_FAILED",
+   "6": "SC_MAX"
+  }
+ },
+ "ScriptingLanguageId": {
+  "lookup": "crowdstrike_ScriptingLanguageId.csv",
+  "meaning_field": "ScriptingLanguageId_meaning",
+  "values": {
+   "1": "UNKNOWN",
+   "2": "POWERSHELL",
+   "3": "VBA",
+   "4": "VBSCRIPT",
+   "5": "JSCRIPT",
+   "6": "DOTNET"
+  }
+ },
+ "ServiceErrorControl": {
+  "lookup": "crowdstrike_ServiceErrorControl.csv",
+  "meaning_field": "ServiceErrorControl_meaning",
+  "values": {
+   "0": "SERVICE_ERROR_IGNORE",
+   "1": "SERVICE_ERROR_NORMAL",
+   "2": "SERVICE_ERROR_SEVERE",
+   "3": "SERVICE_ERROR_CRITICAL"
+  }
+ },
+ "ServiceServiceSidType": {
+  "lookup": "crowdstrike_ServiceServiceSidType.csv",
+  "meaning_field": "ServiceServiceSidType_meaning",
+  "values": {
+   "0": "SERVICE_SID_TYPE_NONE",
+   "1": "SERVICE_SID_TYPE_UNRESTRICTED",
+   "3": "SERVICE_TYPE_RESTRICTED"
+  }
+ },
+ "ServiceStart": {
+  "lookup": "crowdstrike_ServiceStart.csv",
+  "meaning_field": "ServiceStart_meaning",
+  "values": {
+   "0": "SERVICE_BOOT_START",
+   "1": "SERVICE_SYSTEM_START",
+   "2": "SERVICE_AUTO_START",
+   "3": "SERVICE_DEMAND_START",
+   "4": "SERVICE_DISABLED"
+  }
+ },
+ "ServiceType": {
+  "lookup": "crowdstrike_ServiceType.csv",
+  "meaning_field": "ServiceType_meaning",
+  "values": {
+   "1": "SERVICE_KERNEL_DRIVER",
+   "16": "SERVICE_WIN32_OWN_PROCESS",
+   "2": "SERVICE_FILE_SYSTEM_DRIVER",
+   "256": "SERVICE_INTERACTIVE_PROCESS",
+   "32": "SERVICE_WIN32_SHARE_PROCESS",
+   "4": "SERVICE_ADAPTER",
+   "8": "SERVICE_RECOGNIZER_DRIVER"
+  }
+ },
+ "ShowWindowFlags": {
+  "lookup": "crowdstrike_ShowWindowFlags.csv",
+  "meaning_field": "ShowWindowFlags_meaning",
+  "values": {
+   "0": "SW_HIDE",
+   "1": "SW_SHOWNORMAL",
+   "10": "SW_SHOWDEFAULT",
+   "11": "SW_FORCEMINIMIZE",
+   "2": "SW_SHOWMINIMIZED",
+   "3": "SW_MAXIMIZE",
+   "4": "SW_SHOWNOACTIVATE",
+   "5": "SW_SHOW",
+   "6": "SW_MINIMIZE",
+   "7": "SW_SHOWMINNOACTIVE",
+   "8": "SW_SHOWNA",
+   "9": "SW_RESTORE"
+  }
+ },
+ "SignatureErrorState": {
+  "lookup": "crowdstrike_SignatureErrorState.csv",
+  "meaning_field": "SignatureErrorState_meaning",
+  "values": {
+   "0": "NONE",
+   "1": "MINCRYPT_POLICY_NO_SIGNATURE",
+   "16": "MINCRYPT_POLICY_NO_PAGE_HASHES",
+   "2": "MINCRYPT_POLICY_BAD_CHAIN",
+   "32": "MINCRYPT_POLICY_CERT_REVOKED",
+   "4": "MINCRYPT_POLICY_BAD_SIGNATURE",
+   "4096": "MINCRYPT_POLICY_UNKNOWN_ERROR",
+   "64": "MINCRYPT_POLICY_CERT_EXPIRED",
+   "8": "MINCRYPT_POLICY_NO_CODE_EKU"
+  }
+ },
+ "StackHashVersion": {
+  "lookup": "crowdstrike_StackHashVersion.csv",
+  "meaning_field": "StackHashVersion_meaning",
+  "values": {
+   "0": "INITIAL_VERSION"
+  }
+ },
+ "StandbyBucket": {
+  "lookup": "crowdstrike_StandbyBucket.csv",
+  "meaning_field": "StandbyBucket_meaning",
+  "values": {
+   "10": "STANDBY_BUCKET_ACTIVE",
+   "20": "STANDBY_BUCKET_WORKING_SET",
+   "30": "STANDBY_BUCKET_FREQUENT",
+   "40": "STANDBY_BUCKET_RARE",
+   "5": "STANDBY_BUCKET_EXEMPTED",
+   "50": "STANDBY_BUCKET_NEVER"
+  }
+ },
+ "Status": {
+  "lookup": "crowdstrike_Status.csv",
+  "meaning_field": "Status_meaning",
+  "values": {
+   "0": "STATUS_SUCCESS",
+   "1611530273": "STATUS_MASK_ADJUSTED",
+   "1611726866": "STATUS_DEP_DISABLED_APPCOMPAT",
+   "1611792386": "STATUS_NO_EXISTING_CREDENTIALS",
+   "1611923478": "STATUS_COMPONENT_STOPPED",
+   "1612251168": "STATUS_HTTP_VISIBILITY_ENABLED",
+   "1612251176": "STATUS_SMTP_VISIBILITY_ENABLED",
+   "1612447779": "STATUS_PREVENTION_NOT_NEEDED",
+   "1612578852": "STATUS_ALREADY_BLOCKED",
+   "2147483649": "STATUS_GUARD_PAGE_VIOLATION",
+   "258": "STATUS_TIMEOUT",
+   "259": "STATUS_PENDING",
+   "290": "STATUS_NOTHING_TO_TERMINATE",
+   "3221225473": "STATUS_UNSUCCESSFUL",
+   "3221225485": "STATUS_INVALID_PARAMETER",
+   "3221225492": "STATUS_UNRECOGNIZED_MEDIA",
+   "3221225506": "STATUS_ACCESS_DENIED",
+   "3221225524": "STATUS_OBJECT_NAME_NOT_FOUND",
+   "3221225533": "STATUS_DATA_LATE_ERROR",
+   "3221225541": "STATUS_INVALID_PAGE_PROTECTION",
+   "3221225609": "STATUS_RESOURCE_DATA_NOT_FOUND",
+   "3221225611": "STATUS_RESOURCE_NAME_NOT_FOUND",
+   "3221225620": "STATUS_INTEGER_DIVIDE_BY_ZERO",
+   "3221225653": "STATUS_IO_TIMEOUT",
+   "3221225659": "STATUS_NOT_SUPPORTED",
+   "3221225738": "STATUS_PROCESS_IS_TERMINATING",
+   "3221225760": "STATUS_CANCELLED",
+   "3221226029": "STATUS_RETRY",
+   "3221226138": "STATUS_POLICY_OBJECT_NOT_FOUND",
+   "3221226347": "STATUS_DRIVER_BLOCKED_CRITICAL",
+   "3221227780": "STATUS_FILE_TOO_LARGE",
+   "3226533891": "STATUS_LFO_STATIC_CONFIG_DOWNLOAD_DISABLED",
+   "3758096423": "STATUS_PROCESS_KILLED",
+   "3758358545": "STATUS_FEATURE_DISABLED",
+   "3759013928": "STATUS_PROCESS_CRITICAL",
+   "3759013929": "STATUS_PROCESS_WHITELISTED",
+   "3759013930": "STATUS_PROCESS_MICROSOFT_SIGNED",
+   "3759013931": "STATUS_PROCESS_APPLE_SIGNED",
+   "3759407166": "STATUS_COMPONENT_DISABLED",
+   "3760521403": "STATUS_NO_ACTIVE_RPC_THREAD",
+   "3760849112": "STATUS_NON_CROWDSTRIKE",
+   "3760914656": "STATUS_LFO_UPLOAD_FAILURE",
+   "3760914657": "STATUS_LFO_UPLOAD_CLOUD_FAILURE",
+   "3760914660": "STATUS_PROCESS_LSASS",
+   "3760914661": "STATUS_PROCESS_CROWDSTRIKE",
+   "538181633": "STATUS_COMPONENT_ENABLED"
+  }
+ },
+ "SuppressType": {
+  "lookup": "crowdstrike_SuppressType.csv",
+  "meaning_field": "SuppressType_meaning",
+  "values": {
+   "0": "GLOBAL",
+   "1": "PARENT",
+   "2": "UID",
+   "3": "UIDNORMALIZED",
+   "4": "PREFILTER",
+   "5": "TIMEOUT_CHECK"
+  }
+ },
+ "SuspectStackFlag": {
+  "lookup": "crowdstrike_SuspectStackFlag.csv",
+  "meaning_field": "SuspectStackFlag_meaning",
+  "values": {
+   "0": "NOT_SUSPECT",
+   "1": "THREAD_START_NOT_IN_MODULE",
+   "1024": "RETURN_ADDRESS_IS_WRITABLE",
+   "128": "STACK_IS_EXECUTABLE",
+   "1280": "RETURN_ADDRESS_NOT_IN_MODULE_AND_IS_WRITABLE",
+   "16": "BASE_POINTER_NOT_IN_STACK",
+   "2": "THREAD_START_IN_NON_IMAGE_FILE",
+   "2048": "ADDRESS_IN_REFLECTIVELY_LOADED_DLL",
+   "256": "RETURN_ADDRESS_NOT_IN_MODULE",
+   "32": "SYSCALL_RETURN_ADDRESS_NOT_IN_NTDLL",
+   "4": "INVALID_TEB_STACK_VALUES",
+   "512": "RETURN_ADDRESS_IN_NON_IMAGE_FILE",
+   "64": "SYSCALL_RETURN_ADDRESS_ON_STACK",
+   "8": "STACK_POINTER_NOT_IN_STACK"
+  }
+ },
+ "SyntheticPR2Flags": {
+  "lookup": "crowdstrike_SyntheticPR2Flags.csv",
+  "meaning_field": "SyntheticPR2Flags_meaning",
+  "values": {
+   "0": "PROCESS_RUNDOWN",
+   "1": "PROCESS_HOLLOWED",
+   "16": "PROCESS_FORK_FOLDING",
+   "2": "APP_MONITORING",
+   "36": "IMAGEHASH_FAILURE_WITH_UMLI_IFN",
+   "4": "IMAGEHASH_FAILURE",
+   "8": "FILE_PATH_EXCLUDED"
+  }
+ },
+ "SystemTableIndex": {
+  "lookup": "crowdstrike_SystemTableIndex.csv",
+  "meaning_field": "SystemTableIndex_meaning",
+  "values": {
+   "0": "GENERAL",
+   "1": "CONFIG_STATE_HASH",
+   "2": "CONFIG_STATE_TESTING"
+  }
+ },
+ "TargetAndroidComponentType": {
+  "lookup": "crowdstrike_TargetAndroidComponentType.csv",
+  "meaning_field": "TargetAndroidComponentType_meaning",
+  "values": {
+   "1": "COMPONENT_TYPE_ACTIVITY",
+   "2": "COMPONENT_TYPE_SERVICE",
+   "3": "COMPONENT_TYPE_BROADCAST_RECEIVER",
+   "4": "COMPONENT_TYPE_CONTENT_PROVIDER"
+  }
+ },
+ "TemplateDisposition": {
+  "lookup": "crowdstrike_TemplateDisposition.csv",
+  "meaning_field": "TemplateDisposition_meaning",
+  "values": {
+   "0": "TEMPLATE_DISPOSITION_NOACTION",
+   "10": "TEMPLATE_DISPOSITION_INDICATOR",
+   "20": "TEMPLATE_DISPOSITION_DETECT",
+   "25": "TEMPLATE_DISPOSITION_OPERATION_BLOCK",
+   "3": "TEMPLATE_DISPOSITION_ANALYSIS",
+   "30": "TEMPLATE_DISPOSITION_PREVENT",
+   "4": "TEMPLATE_DISPOSITION_SENSOR_ONLY",
+   "60": "TEMPLATE_DISPOSITION_PREVENT_KILLPARENT"
+  }
+ },
+ "ThreadExecutionControlType": {
+  "lookup": "crowdstrike_ThreadExecutionControlType.csv",
+  "meaning_field": "ThreadExecutionControlType_meaning",
+  "values": {
+   "0": "THREAD_INJECT",
+   "1": "THREAD_INJECT_MASQUERADE",
+   "10": "SET_PROP",
+   "2": "THREAD_HIJACK",
+   "3": "PROCESS_HOLLOWING",
+   "4": "WINDOWS_HOOK",
+   "5": "PROCESS_OVERWRITE_HOLLOWING",
+   "6": "REMOTE_APC",
+   "7": "REMOTE_ATOM_BOMB",
+   "8": "PROCESS_HOLLOWING_APC",
+   "9": "SET_WINDOW_LONG"
+  }
+ },
+ "TokenObjectCheckType": {
+  "lookup": "crowdstrike_TokenObjectCheckType.csv",
+  "meaning_field": "TokenObjectCheckType_meaning",
+  "values": {
+   "0": "CAPTURETOKEN",
+   "1": "CREATEPROCESS",
+   "16": "ASEPUPDATE",
+   "2": "CREATETHREAD",
+   "2147483648": "DELETE",
+   "32": "NETWORKIOCTL",
+   "4": "USERLOADIMAGE",
+   "64": "OPENPROCESS",
+   "8": "PEFILEWRITE"
+  }
+ },
+ "TokenType": {
+  "lookup": "crowdstrike_TokenType.csv",
+  "meaning_field": "TokenType_meaning",
+  "values": {
+   "0": "INVALID_TOKEN",
+   "1": "PRIMARY_TOKEN",
+   "2": "IMPERSONATION_TOKEN"
+  }
+ },
+ "UACCredentialCaptureActionType": {
+  "lookup": "crowdstrike_UACCredentialCaptureActionType.csv",
+  "meaning_field": "UACCredentialCaptureActionType_meaning",
+  "values": {
+   "0": "DEFAULT",
+   "1": "REFRESH"
+  }
+ },
+ "UACElevationReason": {
+  "lookup": "crowdstrike_UACElevationReason.csv",
+  "meaning_field": "UACElevationReason_meaning",
+  "values": {
+   "0": "APP_COMPAT_EXPLICIT",
+   "1": "APP_COMPAT_HEURISTIC",
+   "2": "SXS_FUSION",
+   "3": "INSTALLER",
+   "4": "CLSID",
+   "5": "MSI",
+   "6": "REQUEST",
+   "7": "AXIS"
+  }
+ },
+ "UACMSIAction": {
+  "lookup": "crowdstrike_UACMSIAction.csv",
+  "meaning_field": "UACMSIAction_meaning",
+  "values": {
+   "0": "INSTALL",
+   "1": "UNINSTALL",
+   "2": "UPDATE"
+  }
+ },
+ "UACPromptType": {
+  "lookup": "crowdstrike_UACPromptType.csv",
+  "meaning_field": "UACPromptType_meaning",
+  "values": {
+   "0": "NONE",
+   "1": "SILENT",
+   "2": "CONSENT",
+   "3": "CREDENTIALS"
+  }
+ },
+ "UmppaInjectionType": {
+  "lookup": "crowdstrike_UmppaInjectionType.csv",
+  "meaning_field": "UmppaInjectionType_meaning",
+  "values": {
+   "0": "UMPPC",
+   "1": "EXTENSION"
+  }
+ },
+ "UmppcEntryReason": {
+  "lookup": "crowdstrike_UmppcEntryReason.csv",
+  "meaning_field": "UmppcEntryReason_meaning",
+  "values": {
+   "1": "PROCESS_UNLOAD",
+   "2": "UNLOAD_FAILED",
+   "3": "SUSPECT_CALLER",
+   "4": "INVALID_BASE",
+   "5": "INVALID_REASON",
+   "6": "INVALID_RESERVED"
+  }
+ },
+ "UpdateFlag": {
+  "lookup": "crowdstrike_UpdateFlag.csv",
+  "meaning_field": "UpdateFlag_meaning",
+  "values": {
+   "0": "UPDATE_INVALID",
+   "1": "UPDATE_ENUMERATION",
+   "2": "UPDATE_REMOVED",
+   "3": "UPDATE_ADDED",
+   "4": "UPDATE_OBSOLETE",
+   "5": "UPDATE_REVISED"
+  }
+ },
+ "UserLogoffType": {
+  "lookup": "crowdstrike_UserLogoffType.csv",
+  "meaning_field": "UserLogoffType_meaning",
+  "values": {
+   "1": "LOGOFF_EVENT_SOURCE",
+   "2": "LOGOFF_PROFILE_UNLOAD",
+   "3": "ETW",
+   "4": "SYNTHETIC"
+  }
+ },
+ "UserModeHookSource": {
+  "lookup": "crowdstrike_UserModeHookSource.csv",
+  "meaning_field": "UserModeHookSource_meaning",
+  "values": {
+   "1": "UMPPC",
+   "2": "ETW"
+  }
+ },
+ "UserSid": {
+  "lookup": "crowdstrike_UserSid.csv",
+  "meaning_field": "UserSid_meaning",
+  "values": {
+   "310693935640959719542095872": "SELF_RID"
+  }
+ },
+ "VnodeModificationType": {
+  "lookup": "crowdstrike_VnodeModificationType.csv",
+  "meaning_field": "VnodeModificationType_meaning",
+  "values": {
+   "0": "CREATE",
+   "1": "LINK",
+   "10": "CLOSE",
+   "11": "EXECUTE",
+   "12": "DUP",
+   "13": "FCNTL",
+   "14": "MMAP",
+   "2": "OPEN",
+   "3": "RENAME_FROM",
+   "4": "RENAME_TO",
+   "5": "TRUNCATE",
+   "6": "UNLINK",
+   "7": "WRITE",
+   "8": "SET_FLAGS",
+   "9": "SET_MODE"
+  }
+ },
+ "VnodeType": {
+  "lookup": "crowdstrike_VnodeType.csv",
+  "meaning_field": "VnodeType_meaning",
+  "values": {
+   "0": "VNON",
+   "1": "VREG",
+   "10": "VCPLX",
+   "2": "VDIR",
+   "3": "VBLK",
+   "4": "VCHR",
+   "5": "VLNK",
+   "6": "VSOCK",
+   "7": "VFIFO",
+   "8": "VBAD",
+   "9": "VSTR"
+  }
+ },
+ "VolumeFileSystemType": {
+  "lookup": "crowdstrike_VolumeFileSystemType.csv",
+  "meaning_field": "VolumeFileSystemType_meaning",
+  "values": {
+   "1": "RAW"
+  }
+ },
+ "WellKnownTargetFunction": {
+  "lookup": "crowdstrike_WellKnownTargetFunction.csv",
+  "meaning_field": "WellKnownTargetFunction_meaning",
+  "values": {
+   "0": "UNKNOWN",
+   "1": "LOAD_LIBRARY_A",
+   "2": "LOAD_LIBRARY_W",
+   "3": "GLOBAL_GET_ATOM_NAME_A",
+   "4": "GLOBAL_GET_ATOM_NAME_W",
+   "5": "RTL_DISPATCH_APC"
+  }
+ },
+ "WhitelistingSource": {
+  "lookup": "crowdstrike_WhitelistingSource.csv",
+  "meaning_field": "WhitelistingSource_meaning",
+  "values": {
+   "1": "WHITELISTING_BY_PROCESS",
+   "2": "WHITELISTING_BY_TREE",
+   "3": "POST_FIRING_WHITELISTING_BY_TREE",
+   "4": "WHITELISTING_BY_STRING",
+   "5": "WHITELISTING_BY_ENGINE",
+   "6": "CUSTOMER_WHITELISTING_BY_STRING"
+  }
+ }
+}

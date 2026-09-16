@@ -1,0 +1,29 @@
+# CIM blind spots: events you receive that the Splunk TA does NOT normalize.
+#
+# 219 of 275 catalogued event types have no CIM representation in
+# Splunk_TA_CrowdStrike_FDR 3.2.0. They are in your index but invisible to any
+# CIM-based search, to Enterprise Security correlation, and to every datamodel
+# acceleration. You can only reach them by raw event_simpleName.
+#
+# This query shows which of those you actually receive -- i.e. your real,
+# tenant-specific blind spot.
+
+index=`cs_index` sourcetype=crowdstrike:events:sensor earliest=-24h
+  (
+    event_simpleName=AccessoryConnected OR event_simpleName=ActiveDirectoryAccountCreated OR event_simpleName=AdditionalHostInfo OR event_simpleName=AgentConnect OR event_simpleName=AgentOnline OR event_simpleName=AgenticSessionStart
+    event_simpleName=AppProtocolDetected OR event_simpleName=AppleScriptFileWritten OR event_simpleName=AsepFileChange OR event_simpleName=AsepFileChangeScanInfo OR event_simpleName=AsifFileWritten OR event_simpleName=AwsEc2Instance
+    event_simpleName=AzureIpConfiguration OR event_simpleName=AzurePublicIpAddress OR event_simpleName=AzureVirtualMachine OR event_simpleName=BITSJobCreated OR event_simpleName=BZip2FileWritten OR event_simpleName=BillingInfo
+    event_simpleName=BmpFileWritten OR event_simpleName=BrowserInjectedThread OR event_simpleName=CabFileWritten OR event_simpleName=ChannelActive OR event_simpleName=ChannelDataDownloadComplete OR event_simpleName=ChannelVersionRequired
+    event_simpleName=ClassifiedModuleLoad OR event_simpleName=CloudSecurityIOMEvaluation OR event_simpleName=ConfigDownloadComplete OR event_simpleName=ConfigStateUpdate OR event_simpleName=ConfigurationProfileModified OR event_simpleName=CreateProcessArgs
+    event_simpleName=CreateSocket OR event_simpleName=CriticalFileModified OR event_simpleName=CrxFileWritten OR event_simpleName=CurrentSystemTags OR event_simpleName=CustomIOAFileWrittenDetectionInfoEvent OR event_simpleName=DBusMessage
+    event_simpleName=DCSyncAttempted OR event_simpleName=DNSRequestDetectInfo OR event_simpleName=DataEgress OR event_simpleName=DataEgressEnriched OR event_simpleName=DcBluetoothDeviceConnected OR event_simpleName=DcUsbConfigurationDescriptor
+    event_simpleName=DcUsbDeviceConnected OR event_simpleName=DcUsbDeviceDisconnected OR event_simpleName=DcUsbEndpointDescriptor OR event_simpleName=DcUsbHIDDescriptor OR event_simpleName=DcUsbInterfaceDescriptor OR event_simpleName=DeliverLocalFXToCloud
+    event_simpleName=DetectionExcluded OR event_simpleName=DiskCapacity OR event_simpleName=DllInjection OR event_simpleName=DmgFileWritten OR event_simpleName=DocumentProgramInjectedThread OR event_simpleName=DwgFileWritten
+    event_simpleName=EmailFileWritten OR event_simpleName=ErrorEvent OR event_simpleName=EtwComponentResponse OR event_simpleName=EventLogCleared OR event_simpleName=Event_AutomatedLeadSummaryEvent OR event_simpleName=Event_DataProtectionDetectionSummaryEvent
+  )
+| stats count, dc(aid) as hosts by event_simpleName
+| sort - count
+
+# NOTE: truncated to the first 60 gap events to keep the search parseable.
+# Full list of all 219: kb/events.json where cim_normalized=false,
+# or cim/cim_coverage_gaps.csv where normalized_by_ta=NO.

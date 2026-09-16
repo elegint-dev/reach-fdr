@@ -1,0 +1,19 @@
+# Every process on one host -- the tree source.
+#
+# SPL has no recursion, so do not try to walk ancestry in a search. Pull the
+# host's process table once; the full lineage is present in the result and the
+# UI (or a human) walks it.
+
+index=`cs_index` sourcetype=crowdstrike:events:sensor earliest=-24h
+  aid="PUT_AID_HERE"
+  (event_simpleName=ProcessRollup2 OR event_simpleName=SyntheticProcessRollup2)
+| stats min(_time) as start_seen, values(RawProcessId) as os_pid,
+        values(ImageFileName) as image, values(CommandLine) as command_line,
+        values(ParentProcessId) as parent_tpid,
+        values(ProcessStartTime) as process_start_time,
+        values(UserSid) as user_sid, values(SHA256HashData) as sha256
+        by aid, TargetProcessId
+| convert ctime(start_seen)
+| sort start_seen
+
+# Equivalent macro: `cs_process_table("PUT_AID_HERE","-24h")`

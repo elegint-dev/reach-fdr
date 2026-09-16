@@ -1,0 +1,776 @@
+[
+  {
+    "field": "ContentPatternCounts",
+    "description": "A nested count breakdown of matched DLP content patterns, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "nested (array of pattern/count records)",
+    "hunting_notes": "Would likely summarize, per content pattern (e.g. per sensitive-data type), how many matches occurred in a DLP detection, complementing the per-match ContentPatterns.* fields already enriched elsewhere in this KB.",
+    "join_candidates": [
+      {
+        "to": "ContentPatterns.MatchCount",
+        "why": "would be an aggregate counterpart to the per-pattern MatchCount field already enriched on Event_DataProtectionDetectionSummaryEvent, if observed together",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=nested, 0 events observed in this corpus (catalogue-only field); name follows the same Counts-suffix convention as the sibling catalogue field FileCategoryCounts (this batch), and the DLP domain context is corroborated by the already-enriched ContentPatterns.* fields elsewhere in this KB."
+  },
+  {
+    "field": "DcNumAttachments",
+    "description": "The number of attachments (e.g. connected devices) associated with a Device Control (Dc) evaluation, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "count",
+    "data_format": "unknown (stored as match_only_text; likely an integer despite the text type)",
+    "hunting_notes": "Would be useful for understanding how many devices were involved in a single Device Control policy evaluation, if populated.",
+    "join_candidates": [
+      {
+        "to": "DcNumBlockingPolicies",
+        "why": "sibling Device Control (Dc) count fields in the same catalogue family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'Dc' prefix matches the established Device Control field family (DcUsb*, DcBluetooth*, DcPolicy*) already enriched elsewhere in this KB, and 'NumAttachments' is self-descriptive."
+  },
+  {
+    "field": "DcNumBlockingPolicies",
+    "description": "The number of Device Control policies that blocked the device evaluated, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "count",
+    "data_format": "unknown (stored as match_only_text; likely an integer despite the text type)",
+    "hunting_notes": "Would indicate how many distinct policies contributed to blocking a device, useful for policy-conflict/overlap auditing if populated.",
+    "join_candidates": [
+      {
+        "to": "DcNumAttachments",
+        "why": "sibling Device Control (Dc) count fields in the same catalogue family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'Dc' prefix matches the established Device Control field family already enriched elsewhere in this KB (e.g. DcPolicyMassStorageBlockPermissions, batch_013)."
+  },
+  {
+    "field": "DeviceMountCounter",
+    "description": "A counter of how many times a device has been mounted, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "count",
+    "data_format": "long integer",
+    "hunting_notes": "Would help distinguish a device's first-ever mount from a repeated/known mount, useful for spotting a newly-introduced (never-before-seen) removable device if populated.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=long, 0 events observed in this corpus (catalogue-only field); name self-descriptive."
+  },
+  {
+    "field": "DnsRequests",
+    "description": "A nested list of DNS requests associated with a detection or summary event, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "nested (array of DNS-request records)",
+    "hunting_notes": "Would aggregate DNS activity tied to a detection (e.g. domains queried around the time of an alert) for a consolidated view, if populated, similar in spirit to the NetworkAccesses array already enriched on Event_EppDetectionSummaryEvent.",
+    "join_candidates": [
+      {
+        "to": "NetworkAccesses",
+        "why": "analogous nested activity-list field (DNS requests vs. network connections) that would sit on a similar detection-summary event, if observed",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=nested, 0 events observed in this corpus (catalogue-only field); name self-descriptive, and this KB already establishes the pattern of nested activity-list fields on detection-summary events (NetworkAccesses, FilesAccessed, FilesWritten)."
+  },
+  {
+    "field": "EfiVariableCustomModeAttributes",
+    "description": "The UEFI variable attributes bitmask for the 'CustomMode' Secure Boot variable, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a UEFI variable attributes bitmask)",
+    "hunting_notes": "UEFI CustomMode allows Secure Boot key databases to be modified without the usual Setup Mode restrictions; its attributes changing outside expected firmware-update activity would be a significant Secure Boot tampering signal, if populated.",
+    "join_candidates": [
+      {
+        "to": "EfiVariableSecureBootAttributes",
+        "why": "sibling UEFI Secure Boot variable-attribute fields in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'CustomMode' is a standard, well-documented UEFI Secure Boot global variable name (per the UEFI Specification), and the sibling EfiVariable*Attributes fields in this same catalogue family (Db, Kek, Pk, SecureBoot, SetupMode) confirm this is part of a UEFI Secure Boot variable-inventory field set."
+  },
+  {
+    "field": "EfiVariableDbAttributes",
+    "description": "The UEFI variable attributes bitmask for the 'db' (Signature Database) Secure Boot variable, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a UEFI variable attributes bitmask)",
+    "hunting_notes": "The 'db' variable holds the allowed-signature database for Secure Boot; unexpected attribute changes (e.g. losing the expected write-protection/authenticated-write flags) could indicate an attempt to tamper with which code is trusted to boot.",
+    "join_candidates": [
+      {
+        "to": "EfiVariableKekAttributes",
+        "why": "sibling UEFI Secure Boot key-database variable-attribute fields in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'db' is the standard UEFI Secure Boot signature-database variable name per the UEFI Specification."
+  },
+  {
+    "field": "EfiVariableKekAttributes",
+    "description": "The UEFI variable attributes bitmask for the 'KEK' (Key Exchange Key) Secure Boot variable, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a UEFI variable attributes bitmask)",
+    "hunting_notes": "The KEK governs which entities can update the 'db'/'dbx' Secure Boot databases; unexpected attribute changes here are high-severity firmware-tampering evidence.",
+    "join_candidates": [
+      {
+        "to": "EfiVariablePkAttributes",
+        "why": "sibling UEFI Secure Boot key-hierarchy variable-attribute fields (KEK sits below the Platform Key) in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'KEK' is the standard UEFI Secure Boot Key Exchange Key variable name per the UEFI Specification."
+  },
+  {
+    "field": "EfiVariablePkAttributes",
+    "description": "The UEFI variable attributes bitmask for the 'PK' (Platform Key) Secure Boot variable, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a UEFI variable attributes bitmask)",
+    "hunting_notes": "The Platform Key is the root of the UEFI Secure Boot trust chain; unexpected attribute changes here (or the PK being cleared, which drops the platform into Setup Mode) are the most severe possible Secure Boot tampering signal.",
+    "join_candidates": [
+      {
+        "to": "EfiVariableKekAttributes",
+        "why": "sibling UEFI Secure Boot key-hierarchy variable-attribute fields (PK sits above the KEK) in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'PK' is the standard UEFI Secure Boot Platform Key variable name per the UEFI Specification."
+  },
+  {
+    "field": "EfiVariableSecureBootAttributes",
+    "description": "The UEFI variable attributes bitmask for the 'SecureBoot' variable (which reflects whether Secure Boot is currently enabled), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a UEFI variable attributes bitmask)",
+    "hunting_notes": "Use alongside a value/state field (if present elsewhere) to confirm Secure Boot's actual enabled/disabled status on the host; an unexpectedly writable SecureBoot variable would itself be anomalous, since it's specified as read-only at runtime.",
+    "join_candidates": [
+      {
+        "to": "EfiVariableSetupModeAttributes",
+        "why": "sibling UEFI Secure Boot state-variable attribute fields in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'SecureBoot' is the standard UEFI runtime variable name reflecting Secure Boot state, per the UEFI Specification."
+  },
+  {
+    "field": "EfiVariableSetupModeAttributes",
+    "description": "The UEFI variable attributes bitmask for the 'SetupMode' variable (which reflects whether the platform is in Secure Boot Setup Mode, i.e. no Platform Key enrolled), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a UEFI variable attributes bitmask)",
+    "hunting_notes": "A host unexpectedly in Setup Mode (rather than User Mode) has Secure Boot key enforcement effectively disabled -- a significant firmware-security signal if populated.",
+    "join_candidates": [
+      {
+        "to": "EfiVariableSecureBootAttributes",
+        "why": "sibling UEFI Secure Boot state-variable attribute fields in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'SetupMode' is the standard UEFI runtime variable name per the UEFI Specification."
+  },
+  {
+    "field": "EfiVariableSignatureSupport",
+    "description": "The UEFI 'SignatureSupport' variable value, listing the signature/hash algorithm types the platform's Secure Boot implementation supports, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a list of supported signature-type GUIDs)",
+    "hunting_notes": "Firmware/asset inventory detail describing Secure Boot algorithm support; not itself a direct threat signal.",
+    "join_candidates": [
+      {
+        "to": "EfiVariableSignatureSupportAttributes",
+        "why": "value and attributes pair for the same UEFI SignatureSupport variable in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'SignatureSupport' is a standard UEFI Secure Boot variable name per the UEFI Specification."
+  },
+  {
+    "field": "EfiVariableSignatureSupportAttributes",
+    "description": "The UEFI variable attributes bitmask for the 'SignatureSupport' variable, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a UEFI variable attributes bitmask)",
+    "hunting_notes": "Firmware/asset inventory detail; not itself a direct threat signal.",
+    "join_candidates": [
+      {
+        "to": "EfiVariableSignatureSupport",
+        "why": "value and attributes pair for the same UEFI SignatureSupport variable in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); mirrors the other EfiVariable*Attributes fields in the same catalogue family."
+  },
+  {
+    "field": "ExecutableBytes",
+    "description": "Raw bytes of an executable file or code region, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely hex-encoded or raw byte content)",
+    "hunting_notes": "If populated, would allow direct inspection of a small/suspicious binary's raw content (e.g. for shellcode or packer signature analysis) without a separate file retrieval.",
+    "join_candidates": [
+      {
+        "to": "ThreadStartBytes",
+        "why": "both would capture raw executable byte content, though for different contexts (a full executable vs. a thread's starting bytes)",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); name self-descriptive but no event context confirms which detection type populates it or how much of the executable it captures."
+  },
+  {
+    "field": "ExtendedAttributeValue",
+    "description": "The value of the extended attribute (xattr) named in ExtendedAttributeName, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely raw/binary xattr value data)",
+    "hunting_notes": "Would show the actual value of a security-relevant xattr (e.g. the content of a com.apple.quarantine flag) if populated, complementing the already-enriched ExtendedAttributeName field.",
+    "join_candidates": [
+      {
+        "to": "ExtendedAttributeName",
+        "why": "name/value pair for the same extended-attribute operation, were both observed together on FileExtendedAttrOperation",
+        "confidence": "high"
+      },
+      {
+        "to": "ExtendedAttributeValueReadable",
+        "why": "raw vs. human-readable renderings of the same xattr value in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); mirrors the already-enriched ExtendedAttributeName field (batch_007) as its value counterpart."
+  },
+  {
+    "field": "ExtendedAttributeValueReadable",
+    "description": "A human-readable rendering of the extended attribute (xattr) value, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a decoded/formatted string form of the raw xattr value)",
+    "hunting_notes": "Would provide a directly-readable form of an xattr value that might otherwise be binary/opaque in ExtendedAttributeValue, if populated.",
+    "join_candidates": [
+      {
+        "to": "ExtendedAttributeValue",
+        "why": "raw vs. human-readable renderings of the same xattr value in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'Readable' suffix clearly distinguishes it from the raw ExtendedAttributeValue field."
+  },
+  {
+    "field": "FalconGroupingTags",
+    "description": "Administrator-assigned Falcon Grouping Tags used to organize this host in the Falcon console, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (delimited list of tag labels)",
+    "hunting_notes": "Same documented CrowdStrike 'Falcon Grouping Tags' feature as the already-enriched SensorGroupingTags field (batch_011); the two may represent the same underlying tags surfaced on different event types, or a cloud-managed vs. sensor-reported variant -- this KB cannot confirm which.",
+    "join_candidates": [
+      {
+        "to": "SensorGroupingTags",
+        "why": "both represent CrowdStrike's Falcon/Sensor Grouping Tags feature, possibly the same data surfaced on different events",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); 'Falcon Grouping Tags' is the same documented CrowdStrike console feature already established for SensorGroupingTags (batch_011), though this field's exact relationship to that one isn't confirmed."
+  },
+  {
+    "field": "FileAttributesNew",
+    "description": "The new (post-change) Windows file attributes of a monitored file, as defined in the field catalogue (not observed in this corpus), paired with FileAttributesPrevious.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a bitmask or flag-name string matching Windows file attribute constants)",
+    "hunting_notes": "Would be the Windows-platform counterpart to the already-enriched NewFileAttributesLinux field (batch_009), useful for spotting attribute changes (e.g. clearing the Hidden/System/ReadOnly bits) on a monitored file if populated.",
+    "join_candidates": [
+      {
+        "to": "FileAttributesPrevious",
+        "why": "before/after pair for the same file's Windows attributes in the same catalogue family",
+        "confidence": "high"
+      },
+      {
+        "to": "NewFileAttributesLinux",
+        "why": "analogous new-attributes field for the Windows platform vs. the already-enriched Linux equivalent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); naming mirrors the already-enriched NewFileAttributesLinux/PreviousFileAttributesLinux pair (batch_009/batch_010) but for the Windows FILE_ATTRIBUTE_* namespace."
+  },
+  {
+    "field": "FileAttributesPrevious",
+    "description": "The previous (pre-change) Windows file attributes of a monitored file, as defined in the field catalogue (not observed in this corpus), paired with FileAttributesNew.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a bitmask or flag-name string matching Windows file attribute constants)",
+    "hunting_notes": "Would allow comparison against FileAttributesNew to see exactly which Windows file attributes changed, if populated.",
+    "join_candidates": [
+      {
+        "to": "FileAttributesNew",
+        "why": "before/after pair for the same file's Windows attributes in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); mirrors the already-enriched PreviousUnixPermissions/PreviousFileAttributesLinux naming pattern (batch_010) applied to Windows file attributes."
+  },
+  {
+    "field": "FileCategoryCounts",
+    "description": "A nested count breakdown of files by category (e.g. documents, archives, media) associated with a data-protection detection, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "nested (array of category/count records)",
+    "hunting_notes": "Would likely summarize how many files of each category were involved in a DLP-related event, complementing the already-enriched AnodeIndicators.FileCategoryDistributions.* percentage fields (batch_004/batch_005) with absolute counts.",
+    "join_candidates": [
+      {
+        "to": "AnodeIndicators.FileCategoryDistributions.Name",
+        "why": "would categorize files the same way the FileCategoryDistributions percentages already do, but as counts rather than percentages",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=nested, 0 events observed in this corpus (catalogue-only field); name self-descriptive and consistent with the DLP file-category concepts already established elsewhere in this KB."
+  },
+  {
+    "field": "FirstDiscoveredDate",
+    "description": "The date an asset or entity was first discovered, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "timestamp",
+    "data_format": "date (per fields.json type)",
+    "hunting_notes": "Asset-inventory/discovery timeline field; would be useful for identifying recently-discovered (new) assets when populated.",
+    "join_candidates": [
+      {
+        "to": "FirstSeen",
+        "why": "both represent a first-observation timestamp, possibly for the same or a related discovery/inventory concept",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=date, 0 events observed in this corpus (catalogue-only field); name unambiguous for an asset-discovery timeline field."
+  },
+  {
+    "field": "FirstSeen",
+    "description": "The timestamp an entity (e.g. a host, indicator, or asset) was first seen, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "timestamp",
+    "data_format": "date (per fields.json type)",
+    "hunting_notes": "Generic first-observation timestamp; useful for baselining new/unfamiliar entities, though the exact entity type it applies to isn't confirmed without event context.",
+    "join_candidates": [
+      {
+        "to": "FirstDiscoveredDate",
+        "why": "both represent a first-observation timestamp, possibly for the same or a related discovery/inventory concept",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=date, 0 events observed in this corpus (catalogue-only field); generic name gives no way to confirm which entity type (host, indicator, account, etc.) it describes."
+  },
+  {
+    "field": "IndividualDiskInfo",
+    "description": "Per-disk information (e.g. a single drive's details within a multi-disk host), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a serialized per-disk record)",
+    "hunting_notes": "Would complement the already-enriched NumberOfDiskDrives/TotalDiskSpace fields (batch_009/batch_011) with per-drive detail if populated.",
+    "join_candidates": [
+      {
+        "to": "NumberOfDiskDrives",
+        "why": "would be a per-disk breakdown complementing the aggregate disk-count field on a related DiskCapacity-family event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); name self-descriptive and consistent with the disk-inventory fields already established elsewhere in this KB."
+  },
+  {
+    "field": "InstanceMetadata",
+    "description": "Raw cloud instance metadata content (e.g. from the AWS/Azure/GCP instance metadata service), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely serialized JSON metadata)",
+    "hunting_notes": "This field name also identifies a distinct event type (InstanceMetadata) referenced elsewhere in this KB's CIM mappings; as a field it would hold the raw metadata payload rather than being the event itself, if populated.",
+    "join_candidates": [
+      {
+        "to": "InstanceMetadataSignature",
+        "why": "raw metadata content and its cryptographic signature in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); name collides with the separately-documented InstanceMetadata event referenced in this KB's fdr-to-CIM mappings (e.g. for BootArgs/CpuProcessorName), but as a field entry here it appears to be distinct raw content rather than the event itself -- this ambiguity isn't resolved by this KB."
+  },
+  {
+    "field": "InstanceMetadataSignature",
+    "description": "A cryptographic signature validating the cloud instance metadata (e.g. an AWS PKCS7 instance-identity-document signature), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a base64/PEM-encoded signature)",
+    "hunting_notes": "Would allow verifying the authenticity of a cloud instance's self-reported metadata, relevant for detecting spoofed/forged instance-identity claims if populated.",
+    "join_candidates": [
+      {
+        "to": "InstanceMetadata",
+        "why": "raw metadata content and its cryptographic signature in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'Signature' suffix on an instance-metadata field matches the standard cloud-provider instance-identity-document signing concept (e.g. AWS's signed instance identity document)."
+  },
+  {
+    "field": "InterfaceKind",
+    "description": "The kind/type of network interface (e.g. Ethernet, WiFi, Loopback, Tunnel), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "enum",
+    "data_format": "unknown (stored as match_only_text; likely a short interface-type keyword)",
+    "hunting_notes": "Would help distinguish physical from virtual/tunnel interfaces when auditing network configuration, if populated.",
+    "join_candidates": [
+      {
+        "to": "InterfaceDescription",
+        "why": "would be a sibling network-interface classification field alongside the already-enriched InterfaceDescription field, if observed together",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); name self-descriptive for a standard network-interface-type classification."
+  },
+  {
+    "field": "LastDiscoveredBy",
+    "description": "The source (e.g. a discovery mechanism or sensor module) that last discovered/reported this asset, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a short source-name string)",
+    "hunting_notes": "Asset-inventory provenance field; useful for understanding which discovery method surfaced an asset, though not itself a direct threat signal.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name self-descriptive but no event context confirms the discovery-source vocabulary."
+  },
+  {
+    "field": "LastLoggedOnHost",
+    "description": "The hostname of the host a user account last logged onto, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (hostname)",
+    "hunting_notes": "Identity/asset-inventory field likely from CrowdStrike's Identity Protection module; would be useful for tracking an account's typical logon hosts and spotting logons to unfamiliar hosts if populated.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name self-descriptive for an identity/asset-tracking field."
+  },
+  {
+    "field": "LdapSearchFilterSample",
+    "description": "A sample of an LDAP search filter used against Active Directory, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "command",
+    "data_format": "unknown (stored as match_only_text; an LDAP filter string)",
+    "hunting_notes": "LDAP search filters are heavily used in both legitimate AD administration and adversary reconnaissance (e.g. enumerating privileged accounts, Kerberoastable service accounts, or ACL misconfigurations); if populated, this would be high value for identifying targeted directory-enumeration queries, likely from CrowdStrike's Identity Protection module.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); name self-descriptive for a captured LDAP query, consistent with the AD/Identity-focused fields elsewhere in this KB (DCSyncAttempted, ActiveDirectoryAccountCreated)."
+  },
+  {
+    "field": "LocalAdminAccess",
+    "description": "An indicator of whether/what local administrative access a user account has, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "bool",
+    "data_format": "unknown (likely a boolean or list of hosts where local admin rights apply)",
+    "hunting_notes": "Likely an Identity Protection / asset-exposure field for identifying accounts with broad local-admin footprints across many hosts -- a key lateral-movement risk indicator if populated.",
+    "join_candidates": [
+      {
+        "to": "LastLoggedOnHost",
+        "why": "would be a sibling identity/asset-exposure field describing the same user account, if observed together",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name self-descriptive and consistent with the identity-risk domain suggested by other catalogue-only fields in this range (LastLoggedOnHost, LdapSearchFilterSample)."
+  },
+  {
+    "field": "LogonInfo",
+    "description": "Generic logon information, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a serialized logon-detail blob)",
+    "hunting_notes": "Too generic to assess hunting value without event context; likely summarizes logon session details similar to fields on UserLogon/UserIdentity events elsewhere in this KB.",
+    "join_candidates": [
+      {
+        "to": "LogonType",
+        "why": "would be a related logon-detail field, if observed on the same event as the already-enriched logon-related fields in this KB",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); the generic name gives no way to confirm its specific structure or which logon-related event it belongs to."
+  },
+  {
+    "field": "MACPrefix",
+    "description": "The OUI (Organizationally Unique Identifier) vendor-prefix portion of a MAC address, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "mac",
+    "data_format": "hex string (first 3 octets of a MAC address)",
+    "hunting_notes": "Would allow quick vendor/manufacturer identification of a network adapter from its MAC address without a full OUI lookup, if populated.",
+    "join_candidates": [
+      {
+        "to": "MACAddress",
+        "why": "the prefix portion of the same MAC address already enriched elsewhere in this KB, if observed together",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field, no co-occurrence context to corroborate); 'MAC Prefix'/OUI is standard, well-documented IEEE networking terminology."
+  },
+  {
+    "field": "MemoryAvailable",
+    "description": "The amount of available memory on the host, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "size",
+    "data_format": "unknown (stored as match_only_text; likely bytes)",
+    "hunting_notes": "Would complement the already-enriched AverageUsedRam/MaxUsedRam fields (batch_005/batch_010) with a point-in-time available-memory reading, if populated.",
+    "join_candidates": [
+      {
+        "to": "AverageUsedRam",
+        "why": "would be a sibling host-memory metric on a related resource-utilization event, if observed together",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); name self-descriptive and consistent with the resource-utilization fields already established elsewhere in this KB."
+  },
+  {
+    "field": "MmioDataGenPmconB",
+    "description": "The raw value of the Intel PCH 'GEN_PMCON_B' (General Power Management Configuration B) memory-mapped I/O register, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "Chipset/firmware register values like this are used by firmware-security tooling (in the style of CHIPSEC) to check platform power-management and boot-related configuration state for signs of firmware tampering; a single raw register value has limited standalone hunting value without knowledge of its expected bit-level meaning.",
+    "join_candidates": [
+      {
+        "to": "MmioDataSmiEn",
+        "why": "sibling Intel PCH chipset register-value fields in the same firmware-analysis catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'GEN_PMCON_B' matches a documented Intel Platform Controller Hub (PCH) register name used in firmware/chipset security analysis tooling."
+  },
+  {
+    "field": "MmioDataSmiEn",
+    "description": "The raw value of the Intel PCH 'SMI_EN' (System Management Interrupt Enable) memory-mapped I/O register, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "SMI_EN controls which conditions can trigger System Management Mode (SMM) -- a highly privileged CPU mode below the OS/hypervisor that has historically been a target for firmware rootkits (SMM rootkits); an unexpected value here is a significant firmware-security signal for tools that understand its bit layout.",
+    "join_candidates": [
+      {
+        "to": "MmioDataGenPmconB",
+        "why": "sibling Intel PCH chipset register-value fields in the same firmware-analysis catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'SMI_EN' is a well-documented Intel PCH register name (System Management Interrupt Enable) used extensively in firmware/SMM security research and tooling (e.g. CHIPSEC)."
+  },
+  {
+    "field": "MmioDataTco1Cnt",
+    "description": "The raw value of the Intel PCH 'TCO1_CNT' (TCO Timer 1 Control) memory-mapped I/O register, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "TCO1_CNT controls the platform's hardware watchdog timer; firmware-security tooling inspects registers like this alongside SMI_EN/GEN_PMCON_B to assess overall chipset security configuration.",
+    "join_candidates": [
+      {
+        "to": "MmioDataSmiEn",
+        "why": "sibling Intel PCH chipset register-value fields in the same firmware-analysis catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'TCO1_CNT' is a well-documented Intel PCH register name (TCO Timer 1 Control) used in chipset/firmware security tooling."
+  },
+  {
+    "field": "NeighborName",
+    "description": "The hostname of a network-neighbor entry (e.g. from an ARP or IPv6 Neighbor Discovery cache), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (hostname)",
+    "hunting_notes": "Would be useful for network-topology/asset discovery via neighbor-cache data if populated.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name self-descriptive for a network-neighbor-cache concept."
+  },
+  {
+    "field": "OU",
+    "description": "The Active Directory Organizational Unit (OU) of the object described by this event, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (AD OU distinguished-name component)",
+    "hunting_notes": "Would allow scoping AD-related hunting/reporting by organizational unit (e.g. flagging changes to objects in a sensitive OU like Domain Controllers or Tier-0 admin accounts) if populated.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field, no co-occurrence context to corroborate); 'OU' is standard, unambiguous Active Directory terminology."
+  },
+  {
+    "field": "OciContainerConfigUser",
+    "description": "The user (username or UID) the container's process is configured to run as, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "user_id",
+    "data_format": "unknown (stored as match_only_text)",
+    "hunting_notes": "A container configured to run as root (UID 0) rather than a non-privileged user is a common container-hardening gap; check alongside OciContainerHostConfigPrivileged for combined risk if populated.",
+    "join_candidates": [
+      {
+        "to": "OciContainerHostConfigPrivileged",
+        "why": "sibling container-security-posture fields in the same OCI/Docker inspect-API field family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field, no co-occurrence context to corroborate); maps directly to the standard Docker inspect API's Config.User field, consistent with the already-enriched OciContainer* fields (batch_009) on OciContainerInfo."
+  },
+  {
+    "field": "OciContainerHostConfigCgroup",
+    "description": "The cgroup parent path the container was configured to use, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text)",
+    "hunting_notes": "Unusual cgroup configuration could indicate an attempt to escape normal resource-isolation boundaries, if populated.",
+    "join_candidates": [
+      {
+        "to": "OciContainerHostConfigPrivileged",
+        "why": "sibling container host-configuration fields in the same OCI/Docker inspect-API field family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field, no co-occurrence context to corroborate); maps directly to the standard Docker inspect API's HostConfig.CgroupParent field."
+  },
+  {
+    "field": "OciContainerHostConfigDevices",
+    "description": "The host devices passed through into the container, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "file_path",
+    "data_format": "unknown (stored as match_only_text; likely a serialized list of device paths)",
+    "hunting_notes": "Passing raw host devices into a container (e.g. block devices, /dev/mem) significantly widens the container's effective privilege and is a known container-escape/hardware-access risk -- high value if populated.",
+    "join_candidates": [
+      {
+        "to": "OciContainerHostConfigPrivileged",
+        "why": "sibling container-security-posture fields in the same OCI/Docker inspect-API field family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field, no co-occurrence context to corroborate); maps directly to the standard Docker inspect API's HostConfig.Devices field."
+  },
+  {
+    "field": "OciContainerHostConfigOomKillDisable",
+    "description": "Whether the container is configured to disable the Linux OOM (out-of-memory) killer for its process, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "bool",
+    "data_format": "unknown (stored as match_only_text; likely a stringified boolean)",
+    "hunting_notes": "Disabling the OOM killer can be used to keep a memory-exhausting process (e.g. cryptomining) alive under memory pressure rather than letting it be killed, if populated.",
+    "join_candidates": [
+      {
+        "to": "OciContainerStateOOMKilled",
+        "why": "the OOM-kill-disable configuration setting vs. the already-enriched actual OOM-killed outcome field, in the same OCI/Docker inspect-API family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field, no co-occurrence context to corroborate); maps directly to the standard Docker inspect API's HostConfig.OomKillDisable field, mirroring the already-enriched OciContainerStateOOMKilled field (batch_009)."
+  },
+  {
+    "field": "OciContainerHostConfigPrivileged",
+    "description": "Whether the container was started in privileged mode (with expanded host-level capabilities), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "bool",
+    "data_format": "unknown (stored as match_only_text; likely a stringified boolean)",
+    "hunting_notes": "A privileged container has near-full access to the host (device access, kernel capabilities) and is one of the most significant container-escape risk indicators; a privileged container running unexpectedly is high-priority to investigate, if populated.",
+    "join_candidates": [
+      {
+        "to": "OciContainerHostConfigReadOnlyRootfs",
+        "why": "sibling container-security-posture fields in the same OCI/Docker inspect-API field family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field, no co-occurrence context to corroborate); maps directly to the standard Docker inspect API's HostConfig.Privileged field."
+  },
+  {
+    "field": "OciContainerHostConfigReadOnlyRootfs",
+    "description": "Whether the container's root filesystem is mounted read-only, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "bool",
+    "data_format": "unknown (stored as match_only_text; likely a stringified boolean)",
+    "hunting_notes": "A container without a read-only root filesystem allows persistent modification of its own filesystem, which is a container-hardening gap relevant to persistence within the container; check alongside OciContainerHostConfigPrivileged for combined risk if populated.",
+    "join_candidates": [
+      {
+        "to": "OciContainerHostConfigPrivileged",
+        "why": "sibling container-security-posture fields in the same OCI/Docker inspect-API field family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field, no co-occurrence context to corroborate); maps directly to the standard Docker inspect API's HostConfig.ReadonlyRootfs field."
+  },
+  {
+    "field": "OciContainerPhase",
+    "description": "The lifecycle phase of the container/pod (e.g. Running, Pending, Succeeded, Failed), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "enum",
+    "data_format": "unknown (stored as match_only_text; likely a short phase keyword)",
+    "hunting_notes": "Would be useful for filtering container telemetry by lifecycle state (e.g. excluding terminated containers from active-threat scoping) if populated; the term matches Kubernetes pod-phase terminology as much as raw Docker container state.",
+    "join_candidates": [
+      {
+        "to": "OciContainerStatePid",
+        "why": "sibling container-lifecycle fields in the same OCI/Docker inspect-API field family",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'Phase' matches standard container/orchestration lifecycle terminology (notably Kubernetes pod phases)."
+  },
+  {
+    "field": "OriginWebLocations",
+    "description": "A list of web/URL locations that were the origin of a downloaded file or captured content, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "domain",
+    "data_format": "flattened (array of URL/location strings)",
+    "hunting_notes": "Would provide download-provenance/referrer-chain data useful for tracing a file back to its web origin, similar in purpose to the already-enriched HostUrl (MOTW origin) field, if populated.",
+    "join_candidates": [
+      {
+        "to": "HostUrl",
+        "why": "both represent download/content origin URLs, though on different mechanisms (Mark-of-the-Web metadata vs. a dedicated web-locations list)",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=flattened, 0 events observed in this corpus (catalogue-only field); name self-descriptive for a list of originating web locations."
+  },
+  {
+    "field": "PciConfigDataBdsm",
+    "description": "The raw value of the Intel graphics 'BDSM' (Base Data of Stolen Memory) PCI configuration-space register, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "Chipset/GPU memory-configuration register used in firmware-security tooling to assess platform memory-map integrity; limited standalone hunting value without knowledge of its expected value range.",
+    "join_candidates": [
+      {
+        "to": "PciConfigDataGgc",
+        "why": "sibling Intel graphics/chipset PCI-configuration register-value fields in the same firmware-analysis catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'BDSM' is a documented Intel integrated-graphics PCI configuration-space register name (Base Data of Stolen Memory), part of the same chipset firmware-analysis field family as the MmioData*/PciConfigData* fields in this batch."
+  },
+  {
+    "field": "PciConfigDataBiosCntl",
+    "description": "The raw value of the Intel PCH 'BIOS_CNTL' (BIOS Control) PCI configuration-space register, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "BIOS_CNTL contains the BIOS write-protection bits (BIOSWE/BLE and SMM_BWP); an unlocked or writable BIOS flash configuration here is a critical firmware-integrity signal that would allow persistent, OS-independent firmware implants if exploited -- a high-value field for firmware-security tooling that understands its bit layout.",
+    "join_candidates": [
+      {
+        "to": "PciConfigDataGenPmconA",
+        "why": "sibling Intel PCH PCI-configuration register-value fields in the same firmware-analysis catalogue family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'BIOS_CNTL' is a well-documented Intel PCH PCI configuration-space register (BIOS Control), widely referenced in firmware-security research and tooling (e.g. CHIPSEC) for SPI flash write-protection checks."
+  },
+  {
+    "field": "PciConfigDataGenPmconA",
+    "description": "The raw value of the Intel PCH 'GEN_PMCON_A' (General Power Management Configuration A) PCI configuration-space register, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "Chipset power-management configuration register used in firmware-security tooling; limited standalone hunting value without knowledge of its expected bit-level meaning.",
+    "join_candidates": [
+      {
+        "to": "MmioDataGenPmconB",
+        "why": "GEN_PMCON_A and GEN_PMCON_B are the two halves of the same Intel PCH power-management configuration register pair",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'GEN_PMCON_A' is a documented Intel PCH register name, paired with GEN_PMCON_B already noted in this batch's MmioDataGenPmconB field."
+  },
+  {
+    "field": "PciConfigDataGgc",
+    "description": "The raw value of the Intel 'GGC' (GMCH Graphics Control) PCI configuration-space register, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "Chipset graphics-memory configuration register used in firmware-security tooling; limited standalone hunting value without knowledge of its expected value range.",
+    "join_candidates": [
+      {
+        "to": "PciConfigDataBdsm",
+        "why": "sibling Intel graphics/chipset PCI-configuration register-value fields in the same firmware-analysis catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'GGC' is a documented Intel integrated-graphics PCI configuration-space register name (Graphics Control), part of the same chipset firmware-analysis field family as PciConfigDataBdsm."
+  }
+]

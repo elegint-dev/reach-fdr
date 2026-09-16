@@ -1,0 +1,62 @@
+[
+  {
+    "id": "e_context_to_target",
+    "src": "ContextProcessId",
+    "dst": "TargetProcessId",
+    "kind": "causal_attribution",
+    "basis": "asserted",
+    "basis_ref": "DESIGN.md §join-graph; CrowdStrike data model",
+    "cardinality": "n:1",
+    "scope": ["aid"],
+    "src_sourcetype": "crowdstrike:events:sensor",
+    "dst_sourcetype": "crowdstrike:events:sensor",
+    "target_label": "the process that caused this event",
+    "note": "On a non-process event (DnsRequest, file, registry...), ContextProcessId identifies the process that caused it. This is how you attribute activity to a process.",
+    "hazard": null
+  },
+  {
+    "id": "e_raw_pid",
+    "src": "RawProcessId",
+    "dst": null,
+    "kind": "os_pid",
+    "basis": "asserted",
+    "basis_ref": "kb/translations.json pid_translation; queries/process/03",
+    "cardinality": "unsafe",
+    "scope": ["aid", "time"],
+    "src_sourcetype": "crowdstrike:events:sensor",
+    "dst_sourcetype": "crowdstrike:events:sensor",
+    "target_label": "the OS PID",
+    "note": "The OS-visible PID. NOT unique over time -- PIDs are recycled. Never join on this alone; always scope by aid AND a time window.",
+    "hazard": { "level": "danger", "text": "RawProcessId is recycled by the OS. Without aid and a tight window this returns unrelated processes." }
+  },
+  {
+    "id": "e_aid_to_aidmaster",
+    "src": "aid",
+    "dst": "aidmaster.aid",
+    "kind": "host_enrichment",
+    "basis": "confirmed_ta",
+    "basis_ref": "TA LOOKUP-crowdstrike_ta_host_resolution_for_security_events",
+    "cardinality": "n:1",
+    "scope": [],
+    "src_sourcetype": "crowdstrike:events:sensor",
+    "dst_sourcetype": "crowdstrike:inventory:aidmaster",
+    "target_label": "host inventory",
+    "note": "TA joins aid to aidmaster for hostname, domain, OU, site, OS, geo, gateway, MAC.",
+    "hazard": null
+  },
+  {
+    "id": "e_sha256string_to_sha256hashdata",
+    "src": "SHA256String",
+    "dst": "SHA256HashData",
+    "kind": "detection_handle",
+    "basis": "asserted",
+    "basis_ref": "TA appinfo LOOKUP on crowdstrike:events:external (cim/fdr_to_cim_fields.csv row 1) + enrichment (confidence medium)",
+    "cardinality": "n:1",
+    "scope": [],
+    "src_sourcetype": "crowdstrike:events:external",
+    "dst_sourcetype": "crowdstrike:events:sensor",
+    "target_label": "the file's sensor telemetry",
+    "note": "SHA256String on a detection summary event is the same value as SHA256HashData on sensor events.",
+    "hazard": null
+  }
+]

@@ -1,0 +1,722 @@
+[
+  {
+    "field": "FileContent",
+    "description": "The captured content of the file whose change was scanned by this autostart-extensibility-point (ASEP) file-change scan.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely raw or truncated file bytes/text)",
+    "hunting_notes": "High-value field when populated -- lets a hunter inspect the literal content of a newly-created or modified autostart file (e.g. a script dropped into a startup folder) without needing to retrieve the file separately.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event AsepFileChangeScanInfo (autostart-extensibility-point file-change scan); name self-descriptive, though whether content is full or truncated/sampled isn't confirmed."
+  },
+  {
+    "field": "FileType.Type.CategoryID",
+    "description": "An identifier for the broad file-type category of the file referenced by FileType.Type on this DLP detection event, paired with FileType.Type.CategoryName.",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely numeric or short code)",
+    "hunting_notes": "Use with FileType.Type.CategoryName to classify the detected file at a category level for DLP triage.",
+    "join_candidates": [
+      {
+        "to": "FileType.Type.CategoryName",
+        "why": "ID/Name pair labeling the same file-type category",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event Event_DataProtectionDetectionSummaryEvent, sibling of CategoryName/Description/ID/Name within FileType.Type; same ID/Name pairing and File-type-category structure already established for the analogous File.FileTypeCategoryID field on DataEgressEnriched (batch_006)."
+  },
+  {
+    "field": "FileType.Type.CategoryName",
+    "description": "The name of the broad file-type category of the file referenced by FileType.Type on this DLP detection event, paired with FileType.Type.CategoryID.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Primary human-readable field for grouping DLP detections by broad file category (e.g. flagging archive or executable categories as higher risk).",
+    "join_candidates": [
+      {
+        "to": "FileType.Type.CategoryID",
+        "why": "ID/Name pair labeling the same file-type category",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event Event_DataProtectionDetectionSummaryEvent, sibling of CategoryID within FileType.Type."
+  },
+  {
+    "field": "FileType.Type.Description",
+    "description": "A human-readable description of the specific file type referenced by FileType.Type on this DLP detection event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "More descriptive than .Name alone; useful for quick triage without needing to look up a file-type ID.",
+    "join_candidates": [
+      {
+        "to": "FileType.Type.Name",
+        "why": "sibling FileType.Type.* fields describing the same detected file type",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event Event_DataProtectionDetectionSummaryEvent, sibling of ID/Name/CategoryID/CategoryName within FileType.Type; mirrors the already-enriched File.FileTypeDescription field on DataEgressEnriched (batch_006)."
+  },
+  {
+    "field": "FileType.Type.ID",
+    "description": "An identifier for the specific detected file type referenced by FileType.Type on this DLP detection event, paired with FileType.Type.Name.",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely numeric or short code)",
+    "hunting_notes": "Use with FileType.Type.Name/.Description to identify the exact detected file type.",
+    "join_candidates": [
+      {
+        "to": "FileType.Type.Name",
+        "why": "ID/Name pair labeling the same detected file type",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event Event_DataProtectionDetectionSummaryEvent, sibling of Name/Description/CategoryID/CategoryName within FileType.Type; mirrors the already-enriched File.FileTypeID field on DataEgressEnriched (batch_006)."
+  },
+  {
+    "field": "FileType.Type.Name",
+    "description": "The name of the specific detected file type (e.g. \"Microsoft Word Document\", \"ZIP archive\") referenced by FileType.Type on this DLP detection event, paired with FileType.Type.ID.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Primary field for identifying the detected content type of a file involved in a DLP match; compare against the file's extension/name if available for signs of disguised content.",
+    "join_candidates": [
+      {
+        "to": "FileType.Type.ID",
+        "why": "ID/Name pair labeling the same detected file type",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event Event_DataProtectionDetectionSummaryEvent, sibling of ID within FileType.Type; mirrors the already-enriched File.FileTypeName field on DataEgressEnriched (batch_006)."
+  },
+  {
+    "field": "FileVaultIsEnabled",
+    "description": "Whether macOS FileVault full-disk encryption is enabled on the host, as recorded by this event.",
+    "semantic_role": "bool",
+    "data_format": "unknown (stored as match_only_text; likely a stringified boolean)",
+    "hunting_notes": "Asset/compliance signal rather than a direct threat indicator; useful for identifying unencrypted hosts as higher-risk for data-at-rest exposure if lost or stolen.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event FileVaultStatus (event name matches concept); 'FileVault' is Apple's standard disk-encryption feature name, and 'IsEnabled' is unambiguous."
+  },
+  {
+    "field": "Filename",
+    "description": "The file name involved in the data-loss-prevention detection recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Primary field for identifying which file triggered a DLP detection; cross-reference with FileType.Type.* for content-type verification.",
+    "join_candidates": [
+      {
+        "to": "FileType.Type.Name",
+        "why": "file name and detected file type on the same Event_DataProtectionDetectionSummaryEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank, single event Event_DataProtectionDetectionSummaryEvent; name unambiguous."
+  },
+  {
+    "field": "FilesAccessed",
+    "description": "A nested list of files accessed during the activity leading to this detection, each entry carrying FileName, FilePath, and Timestamp.",
+    "semantic_role": "other",
+    "data_format": "nested/object (array of file-access records)",
+    "hunting_notes": "Reference the FilesAccessed.* child fields directly; this gives a timeline of file-read activity associated with the detection, distinct from FilesWritten.",
+    "join_candidates": [
+      {
+        "to": "FilesWritten",
+        "why": "sibling nested file-activity list (accessed vs. written) on the same Event_EppDetectionSummaryEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank (nested), single event Event_EppDetectionSummaryEvent, whose co-occurring children are exactly FilesAccessed.FileName/.FilePath/.Timestamp -- confirms a parent/child nested relationship; FileName/FilePath were already classified by this KB's name-convention rules and only .Timestamp needed AI review."
+  },
+  {
+    "field": "FilesAccessed.Timestamp",
+    "description": "The timestamp at which the corresponding file in the FilesAccessed list was accessed.",
+    "semantic_role": "timestamp",
+    "data_format": "date (per fields.json type)",
+    "hunting_notes": "Use to build a chronological timeline of file access alongside FilesAccessed.FileName/.FilePath during incident reconstruction.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=date, single event Event_EppDetectionSummaryEvent, sibling of FilesAccessed.FileName/.FilePath within the FilesAccessed array; name and type unambiguous."
+  },
+  {
+    "field": "FilesWritten",
+    "description": "A nested list of files written during the activity leading to this detection, each entry carrying FileName, FilePath, and Timestamp.",
+    "semantic_role": "other",
+    "data_format": "nested/object (array of file-write records)",
+    "hunting_notes": "Reference the FilesWritten.* child fields directly; this gives a timeline of file-write/drop activity associated with the detection, distinct from FilesAccessed -- often the more actionable list for identifying dropped payloads.",
+    "join_candidates": [
+      {
+        "to": "FilesAccessed",
+        "why": "sibling nested file-activity list (accessed vs. written) on the same Event_EppDetectionSummaryEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank (nested), single event Event_EppDetectionSummaryEvent, whose co-occurring children are exactly FilesWritten.FileName/.FilePath/.Timestamp -- confirms a parent/child nested relationship, mirroring FilesAccessed."
+  },
+  {
+    "field": "FilesWritten.Timestamp",
+    "description": "The timestamp at which the corresponding file in the FilesWritten list was written.",
+    "semantic_role": "timestamp",
+    "data_format": "date (per fields.json type)",
+    "hunting_notes": "Use to build a chronological timeline of file drops/writes alongside FilesWritten.FileName/.FilePath during incident reconstruction.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=date, single event Event_EppDetectionSummaryEvent, sibling of FilesWritten.FileName/.FilePath within the FilesWritten array; name and type unambiguous."
+  },
+  {
+    "field": "FilterContent",
+    "description": "The content/specification (e.g. a packet-filter expression) of the packet filter attached, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a filter-expression string or serialized filter program)",
+    "hunting_notes": "A packet filter attached by an unexpected process can indicate covert traffic capture (sniffing) or a network-based backdoor; the filter content itself may reveal what traffic the attacker was targeting (e.g. filtering for credentials or specific ports).",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event PacketFilterAttached; name self-descriptive though the exact filter-expression format isn't confirmed in this KB."
+  },
+  {
+    "field": "FirewallOption",
+    "description": "The name of the Windows Firewall configuration option that was changed, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a short option-name string)",
+    "hunting_notes": "Firewall configuration changes (e.g. disabling the firewall or a profile) are a common defense-evasion step; pair with FirewallOptionNumericValue to see the resulting setting and with the sibling FirewallProfile field to see which profile (domain/standard/public) was affected.",
+    "join_candidates": [
+      {
+        "to": "FirewallOptionNumericValue",
+        "why": "option/value pair for the same firewall configuration change on the same FirewallChangeOption event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event FirewallChangeOption (event name matches field name), co-occurring with FirewallOptionNumericValue and FirewallProfile (FirewallProfile has a decode table: 0=INVALID,1=DOMAIN,2=STANDARD,3=PUBLIC, confirming this event tracks Windows Firewall profile-scoped setting changes)."
+  },
+  {
+    "field": "FirewallOptionNumericValue",
+    "description": "The numeric value the firewall option named in FirewallOption was changed to, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer or boolean-as-integer)",
+    "hunting_notes": "Read together with FirewallOption to determine the resulting firewall configuration state (e.g. enabled/disabled) after the change.",
+    "join_candidates": [
+      {
+        "to": "FirewallOption",
+        "why": "option/value pair for the same firewall configuration change on the same FirewallChangeOption event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event FirewallChangeOption; name self-descriptive."
+  },
+  {
+    "field": "FirewallRule",
+    "description": "The specification of the firewall rule created or modified, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a serialized rule string, e.g. name/action/ports/program path)",
+    "hunting_notes": "New or modified firewall rules that open inbound ports or allow specific programs are common for establishing C2 reachability or enabling lateral-movement services; inspect the rule content for unexpected allowed programs or ports.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event FirewallSetRule (event name matches field name); name self-descriptive though the exact serialization format isn't confirmed in this KB."
+  },
+  {
+    "field": "FirstCommand",
+    "description": "The first command recorded in the command-history capture represented by this event.",
+    "semantic_role": "command",
+    "data_format": "UTF-8 text (a single command line)",
+    "hunting_notes": "Useful as a quick preview/anchor of a CommandHistory capture without parsing the full CommandHistory blob.",
+    "join_candidates": [
+      {
+        "to": "CommandHistory",
+        "why": "FirstCommand is drawn from the same command-history capture as the CommandHistory field on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event CommandHistory, co-occurring with CommandHistory/CommandSequence/CommandCountMax/ApplicationName (already enriched in batch_006); name self-descriptive."
+  },
+  {
+    "field": "FirstIP4Record",
+    "description": "The first IPv4 address record returned in the DNS response for the request recorded by this event.",
+    "semantic_role": "ip",
+    "data_format": "IPv4 string",
+    "hunting_notes": "When a DNS response returns multiple A records, this captures the first for quick access; check the full record set (if a separate all-records field exists) when investigating fast-flux or round-robin C2 infrastructure.",
+    "join_candidates": [
+      {
+        "to": "CNAMERecords",
+        "why": "sibling DNS-response record fields on the same DnsRequest event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DnsRequest; name unambiguous."
+  },
+  {
+    "field": "FltCallbackData",
+    "description": "Kernel filesystem-filter-manager (FLT) callback data associated with the file-open operation recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely an opaque kernel pointer/structure reference)",
+    "hunting_notes": "Low-level Windows minifilter-driver internals; not directly interpretable for hunting without kernel-debugging context, but its presence confirms the event was captured via a filesystem minifilter callback.",
+    "join_candidates": [
+      {
+        "to": "FltCompletionContext",
+        "why": "sibling Windows filesystem-filter (FLT) internals on the same FsPostOpenSnapshotFile event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, single event FsPostOpenSnapshotFile; 'Flt' is standard Windows Filter Manager (fltmgr) terminology for filesystem minifilter callback data, but the field's exact contents aren't documented in this KB."
+  },
+  {
+    "field": "FltCompletionContext",
+    "description": "Kernel filesystem-filter-manager (FLT) completion context associated with the file-open operation recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely an opaque kernel pointer/structure reference)",
+    "hunting_notes": "Low-level Windows minifilter-driver internals; not directly interpretable for hunting without kernel-debugging context.",
+    "join_candidates": [
+      {
+        "to": "FltCallbackData",
+        "why": "sibling Windows filesystem-filter (FLT) internals on the same FsPostOpenSnapshotFile event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, single event FsPostOpenSnapshotFile; 'Flt' is standard Windows Filter Manager terminology; contents not documented in this KB."
+  },
+  {
+    "field": "FltRelatedObjects",
+    "description": "Kernel filesystem-filter-manager (FLT) related-objects reference(s) associated with the file-open operation recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of opaque kernel object references)",
+    "hunting_notes": "Low-level Windows minifilter-driver internals; not directly interpretable for hunting without kernel-debugging context.",
+    "join_candidates": [
+      {
+        "to": "FltCallbackData",
+        "why": "sibling Windows filesystem-filter (FLT) internals on the same FsPostOpenSnapshotFile event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, single event FsPostOpenSnapshotFile; 'Flt' is standard Windows Filter Manager terminology; contents not documented in this KB."
+  },
+  {
+    "field": "FontBuffer",
+    "description": "The in-memory buffer/content of the font being loaded, as recorded by this user-mode font-load event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely raw or truncated binary font data)",
+    "hunting_notes": "Font parsers have a history of memory-corruption vulnerabilities exploited for privilege escalation/sandbox escape (e.g. historical Duqu-style attacks); a malformed or unusually-sourced font buffer on UserFontLoad is worth deeper inspection.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event UserFontLoad; name self-descriptive, and font-loading is a well-documented exploit surface, though this KB doesn't confirm whether the buffer is full or truncated."
+  },
+  {
+    "field": "FullContext",
+    "description": "The full CPU/thread context (register state) captured at the time of the DEP exception recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a serialized CONTEXT structure)",
+    "hunting_notes": "Register state at the moment of a DEP violation can help identify shellcode staging registers/stack pointers; use alongside ExceptionAddress and FullExceptionRecord for full exploit-attempt reconstruction.",
+    "join_candidates": [
+      {
+        "to": "ExceptionAddress",
+        "why": "sibling exception-detail fields on the same UserExceptionDEP event",
+        "confidence": "medium"
+      },
+      {
+        "to": "FullExceptionRecord",
+        "why": "sibling exception-detail fields on the same UserExceptionDEP event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event UserExceptionDEP, sibling of ExceptionAddress/ExceptionCode/FullExceptionRecord/ContextProcessId/ContextThreadId -- 'Context' alongside those exception-tracking fields is standard Windows exception-handling terminology for a captured CPU register context."
+  },
+  {
+    "field": "FullExceptionRecord",
+    "description": "The full exception record (e.g. a serialized Windows EXCEPTION_RECORD structure) captured for the DEP exception recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a serialized EXCEPTION_RECORD structure)",
+    "hunting_notes": "Contains the complete exception details (code, flags, faulting address, parameters) beyond the individually-broken-out ExceptionAddress/ExceptionCode fields; use for deep exploit-attempt analysis.",
+    "join_candidates": [
+      {
+        "to": "FullContext",
+        "why": "sibling exception-detail fields on the same UserExceptionDEP event",
+        "confidence": "high"
+      },
+      {
+        "to": "ExceptionAddress",
+        "why": "sibling exception-detail fields on the same UserExceptionDEP event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event UserExceptionDEP, sibling of ExceptionAddress/ExceptionCode/FullContext -- 'ExceptionRecord' is standard Windows structured-exception-handling terminology."
+  },
+  {
+    "field": "GcpAccessConfigNatIp",
+    "description": "The external (NAT-assigned) IP address configured in the access config of the GCP network interface recorded by this event.",
+    "semantic_role": "ip",
+    "data_format": "IPv4 string",
+    "hunting_notes": "This is effectively the instance's public-facing IP in GCP; useful for correlating externally-visible cloud infrastructure with observed network connections.",
+    "join_candidates": [
+      {
+        "to": "GcpNetworkIp",
+        "why": "external vs. internal IP pair for the same GCP network interface",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event GcpComputeNetworkInterface; 'AccessConfig' and 'NatIp' are standard GCP Compute Engine API terms for an interface's external/NAT IP."
+  },
+  {
+    "field": "GcpDisplayName",
+    "description": "The display name of the GCP IAM service account described by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Human-readable label for the service account; cross-reference against GcpEmail (the account's stable identifier) since display names can be changed or duplicated.",
+    "join_candidates": [
+      {
+        "to": "GcpEmail",
+        "why": "sibling GCP IAM service-account identity fields on the same GcpIamServiceAccount event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event GcpIamServiceAccount; standard GCP IAM terminology."
+  },
+  {
+    "field": "GcpEmail",
+    "description": "The email-formatted unique identifier of the GCP IAM service account described by this event (e.g. name@project.iam.gserviceaccount.com).",
+    "semantic_role": "identifier",
+    "data_format": "UTF-8 string (email-formatted GCP service-account identifier)",
+    "hunting_notes": "The stable, authoritative identifier for a GCP service account -- use this rather than GcpDisplayName when correlating IAM activity across GCP audit logs.",
+    "join_candidates": [
+      {
+        "to": "GcpDisplayName",
+        "why": "sibling GCP IAM service-account identity fields on the same GcpIamServiceAccount event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event GcpIamServiceAccount; GCP service accounts are natively identified by an email-formatted string, per Google Cloud IAM documentation."
+  },
+  {
+    "field": "GcpInterfaceName",
+    "description": "The name of the GCP network interface (e.g. \"nic0\") described by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Useful for multi-NIC GCP instances to distinguish which interface a given IP/network configuration belongs to.",
+    "join_candidates": [
+      {
+        "to": "GcpNetwork",
+        "why": "sibling GCP network-interface fields on the same GcpComputeNetworkInterface event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event GcpComputeNetworkInterface; standard GCP Compute Engine terminology (nic0, nic1, ...)."
+  },
+  {
+    "field": "GcpNetwork",
+    "description": "The GCP VPC network resource that this network interface is attached to.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (GCP network resource name/URL)",
+    "hunting_notes": "Use to scope investigations by VPC when a GCP project has multiple networks (e.g. distinguishing a production VPC from a test/sandbox VPC).",
+    "join_candidates": [
+      {
+        "to": "GcpNetworkIp",
+        "why": "sibling GCP network-interface fields on the same GcpComputeNetworkInterface event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event GcpComputeNetworkInterface; standard GCP Compute Engine networking terminology."
+  },
+  {
+    "field": "GcpNetworkIp",
+    "description": "The internal (VPC-assigned) IP address of the GCP network interface described by this event.",
+    "semantic_role": "ip",
+    "data_format": "IPv4 string",
+    "hunting_notes": "Internal IP for correlating cloud-instance identity with intra-VPC network telemetry; pair with GcpAccessConfigNatIp for the externally-visible address.",
+    "join_candidates": [
+      {
+        "to": "GcpAccessConfigNatIp",
+        "why": "internal vs. external IP pair for the same GCP network interface",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event GcpComputeNetworkInterface; standard GCP Compute Engine terminology for an interface's internal IP."
+  },
+  {
+    "field": "GcpRegion",
+    "description": "The GCP region the compute instance described by this event is running in.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (GCP region name, e.g. us-central1)",
+    "hunting_notes": "Useful for scoping investigations by cloud region and spotting instances running in unexpected/unauthorized regions.",
+    "join_candidates": [
+      {
+        "to": "GcpZone",
+        "why": "region/zone pair describing the same GCP compute instance's location",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event GcpComputeInstance; standard GCP terminology."
+  },
+  {
+    "field": "GcpZone",
+    "description": "The GCP zone (a specific data center within a region) the compute instance described by this event is running in.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (GCP zone name, e.g. us-central1-a)",
+    "hunting_notes": "More granular than GcpRegion; useful for precise location scoping of a compute instance.",
+    "join_candidates": [
+      {
+        "to": "GcpRegion",
+        "why": "region/zone pair describing the same GCP compute instance's location",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event GcpComputeInstance; standard GCP terminology."
+  },
+  {
+    "field": "GrandParentCommandLine",
+    "description": "The full command line of the grandparent process in the process lineage of the detection recorded by this event.",
+    "semantic_role": "command",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Extends process-lineage visibility beyond the immediate parent; useful for tracing multi-hop execution chains (e.g. script host -> shell -> payload) back to their true origin.",
+    "join_candidates": [
+      {
+        "to": "ParentCommandLine",
+        "why": "adjacent level of the same process-lineage chain on the same detection event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank, single event Event_EppDetectionSummaryEvent, co-occurring with ParentCommandLine/GrandParentImageFileName/GrandParentImageFilePath -- mirrors the already-enriched ParentCommandLine field (batch_001) one level further up the process tree."
+  },
+  {
+    "field": "GrandparentProcessPatternIdList",
+    "description": "A list of detection pattern IDs previously associated with the grandparent process in the lineage of the handle-operation detection recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of pattern-ID values)",
+    "hunting_notes": "Lets a hunter see whether the grandparent process in this handle-operation's lineage has triggered other detections, useful for building a picture of an ancestor process's overall suspiciousness.",
+    "join_candidates": [
+      {
+        "to": "PatternId",
+        "why": "same pattern-ID identifier space as the single-pattern PatternId field used elsewhere in this KB",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event FalconProcessHandleOpDetectInfo; name self-descriptive, combining the process-lineage ('Grandparent') and detection-pattern ('PatternId') concepts already established elsewhere in this KB."
+  },
+  {
+    "field": "GrandparentSHA256HashData",
+    "description": "The SHA256 hash of the grandparent process's image, as recorded in the process-ancestry information for this event.",
+    "semantic_role": "hash",
+    "data_format": "hex string (SHA256, 64 hex chars)",
+    "hunting_notes": "Extends hash-based process-lineage tracking (as used for immediate parent/self hashes elsewhere) one level further up the ancestry chain; use to spot a known-bad ancestor binary even when the immediate parent/child processes look benign.",
+    "join_candidates": [
+      {
+        "to": "SHA256String",
+        "why": "same SHA256 hash value space, scoped to the grandparent process rather than the primary process",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event ProcessAncestryInformation; name unambiguous, following the standard SHA256HashData naming convention used throughout this schema."
+  },
+  {
+    "field": "GroupRid",
+    "description": "The relative identifier (RID) portion of the Windows group SID that a user account was added to, as recorded by this event.",
+    "semantic_role": "identifier",
+    "data_format": "decimal string (Windows SID RID, e.g. 512 for Domain Admins)",
+    "hunting_notes": "Well-known RIDs (e.g. 512 Domain Admins, 544 Administrators, 519 Enterprise Admins) let a hunter immediately spot privilege-escalating group additions without resolving the full SID/group name.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event UserAccountAddedToGroup; 'Rid' is standard Windows SID terminology, and well-known RID values for built-in privileged groups are publicly documented by Microsoft."
+  },
+  {
+    "field": "HIDDescriptorNumDescriptors",
+    "description": "The number of class descriptors declared in the USB HID (Human Interface Device) descriptor of the device recorded by this event (the USB HID spec's bNumDescriptors field).",
+    "semantic_role": "count",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Part of full USB device fingerprinting for HID devices; low direct hunting value alone but useful for identifying non-standard HID descriptor structures on devices posing as something else (BadUSB-style attacks).",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DcUsbHIDDescriptor; maps directly to the standard USB HID class descriptor's bNumDescriptors field."
+  },
+  {
+    "field": "HashAlgorithm",
+    "description": "The hash algorithm used to compute the content hash of the driver loaded in this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (algorithm name, e.g. SHA256)",
+    "hunting_notes": "Indicates which algorithm produced the accompanying hash value(s) for this driver; distinct from CertificateSignatureHashAlgorithm, which describes the code-signing certificate's own signature algorithm rather than the file-content hash.",
+    "join_candidates": [
+      {
+        "to": "CertificateSignatureHashAlgorithm",
+        "why": "both describe a hash algorithm on the same DriverLoad event, but for different data (file content vs. signature)",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event DriverLoad; name self-descriptive but ambiguous as to whether it labels the file-content hash or another hash on this event without a decode table to confirm."
+  },
+  {
+    "field": "HookedDriverObjectPointer",
+    "description": "The kernel memory address of the driver object detected as hooked, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "hex string (kernel memory address)",
+    "hunting_notes": "Direct evidence of a rootkit-style kernel hook on a driver object -- a driver object pointer that has been altered to redirect dispatch routines is a strong compromise indicator.",
+    "join_candidates": [
+      {
+        "to": "HookingAddress",
+        "why": "identifies the hooked object and the address of the code that hooked it on the same HookedDriverObject event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event HookedDriverObject (event name matches concept); name and event together unambiguous for kernel-object-hooking detection."
+  },
+  {
+    "field": "HookedDriverStartAddress",
+    "description": "The start address of the hooked driver's loaded code/image, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "hex string (kernel memory address)",
+    "hunting_notes": "Use to identify which loaded kernel module the hooked driver object belongs to, e.g. by mapping the address back to a known driver's load range.",
+    "join_candidates": [
+      {
+        "to": "HookedDriverObjectPointer",
+        "why": "sibling fields describing the same hooked driver on the same HookedDriverObject event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event HookedDriverObject; name self-descriptive."
+  },
+  {
+    "field": "HookedObjectPointer",
+    "description": "The kernel memory address of the specific object (e.g. a dispatch table entry) detected as hooked, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "hex string (kernel memory address)",
+    "hunting_notes": "Distinct from HookedDriverObjectPointer -- this is likely the specific sub-object (such as an IRP dispatch routine) within the driver that was altered, giving more granular rootkit-detection detail.",
+    "join_candidates": [
+      {
+        "to": "HookedDriverObjectPointer",
+        "why": "sibling fields describing the same kernel-hooking event, at different levels of granularity",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event HookedDriverObject; name self-descriptive but its precise relationship to HookedDriverObjectPointer (which specific object) isn't confirmed by this KB."
+  },
+  {
+    "field": "HookingAddress",
+    "description": "The kernel memory address of the code that performed the hook detected by this event.",
+    "semantic_role": "other",
+    "data_format": "hex string (kernel memory address)",
+    "hunting_notes": "The address of the hooking code itself -- resolving this address to a loaded module (or noting it falls outside any known module) is key evidence for identifying the rootkit/hooking driver responsible.",
+    "join_candidates": [
+      {
+        "to": "HookedDriverObjectPointer",
+        "why": "identifies the hooking code's address paired with the hooked object it altered on the same HookedDriverObject event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event HookedDriverObject; name unambiguous for kernel-hook detection."
+  },
+  {
+    "field": "Host",
+    "description": "A nested container holding host-identity information for this file-integrity-monitoring match, currently with a single child field, Host.Name.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference Host.Name directly for the actual hostname value.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank, single event Event_FileIntegrityMonitorRuleMatchedEnriched, whose only co-occurring child is Host.Name -- confirms a parent/child nested relationship, matching the container-field pattern established elsewhere in this KB."
+  },
+  {
+    "field": "Host.Name",
+    "description": "The hostname of the host on which this file-integrity-monitoring match occurred.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Standard hostname field for scoping/pivoting FIM matches to a specific host.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank, single event Event_FileIntegrityMonitorRuleMatchedEnriched, sole child of the Host container; name unambiguous."
+  },
+  {
+    "field": "HostUrl",
+    "description": "The source URL recorded in the Mark-of-the-Web (MOTW / Zone.Identifier) data written to a downloaded file, as captured by this event.",
+    "semantic_role": "domain",
+    "data_format": "UTF-8 string (URL)",
+    "hunting_notes": "Identifies where a downloaded file actually came from according to its MOTW metadata -- valuable for tracing phishing/drive-by download origins even when the download mechanism (browser, mail client) itself isn't directly logged.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank, single event MotwWritten (Mark-of-the-Web write event); 'HostUrl' is the standard name Windows uses for the origin-URL field within Zone.Identifier alternate-data-stream metadata."
+  },
+  {
+    "field": "HttpHost",
+    "description": "The Host header value of the HTTP request recorded by this event.",
+    "semantic_role": "domain",
+    "data_format": "UTF-8 string (hostname, optionally with port)",
+    "hunting_notes": "Primary field for identifying the target domain/virtual-host of an HTTP request, useful when the destination IP alone doesn't reveal the intended service (e.g. shared hosting, CDNs, domain fronting).",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event HttpRequest; name maps directly to the standard HTTP Host header."
+  },
+  {
+    "field": "HttpRequestHeader",
+    "description": "A captured HTTP request header (or header block) associated with the detection recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely raw header text)",
+    "hunting_notes": "Can reveal suspicious User-Agent strings, custom C2 headers, or unusual Authorization/Cookie values associated with a flagged HTTP request.",
+    "join_candidates": [
+      {
+        "to": "HttpUrl",
+        "why": "sibling HTTP-request-detail fields on the same HttpRequestDetect event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event HttpRequestDetect; name self-descriptive though whether this captures a single header or the full header block isn't confirmed."
+  },
+  {
+    "field": "HttpStatusText",
+    "description": "The textual HTTP status reason phrase (e.g. \"OK\", \"Not Found\") of the HTTP response recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Secondary to the numeric status code for hunting purposes; mainly useful for quick human-readable triage.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event HttpResponse; name maps directly to the standard HTTP response reason-phrase concept."
+  },
+  {
+    "field": "HttpUrl",
+    "description": "The URL of the HTTP request that triggered the detection recorded by this event.",
+    "semantic_role": "domain",
+    "data_format": "unknown (stored as match_only_text; a full URL string)",
+    "hunting_notes": "Primary field for identifying the exact request path/query that triggered an HTTP-based detection (e.g. a known-malicious URI pattern), beyond just the host.",
+    "join_candidates": [
+      {
+        "to": "HttpHost",
+        "why": "URL and host describing the same detected HTTP request, though on different events (HttpRequestDetect vs. HttpRequest)",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event HttpRequestDetect; name unambiguous."
+  },
+  {
+    "field": "IOServiceName",
+    "description": "The name of the macOS IOKit service registered, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (IOKit service class name)",
+    "hunting_notes": "Registration of an unusual or unrecognized IOKit service can indicate a malicious kernel-adjacent driver/extension establishing itself; compare against known-good system IOKit service names.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event IOServiceRegister (event name matches field concept); 'IOService' is standard macOS/Darwin IOKit terminology for a registered kernel service."
+  }
+]

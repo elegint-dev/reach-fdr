@@ -1,0 +1,33 @@
+# Trace any observable back to the process that produced it.
+#
+# The universal handle is coalesce(ContextProcessId, TargetProcessId):
+# 176 of 275 event types carry ContextProcessId, 28 carry TargetProcessId.
+# If the observable's event has either, this reaches the process.
+#
+# Change the field name in BOTH places marked <<FIELD>>.
+
+index=`cs_index` sourcetype=crowdstrike:events:sensor earliest=-24h
+  ( SHA256HashData="PUT_VALUE_HERE"
+    OR event_simpleName=ProcessRollup2
+    OR event_simpleName=SyntheticProcessRollup2 )
+| eval _pid = coalesce(ContextProcessId, TargetProcessId)
+| where isnotnull(_pid)
+| eval _hit = if(SHA256HashData="PUT_VALUE_HERE", 1, 0),
+       _anchor = if(event_simpleName IN ("ProcessRollup2","SyntheticProcessRollup2"), 1, 0)
+| stats max(_hit) as matched, max(_anchor) as has_anchor,
+        min(_time) as first_seen, max(_time) as last_seen,
+        values(eval(if(_hit=1, event_simpleName, null()))) as observed_on,
+        values(eval(if(_anchor=1, ImageFileName, null()))) as image,
+        values(eval(if(_anchor=1, CommandLine, null()))) as command_line,
+        values(eval(if(_anchor=1, RawProcessId, null()))) as os_pid,
+        values(eval(if(_anchor=1, ParentProcessId, null()))) as parent_pid
+        by aid, _pid
+| where matched=1
+| rename _pid as TargetProcessId
+| eval resolved = if(has_anchor=1, "yes", "no - creation event outside window")
+| table aid TargetProcessId os_pid image command_line parent_pid observed_on first_seen last_seen resolved
+| convert ctime(first_seen) ctime(last_seen)
+| sort - last_seen
+
+# Equivalent macro: `cs_trace_process("SHA256HashData","PUT_VALUE_HERE","-24h")`
+# KNOW THE HOST? Add aid="..." to line 1. Orders of magnitude faster.

@@ -1,0 +1,762 @@
+[
+  {
+    "field": "VolumeMountPoint",
+    "description": "The mount point path (e.g. a drive letter root or mount folder) assigned to a volume when it is mounted.",
+    "semantic_role": "file_path",
+    "data_format": "UTF-8 string (path or drive letter)",
+    "hunting_notes": "Pairs with VolumeDriveLetter/VolumeName/VolumeRealDeviceName to fully describe a mount event; useful for spotting new/unexpected mount points, especially for removable media.",
+    "join_candidates": [
+      {
+        "to": "VolumeDriveLetter",
+        "why": "both describe how the same mounted volume is addressed on the filesystem",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 4 volume-mount events (FsVolumeMounted, FsVolumeUnmounted, MountedVolume, RemovableMediaVolumeMounted), always co-occurring with VolumeDriveLetter/VolumeName/VolumeRealDeviceName \u2014 standard Windows storage-stack vocabulary."
+  },
+  {
+    "field": "VolumeRealDeviceName",
+    "description": "The underlying physical/virtual device path backing a mounted volume (distinct from VolumeFileSystemDevice, which appears to name the filesystem device object/class rather than the specific device instance).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (Windows device path)",
+    "hunting_notes": "Use alongside VolumeFileSystemDevice/VolumeFileSystemDriver to fully resolve what physical or virtual medium a drive letter actually points to.",
+    "join_candidates": [
+      {
+        "to": "VolumeFileSystemDevice",
+        "why": "both name device-level aspects of the same mounted volume and co-occur on all volume-mount events",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 4 events (FsVolumeMounted, MountedVolume, RemovableMediaVolumeMounted, SnapshotVolumeMounted), always co-occurring with VolumeFileSystemDevice/Driver and VolumeMountPoint. Exact distinction from VolumeFileSystemDevice is a reasonable but unconfirmed reading of the two names."
+  },
+  {
+    "field": "AttemptNumber",
+    "description": "A retry/attempt counter for an operation such as a large-file upload, incremented each time the operation is retried.",
+    "semantic_role": "count",
+    "data_format": "long (integer)",
+    "hunting_notes": "A high AttemptNumber on LfoUploadStart/DataComplete may indicate network instability or an upload being actively blocked/interfered with.",
+    "join_candidates": [
+      {
+        "to": "UploadId",
+        "why": "AttemptNumber counts retries of the specific upload identified by UploadId",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=long, 3 events (EtwComponentResponse, LfoUploadDataComplete, LfoUploadStart), the latter two co-occurring with UploadId/LfoUploadFlags \u2014 'attempt number' is an unambiguous name for a retry counter."
+  },
+  {
+    "field": "AuthenticationPackage",
+    "description": "The name of the Windows authentication package used for a logon (e.g. NTLM, Kerberos, Negotiate).",
+    "semantic_role": "enum",
+    "data_format": "UTF-8 string (Windows auth package name)",
+    "hunting_notes": "Classic Windows logon-analysis field \u2014 NTLM logons where Kerberos would be expected, or unusual packages, are a common lateral-movement/pass-the-hash signal.",
+    "join_candidates": [
+      {
+        "to": "LogonType",
+        "why": "together they fully characterize how a logon (UserLogon/UserLogoff/UserIdentity) was authenticated",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 3 events (UserIdentity, UserLogoff, UserLogon), always co-occurring with LogonType/LogonDomain/UserSid \u2014 standard Windows Security-event terminology (matches auditing concept 'Authentication Package' in Windows Event ID 4624/4625)."
+  },
+  {
+    "field": "Certificate",
+    "description": "The code-signing certificate details (e.g. subject, issuer) extracted from a module/file involved in an unsigned-module or sensitive-handle detection.",
+    "semantic_role": "other",
+    "data_format": "nested/object (certificate metadata)",
+    "hunting_notes": "Inspect alongside ExtendedKeyUsages/PublicKeys/SignInfoFlags to assess whether a module's signing chain is legitimate.",
+    "join_candidates": [
+      {
+        "to": "ExtendedKeyUsages",
+        "why": "attribute of the same certificate captured on the same events",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank in fields.json (consistent with a nested object), 3 events (LsassHandleFromUnsignedModule, PrivilegedProcessHandleFromUnsignedModule, SAMHashDumpFromUnsignedModule), always co-occurring with ExtendedKeyUsages/PublicKeys/SignInfoFlags/FileSigningTime \u2014 standard PKI field cluster."
+  },
+  {
+    "field": "ConfigIDBase",
+    "description": "Part of the sensor's three-part configuration identifier (ConfigIDBase/ConfigIDBuild/ConfigIDPlatform) reported at agent connect/online time, identifying the applied sensor policy/config revision.",
+    "semantic_role": "version",
+    "data_format": "keyword (numeric/hex code)",
+    "hunting_notes": "Useful to detect hosts running an outdated or divergent sensor configuration across a fleet.",
+    "join_candidates": [
+      {
+        "to": "ConfigIDBuild",
+        "why": "sibling components of the same sensor configuration identifier, always reported together",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 3 events (AgentConnect, AgentOnline, SensorHeartbeat), always co-occurring with ConfigIDBuild, ConfigIDPlatform, ConfigurationVersion, ProvisionState \u2014 clearly one part of a related config-identity tuple, though the exact semantic split between Base/Build/Platform is not documented on disk."
+  },
+  {
+    "field": "ContentSHA256HashData",
+    "description": "The SHA256 hash of scanned or egressed content (e.g. a script's body, or data leaving the host via DataEgress) \u2014 distinct from the hash of the process image itself.",
+    "semantic_role": "hash",
+    "data_format": "hex string (SHA256, 64 chars)",
+    "hunting_notes": "Use to fingerprint script/data content independent of file name, for correlating the same malicious script snippet across hosts.",
+    "join_candidates": [
+      {
+        "to": "SHA256HashData",
+        "why": "same hash algorithm and value space, just scoped to scanned/egressed content rather than an executable image",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 3 events (DataEgress, ScriptControlScanInfo, ScriptControlScanTelemetry), name is unambiguous (SHA256 + HashData naming convention used throughout this schema for hash fields)."
+  },
+  {
+    "field": "DeviceManufacturer",
+    "description": "The manufacturer name of a connected accessory/USB device.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Useful for peripheral/USB device inventory and spotting unusual or spoofed manufacturer strings on connected devices.",
+    "join_candidates": [
+      {
+        "to": "DeviceProduct",
+        "why": "sibling descriptive attribute of the same connected device",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 3 events (AccessoryConnected, DcUsbDeviceConnected, DcUsbDeviceDisconnected), always co-occurring with DeviceProduct/DeviceInstanceId \u2014 standard USB device descriptor terminology."
+  },
+  {
+    "field": "DeviceProduct",
+    "description": "The product name of a connected accessory/USB device.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Same use as DeviceManufacturer \u2014 peripheral inventory and anomaly spotting.",
+    "join_candidates": [
+      {
+        "to": "DeviceManufacturer",
+        "why": "sibling descriptive attribute of the same connected device",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, same 3 events as DeviceManufacturer, always co-occurring with it."
+  },
+  {
+    "field": "GrandparentCommandLine",
+    "description": "The full command line of the grandparent process (the parent of the process's parent) in the process ancestry chain.",
+    "semantic_role": "command",
+    "data_format": "UTF-8 string (command line)",
+    "hunting_notes": "Extends process-lineage visibility two levels up \u2014 useful for identifying the ultimate legitimate-looking launcher (e.g. explorer.exe, a script host) behind a chain of suspicious child processes.",
+    "join_candidates": [
+      {
+        "to": "ParentCommandLine",
+        "why": "same ancestry chain, one level closer to the event's process",
+        "confidence": "high"
+      },
+      {
+        "to": "GrandparentProcessId",
+        "why": "numeric identity of the same grandparent process this field's command line belongs to",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "3 events (Event_DetectionSummaryEvent, FalconProcessHandleOpDetectInfo, ScriptControlScanTelemetry), always co-occurring with ParentCommandLine/GrandparentImageFileName \u2014 consistent process-ancestry naming used throughout the schema."
+  },
+  {
+    "field": "HandleCreated",
+    "description": "A field on sensitive-handle-open detection events (LsassHandleFromUnsignedModule, PrivilegedProcessHandleFromUnsignedModule, SuspiciousPrivilegedProcessHandle) whose name suggests it indicates whether the requested handle was actually created/granted rather than blocked.",
+    "semantic_role": "bool",
+    "data_format": "keyword (likely boolean-like value)",
+    "hunting_notes": "If it does mark success/failure of the handle-open, it lets a hunter separate detections where the sensitive access actually succeeded from ones where it was blocked/failed \u2014 a materially different severity.",
+    "join_candidates": [
+      {
+        "to": "DesiredAccess",
+        "why": "describes the outcome of the same handle-open request whose requested rights DesiredAccess captures",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, 3 events, always co-occurring with DesiredAccess/Status/TargetProcessId. No decode table or CIM mapping found to confirm the exact value semantics."
+  },
+  {
+    "field": "MitreAttack",
+    "description": "A container/object field grouping MITRE ATT&CK metadata (MitreAttack.Tactic, .TacticID, .Technique, .TechniqueID, .PatternID) on cloud-generated lead/detection-summary events.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference the child fields directly (MitreAttack.Tactic etc.) in tools that don't flatten nested objects.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank (nested/object), 3 events (Event_AutomatedLeadSummaryEvent, Event_DataProtectionDetectionSummaryEvent, Event_EppDetectionSummaryEvent), and its own co-occurrence set is exactly its five MitreAttack.* children, confirming a parent/child nested relationship."
+  },
+  {
+    "field": "MitreAttack.Tactic",
+    "description": "The MITRE ATT&CK tactic name for a cloud-generated lead/detection-summary event, sibling to MitreAttack.TacticID (the tactic's ID code).",
+    "semantic_role": "enum",
+    "data_format": "UTF-8 string (ATT&CK tactic name)",
+    "hunting_notes": "Same ATT&CK vocabulary as Tactic/Attacks.Tactic elsewhere in the schema; normalize the three spellings for unified ATT&CK coverage reporting.",
+    "join_candidates": [
+      {
+        "to": "MitreAttack.TacticID",
+        "why": "name/ID pair for the same tactic on the same event",
+        "confidence": "high"
+      },
+      {
+        "to": "Tactic",
+        "why": "same ATT&CK tactic vocabulary used on a different (non-lead) detection-summary event family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "3 events, always co-occurring with MitreAttack.TacticID/Technique/TechniqueID; name is the standard MITRE ATT&CK term and parallels Tactic/Attacks.Tactic elsewhere in this schema."
+  },
+  {
+    "field": "MitreAttack.TacticID",
+    "description": "The MITRE ATT&CK tactic ID code (e.g. TA0005) for a cloud-generated lead/detection-summary event, sibling to MitreAttack.Tactic (the tactic's display name).",
+    "semantic_role": "enum",
+    "data_format": "UTF-8 string (ATT&CK tactic ID, e.g. TA00xx)",
+    "hunting_notes": "Machine-stable identifier for ATT&CK tactic mapping/dashboards, preferable to the display name for joins across data sources.",
+    "join_candidates": [
+      {
+        "to": "MitreAttack.Tactic",
+        "why": "ID/name pair for the same tactic on the same event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 3 events as MitreAttack.Tactic, always co-occurring with it; 'TacticID' naming convention (paired ID/name fields) is used consistently for Technique/TechniqueID as well."
+  },
+  {
+    "field": "MitreAttack.Technique",
+    "description": "The MITRE ATT&CK technique name for a cloud-generated lead/detection-summary event, sibling to MitreAttack.TechniqueID.",
+    "semantic_role": "enum",
+    "data_format": "UTF-8 string (ATT&CK technique name)",
+    "hunting_notes": "Same ATT&CK vocabulary as Technique/Attacks.Technique elsewhere in the schema.",
+    "join_candidates": [
+      {
+        "to": "MitreAttack.TechniqueID",
+        "why": "name/ID pair for the same technique on the same event",
+        "confidence": "high"
+      },
+      {
+        "to": "Technique",
+        "why": "same ATT&CK technique vocabulary used on a different detection-summary event family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "3 events, always co-occurring with MitreAttack.Tactic/TacticID/TechniqueID; standard MITRE ATT&CK naming."
+  },
+  {
+    "field": "MitreAttack.TechniqueID",
+    "description": "The MITRE ATT&CK technique ID code (e.g. T1055) for a cloud-generated lead/detection-summary event, sibling to MitreAttack.Technique.",
+    "semantic_role": "enum",
+    "data_format": "UTF-8 string (ATT&CK technique ID, e.g. T1xxx)",
+    "hunting_notes": "Machine-stable identifier preferable to the display name for cross-source ATT&CK joins.",
+    "join_candidates": [
+      {
+        "to": "MitreAttack.Technique",
+        "why": "ID/name pair for the same technique on the same event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 3 events as the other MitreAttack.* fields, always co-occurring with them."
+  },
+  {
+    "field": "Name",
+    "description": "A generic display-name field on cloud-generated lead/detection-summary events (Event_AutomatedLeadSummaryEvent, Event_DataProtectionDetectionSummaryEvent, Event_EppDetectionSummaryEvent); likely the name of the lead, policy, or indicator the record represents, but the exact referent differs by event type.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Check event_simpleName before treating 'Name' as a single consistent concept \u2014 it labels different things (a lead vs. a DLP policy/indicator vs. a detection) depending on which of the three events it appears on.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, 3 events, each a different cloud detection/lead-summary type with different sibling fields (LeadId/LeadType vs. Policy.Name/AnodeIndicators.Name vs. detection-specific fields) \u2014 the generic name and heterogeneous context prevent a single confident definition."
+  },
+  {
+    "field": "ODAttributeName",
+    "description": "The macOS Open Directory attribute name (e.g. a dsAttrType) being added, removed, or set on a directory-service record.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (OD attribute type)",
+    "hunting_notes": "Pairs with ODRecordName/ODRecordType/ODNodeName to fully describe a directory-service attribute change \u2014 useful for macOS local-account tampering hunts.",
+    "join_candidates": [
+      {
+        "to": "ODRecordName",
+        "why": "the attribute named here belongs to the OD record identified by ODRecordName",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 3 events, all OpenDirectoryAttribute{Add,Remove,Set} \u2014 unambiguous macOS Open Directory terminology."
+  },
+  {
+    "field": "ODRecordName",
+    "description": "The macOS Open Directory record name (e.g. a username or group name) that a directory-service attribute operation targeted.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (OD record name)",
+    "hunting_notes": "Identifies which account/group was affected by an OpenDirectoryAttribute* change.",
+    "join_candidates": [
+      {
+        "to": "ODAttributeName",
+        "why": "sibling field describing which attribute of this record changed",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 3 OpenDirectoryAttribute* events as ODAttributeName, always co-occurring with it and ODRecordType/ODNodeName."
+  },
+  {
+    "field": "PatternIdList",
+    "description": "A list of detection pattern/signature IDs that matched, complementing the singular PatternId field on the same handle-access and logon-behavior detection events.",
+    "semantic_role": "other",
+    "data_format": "match_only_text (list of IDs)",
+    "hunting_notes": "Use when a single event can be flagged by multiple overlapping detection patterns \u2014 PatternId alone may only show one of several matches.",
+    "join_candidates": [
+      {
+        "to": "PatternId",
+        "why": "PatternIdList is the plural/list form of the same detection-pattern identifier concept",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=match_only_text, 3 events (FalconProcessHandleOpDetectInfo, LogonBehaviorCompositionDetectInfo, XumdHookEvent), always co-occurring with the singular PatternId and with ParentProcessPatternIdList/GrandparentProcessPatternIdList variants on the first event."
+  },
+  {
+    "field": "PolicyIdentifier",
+    "description": "The identifier of the policy or rule that matched, used generically across different policy engines (DLP in DataEgress, file-integrity rules in FileIntegrityMonitorRuleMatched \u2014 though that event uses PolicyRuleID/PolicyRuleGroupID instead, and firewall rules).",
+    "semantic_role": "identifier",
+    "data_format": "keyword (opaque policy/rule ID)",
+    "hunting_notes": "Use to pivot from a triggered event back to the specific policy/rule configuration responsible, for tuning noisy rules.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, 3 events (DataEgress, FileIntegrityMonitorRuleMatched, FirewallRuleIP4Matched) spanning three different policy subsystems (DLP, FIM, firewall) \u2014 the name is generic and reused across unrelated policy engines, so treat the exact ID namespace as engine-specific."
+  },
+  {
+    "field": "PrimaryModule",
+    "description": "A field on module-load/classification events (ClassifiedModuleLoad, ImageHash, MachOHeaderParsed) whose name suggests it flags whether the module being reported is the process's main/primary executable image rather than a secondary loaded library.",
+    "semantic_role": "bool",
+    "data_format": "keyword (unconfirmed \u2014 possibly boolean-like)",
+    "hunting_notes": "If confirmed as a primary-vs-secondary flag, useful to filter module-load telemetry down to main-executable loads only.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, 3 events, co-occurring with ImageFileName/SHA256HashData/ModuleCharacteristics but with no decode table or CIM mapping to confirm the exact semantics of the name."
+  },
+  {
+    "field": "RUID",
+    "description": "The real user ID (UID) of the process on Linux/Unix, part of the POSIX real/effective/saved credential set captured alongside RGID (real GID), SVUID/SVGID (saved), and UID.",
+    "semantic_role": "user_id",
+    "data_format": "keyword (numeric POSIX UID)",
+    "hunting_notes": "Useful for spotting privilege-escalation patterns where RUID differs from the effective/saved UID (e.g. via setuid binaries) on Linux hosts.",
+    "join_candidates": [
+      {
+        "to": "RGID",
+        "why": "companion real-ID field (group) captured on the same Linux process/FIM events",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 3 events (FileIntegrityMonitorRuleMatched, ProcessRollup2, SyntheticProcessRollup2 \u2014 all Linux-relevant), always co-occurring with RGID, SVGID, SVUID, UID, GID \u2014 the standard POSIX real/effective/saved credential field cluster."
+  },
+  {
+    "field": "RegKeyName",
+    "description": "The registry key name/path targeted by an operation, used on some registry events (RegGenericKeyUpdate, SAMHashDumpFromUnsignedModule, SuspiciousRegAsepUpdate) in place of or alongside RegObjectName.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (registry key path)",
+    "hunting_notes": "Same persistence/tamper hunting value as RegObjectName; check which of the two names is populated per event type.",
+    "join_candidates": [
+      {
+        "to": "RegObjectName",
+        "why": "overlapping concept (registry key path) used on a different subset of registry-related events",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 3 events, always in registry-modification/detection contexts (RegOperationType, RegType, RegPostObjectName/RegRootObjectName present) \u2014 standard Windows registry terminology."
+  },
+  {
+    "field": "ScriptContentName",
+    "description": "A name/identifier for the scripted content being scanned by Script Control (e.g. AMSI-style script scanning), paired with the script's SHA256 (ContentSHA256HashData) and raw content.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Use with ContentSHA256HashData to correlate repeated executions of the same suspicious script snippet across hosts, even when the calling process/file differs.",
+    "join_candidates": [
+      {
+        "to": "ContentSHA256HashData",
+        "why": "co-occurs on the same script-scan events and identifies the same script content by hash",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 3 events (ScriptControlDetectInvalidInfo, ScriptControlScanInfo, ScriptControlScanTelemetry), always co-occurring with ContentSHA256HashData/ScriptContent/OriginalContentLength."
+  },
+  {
+    "field": "SeverityName",
+    "description": "A human-readable severity label (e.g. 'Low', 'High', 'Critical') for a detection, paired with a numeric Severity field on cloud detection-summary events.",
+    "semantic_role": "enum",
+    "data_format": "UTF-8 string (severity label)",
+    "hunting_notes": "Preferred over the raw numeric Severity for dashboards/alert triage readability; use the numeric Severity for sorting/thresholding.",
+    "join_candidates": [
+      {
+        "to": "Severity",
+        "why": "label/numeric pair for the same detection severity",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 3 events (Event_DataProtectionDetectionSummaryEvent, Event_DetectionSummaryEvent, Event_EppDetectionSummaryEvent), all cloud detection-summary types where a paired 'Severity' numeric field is also present in the schema."
+  },
+  {
+    "field": "SmbShareName",
+    "description": "The name of the SMB share involved in a client or server share-access event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (share name)",
+    "hunting_notes": "Useful for lateral-movement/data-exfiltration hunting on SMB \u2014 flag access to administrative shares (C$, ADMIN$) or unusual share names.",
+    "join_candidates": [
+      {
+        "to": "ClientComputerName",
+        "why": "identifies the remote host accessing/hosting the same SMB share on client-side events",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 3 events (SmbClientShareClosedEtw, SmbClientShareOpenedEtw, SmbServerShareOpenedEtw) \u2014 name is unambiguous."
+  },
+  {
+    "field": "TaskName",
+    "description": "The name of a Windows Scheduled Task that was registered, modified, or deleted.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Core persistence-hunting field \u2014 new/renamed scheduled tasks with random-looking names or tasks executing from unusual paths (see TaskExecCommand) are classic persistence indicators.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, 3 events (ScheduledTaskDeleted, ScheduledTaskModified, ScheduledTaskRegistered), co-occurring with TaskAuthor/TaskExecCommand/TaskXml on the latter two."
+  },
+  {
+    "field": "UserRid",
+    "description": "The relative identifier (RID) portion of a Windows user's SID \u2014 the final component that, combined with the domain SID, forms the user's full SID \u2014 captured on account lifecycle events.",
+    "semantic_role": "user_id",
+    "data_format": "keyword (numeric RID)",
+    "hunting_notes": "Well-known RIDs (e.g. 500 for the built-in Administrator) are useful for flagging sensitive-account activity even when the display name has been changed.",
+    "join_candidates": [
+      {
+        "to": "DomainSid",
+        "why": "UserRid combined with DomainSid reconstructs the account's full SID",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 3 events (UserAccountAddedToGroup, UserAccountCreated, UserAccountDeleted), co-occurring with DomainSid/GroupRid \u2014 standard Windows Security Identifier (SID) terminology."
+  },
+  {
+    "field": "VolumeName",
+    "description": "The label/name assigned to a mounted volume.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (volume label)",
+    "hunting_notes": "Useful alongside VolumeDriveLetter/VolumeMountPoint for identifying specific removable media by its assigned label across multiple mount events.",
+    "join_candidates": [
+      {
+        "to": "VolumeMountPoint",
+        "why": "both describe the same mounted volume instance across the volume-mount event family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "cim_reachable=True (mapped to file_name/file_path in CIM, likely a generic path-model reuse), 6 events (FsVolumeMounted, FsVolumeUnmounted, MountedVolume, RemovableMediaVolumeMounted, SnapshotVolumeMounted, VolumeSnapshotDeleted) \u2014 all volume lifecycle events."
+  },
+  {
+    "field": "FileAttributes",
+    "description": "The Windows file attribute bitmask (e.g. FILE_ATTRIBUTE_READONLY, HIDDEN, SYSTEM, ARCHIVE) of a file at create/open time.",
+    "semantic_role": "flag",
+    "data_format": "keyword (bitmask, CIM-decoded via FileAttributes_meaning)",
+    "hunting_notes": "Flag combinations like HIDDEN+SYSTEM on a newly-written executable are a classic evasion indicator; CrowdStrike's own TA provides a decode lookup (FileAttributes_meaning) for this bitmask.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "cim_reachable=True via a LOOKUP-type CIM mapping ('FileAttributes_meaning'), confirming it is a decodable Windows file-attributes bitmask; appears on 5 filesystem minifilter events (DirectoryCreate, FsPostOpenSnapshotFile, NewExecutableWritten, NewScriptWritten, RansomwareOpenFile)."
+  },
+  {
+    "field": "RegStringValue",
+    "description": "The string representation of a registry value's data, when a registry value is created or modified.",
+    "semantic_role": "other",
+    "data_format": "match_only_text (UTF-8 string)",
+    "hunting_notes": "Primary field for inspecting the actual content written into an autostart/persistence registry value (e.g. a Run-key command line).",
+    "join_candidates": [
+      {
+        "to": "RegValueName",
+        "why": "RegStringValue is the data written into the value named by RegValueName",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "cim_reachable=True (mapped to registry_value_data), type=match_only_text, 5 registry-update events, always co-occurring with RegValueName/RegType/RegObjectName."
+  },
+  {
+    "field": "AddressFamily",
+    "description": "The socket/network address family (e.g. AF_INET, AF_INET6, AF_UNIX) of a created socket or network interface.",
+    "semantic_role": "enum",
+    "data_format": "keyword (address-family constant, name or number)",
+    "hunting_notes": "Useful to distinguish IPv4/IPv6/Unix-domain socket activity when hunting on CreateSocket telemetry.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (CreateSocket, LocalIpAddressIP6), co-occurring with SocketType/NetlinkFamily on CreateSocket \u2014 'address family' is standard, unambiguous BSD-sockets terminology."
+  },
+  {
+    "field": "AsepIndex",
+    "description": "An index into CrowdStrike's internal ASEP (Auto-Start Extensibility Point) classification table for a registry-based autostart entry, paired with AsepClass/AsepFlags/AsepValueType.",
+    "semantic_role": "enum",
+    "data_format": "keyword (small integer code)",
+    "hunting_notes": "Can be used to filter autostart telemetry to specific ASEP categories without string-matching registry paths, but the index-to-category mapping isn't present in this KB.",
+    "join_candidates": [
+      {
+        "to": "RegObjectName",
+        "why": "the ASEP classification applies to the registry autostart entry named by RegObjectName on the same event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 2 events (AsepKeyUpdate, AsepValueUpdate), always co-occurring with AsepClass/AsepFlags/AsepValueType \u2014 clearly part of CrowdStrike's ASEP (autostart) classification field family, though no decode table confirms specific index values."
+  },
+  {
+    "field": "AssociatedFile",
+    "description": "A file path/name associated with a cloud detection (e.g. the malicious file that triggered the detection), on detection-summary events.",
+    "semantic_role": "file_path",
+    "data_format": "UTF-8 string (file path or name)",
+    "hunting_notes": "Complements FileName/FilePath on the same detection-summary events for identifying the artifact behind a detection.",
+    "join_candidates": [
+      {
+        "to": "FilePath",
+        "why": "likely names the same or a related artifact captured elsewhere on the same detection event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 2 events (Event_DetectionSummaryEvent, Event_EppDetectionSummaryEvent), co-occurring with FileName/FilePath/MD5String/SHA1String/SHA256String \u2014 clearly part of the file-identification field cluster on these detection events, though its precise relationship to FileName/FilePath isn't spelled out."
+  },
+  {
+    "field": "AuthenticationUuidAsString",
+    "description": "The string-encoded form of AuthenticationUuid \u2014 a Windows logon-session UUID \u2014 captured on group/user identity events.",
+    "semantic_role": "identifier",
+    "data_format": "UTF-8 string (UUID)",
+    "hunting_notes": "Use as a stable, human-readable join key for a logon session when the binary AuthenticationUuid form isn't convenient to work with.",
+    "join_candidates": [
+      {
+        "to": "AuthenticationUuid",
+        "why": "string-encoded form of the same UUID value",
+        "confidence": "high"
+      },
+      {
+        "to": "AuthenticationId",
+        "why": "both identify the same logon session via different ID schemes",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (GroupIdentity, UserIdentity), always co-occurring with the raw AuthenticationUuid field \u2014 name directly states it's the string form of that UUID."
+  },
+  {
+    "field": "AuthenticodeHashDataSHA256",
+    "description": "The SHA256 hash of a driver/module's Authenticode signature blob, distinct from SHA256HashData (the hash of the file's own content).",
+    "semantic_role": "hash",
+    "data_format": "hex string (SHA256, 64 chars)",
+    "hunting_notes": "Useful for clustering files signed by the same certificate/signature blob even when file content (and thus SHA256HashData) differs.",
+    "join_candidates": [
+      {
+        "to": "SHA256HashData",
+        "why": "parallel hash field on the same events, but over the signature rather than the file content",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 2 events (DriverLoad, ModuleCertificateInfo2), co-occurring with SHA256HashData, CertificateIssuer/Publisher, AuthenticodeHashData (non-SHA256 variant) \u2014 the naming convention (Authenticode + HashData + SHA256) makes the signature-hash reading likely, though not independently confirmed."
+  },
+  {
+    "field": "AzureLocation",
+    "description": "The Azure region/location of a cloud resource (e.g. a public IP or virtual machine) discovered via cloud-asset inventory.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (Azure region name, e.g. 'eastus')",
+    "hunting_notes": "Useful for geo-scoping cloud asset inventory and spotting resources unexpectedly provisioned in an unfamiliar region.",
+    "join_candidates": [
+      {
+        "to": "AzureResourceGroup",
+        "why": "both are location/organizational metadata for the same Azure resource",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (AzurePublicIpAddress, AzureVirtualMachine), co-occurring with AzureResourceGroup/AzureSubscriptionId/AzureVMName \u2014 standard Azure Resource Manager metadata terminology."
+  },
+  {
+    "field": "AzureResourceGroup",
+    "description": "The Azure resource group containing a cloud resource (public IP or virtual machine) discovered via cloud-asset inventory.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (resource group name)",
+    "hunting_notes": "Standard Azure organizational unit for scoping/ownership \u2014 useful for attributing cloud assets to a team or environment.",
+    "join_candidates": [
+      {
+        "to": "AzureLocation",
+        "why": "both are organizational/location metadata for the same Azure resource",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events as AzureLocation, always co-occurring with it and AzureSubscriptionId \u2014 standard Azure Resource Manager term."
+  },
+  {
+    "field": "BatchDataNumber",
+    "description": "The sequence number of this record within a batched/paginated inventory report (e.g. installed browser extensions, mounted volumes), paired with BatchDataTotal.",
+    "semantic_role": "count",
+    "data_format": "keyword (integer)",
+    "hunting_notes": "Use with BatchDataTotal to detect truncated or incomplete batch reports before drawing conclusions from partial inventory data.",
+    "join_candidates": [
+      {
+        "to": "BatchDataTotal",
+        "why": "together they describe this record's position within a total batch size",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (InstalledBrowserExtension, MountedVolume), always co-occurring with BatchDataTotal and BatchTimestamp \u2014 clear batch/pagination naming convention."
+  },
+  {
+    "field": "BatchDataTotal",
+    "description": "The total number of records in a batched/paginated inventory report, paired with BatchDataNumber.",
+    "semantic_role": "count",
+    "data_format": "keyword (integer)",
+    "hunting_notes": "Same use as BatchDataNumber \u2014 verify report completeness.",
+    "join_candidates": [
+      {
+        "to": "BatchDataNumber",
+        "why": "together they describe this record's position within a total batch size",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events as BatchDataNumber, always co-occurring with it."
+  },
+  {
+    "field": "BatchTimestamp",
+    "description": "The timestamp at which a batched inventory report (e.g. browser extensions, mounted volumes) was generated.",
+    "semantic_role": "timestamp",
+    "data_format": "date",
+    "hunting_notes": "Use to determine the freshness of batch-collected inventory data relative to the event's own timestamp.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=date, 2 events (InstalledBrowserExtension, MountedVolume), always co-occurring with BatchDataNumber/BatchDataTotal \u2014 name and type are unambiguous."
+  },
+  {
+    "field": "BiosManufacturer",
+    "description": "The BIOS manufacturer string of the host, part of hardware inventory reported at agent-online time and in TPM PCR events.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Standard hardware/asset-inventory field; useful for fleet hardware profiling and detecting VM/sandbox environments (e.g. common virtualization BIOS vendors).",
+    "join_candidates": [
+      {
+        "to": "BiosVersion",
+        "why": "sibling BIOS inventory attribute captured on the same events",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (AgentOnline, TcgPcrInfo), co-occurring with BiosVersion/BiosReleaseDate/SystemManufacturer \u2014 standard hardware inventory terminology."
+  },
+  {
+    "field": "BiosReleaseDate",
+    "description": "The BIOS release date of the host, part of hardware inventory.",
+    "semantic_role": "timestamp",
+    "data_format": "date",
+    "hunting_notes": "Very old BIOS release dates can indicate unpatched firmware, relevant to firmware-level threat hunting alongside TcgPcrInfo's PCR values.",
+    "join_candidates": [
+      {
+        "to": "BiosManufacturer",
+        "why": "sibling BIOS inventory attribute",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=date, same 2 events as BiosManufacturer, always co-occurring with it and BiosVersion."
+  },
+  {
+    "field": "CapPrm",
+    "description": "The Linux process's permitted capabilities set (cap_prm) \u2014 the POSIX capabilities the process is allowed to use, whether or not currently effective.",
+    "semantic_role": "flag",
+    "data_format": "keyword (bitmask, likely hex)",
+    "hunting_notes": "Useful for Linux privilege-escalation hunting \u2014 processes with unexpected capabilities like CAP_SYS_ADMIN or CAP_SETUID in their permitted set warrant review.",
+    "join_candidates": [
+      {
+        "to": "RUID",
+        "why": "both are part of the same Linux process credential/capability record on ProcessRollup2/SyntheticProcessRollup2",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (ProcessRollup2, SyntheticProcessRollup2), co-occurring with GID/RUID/RGID/SVUID/SVGID \u2014 the Linux POSIX credential field cluster; 'CapPrm' directly matches the Linux kernel's 'cap_prm' terminology."
+  },
+  {
+    "field": "CompanyName",
+    "description": "The CompanyName string from a PE file's version-info resource (e.g. driver or executable metadata).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Useful for spotting spoofed or missing company names on drivers/executables masquerading as legitimate software.",
+    "join_candidates": [
+      {
+        "to": "FileVersion",
+        "why": "sibling PE version-info attribute captured on the same events",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events (DriverLoad, PeVersionInfo), co-occurring with FileVersion/OriginalFilename/FixedFileVersion \u2014 standard PE VERSIONINFO resource fields."
+  },
+  {
+    "field": "ContextData",
+    "description": "A generic supplementary-context payload whose content differs by event (e.g. exclusion context on DetectionExcluded, unclear content on EndOfProcess); no single schema is confirmed from this KB.",
+    "semantic_role": "other",
+    "data_format": "unknown",
+    "hunting_notes": "",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type blank in fields.json, only 2 events (DetectionExcluded, EndOfProcess) with otherwise unrelated field sets (ExclusionType/ExclusionSource vs. a large stats/counter block) \u2014 the generic name and heterogeneous context prevent a confident single definition."
+  },
+  {
+    "field": "CpuFeaturesMask",
+    "description": "A bitmask of supported CPU instruction-set features/extensions on the host, part of hardware inventory.",
+    "semantic_role": "flag",
+    "data_format": "keyword (bitmask)",
+    "hunting_notes": "Primarily an asset-inventory field; occasionally useful to confirm hardware capability (e.g. for sensor feature gating) rather than for direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "CpuSignature",
+        "why": "sibling CPU inventory attribute captured on the same events",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 2 events (AgentOnline, SystemCapacity), co-occurring with CpuSignature/CpuVendor \u2014 clearly a CPU-feature bitmask by name and context, though no decode table confirms individual bit meanings."
+  },
+  {
+    "field": "CpuSignature",
+    "description": "The CPU signature/model identifier (akin to the x86 CPUID signature) of the host, part of hardware inventory.",
+    "semantic_role": "other",
+    "data_format": "keyword (numeric/hex CPUID-style value)",
+    "hunting_notes": "Asset-inventory/fleet-profiling field rather than a direct hunting signal.",
+    "join_candidates": [
+      {
+        "to": "CpuFeaturesMask",
+        "why": "sibling CPU inventory attribute",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "Same 2 events as CpuFeaturesMask, always co-occurring with it and CpuVendor."
+  },
+  {
+    "field": "Description",
+    "description": "A human-readable description of a cloud detection (Event_DataProtectionDetectionSummaryEvent, Event_EppDetectionSummaryEvent).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (free text)",
+    "hunting_notes": "Useful for analyst-facing detection summaries/alert text, not typically a good machine-hunting pivot field itself.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, 2 events, both cloud detection-summary types; generic but unambiguous in this narrow context."
+  }
+]

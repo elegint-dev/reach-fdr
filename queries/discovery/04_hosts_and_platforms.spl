@@ -1,0 +1,6 @@
+# Fleet shape: hosts, platforms, sensor versions.
+# Tells you which platform-specific fields to expect before you go hunting.
+
+index=`cs_index` sourcetype=crowdstrike:events:sensor earliest=-24h
+| stats dc(aid) as hosts, count as events by event_platform
+| sort - hosts

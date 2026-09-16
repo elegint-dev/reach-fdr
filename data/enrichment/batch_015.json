@@ -1,0 +1,772 @@
+[
+  {
+    "field": "PciConfigDataHfsts1",
+    "description": "The raw value of the Intel PCH 'HFSTS1' (Host Firmware Status Register 1, related to the Intel Management Engine) PCI configuration-space register, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "HFSTS1 reflects Intel Management Engine (ME) state/health; firmware-security tooling inspects it to assess ME operating mode and boot-guard status, part of the same chipset firmware-analysis field family as the other PciConfigData*/MmioData*/SpibarData* fields in this KB.",
+    "join_candidates": [
+      {
+        "to": "PciConfigDataBiosCntl",
+        "why": "sibling Intel PCH firmware-security register-value fields in the same catalogue family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'HFSTS1' is a documented Intel PCH register name (Host Firmware Status Register 1) used in Intel ME/firmware security analysis tooling."
+  },
+  {
+    "field": "PciConfigDataMesegBase",
+    "description": "The raw value of the Intel 'MESEG_BASE' (SMM Transfer Monitor / MSEG memory base) PCI configuration-space register, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex memory-address value)",
+    "hunting_notes": "MESEG_BASE defines the base of the SMM Transfer Monitor (STM) measurement/protection region, relevant to virtualization-based SMM protection; part of the same chipset firmware-analysis field family as the other PciConfigData* fields.",
+    "join_candidates": [
+      {
+        "to": "PciConfigDataTsegmb",
+        "why": "both define protected-memory-region base addresses (MSEG vs. TSEG) in the same firmware-analysis catalogue family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'MESEG_BASE' is a documented Intel chipset register name used in SMM/virtualization security analysis tooling."
+  },
+  {
+    "field": "PciConfigDataRemapbase",
+    "description": "The raw value of the Intel 'REMAPBASE' memory-remap-base PCI configuration-space register, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex memory-address value)",
+    "hunting_notes": "Defines the base of the memory region remapped above 4GB to compensate for MMIO address-space reservations below 4GB; part of the same chipset firmware-analysis field family as the other PciConfigData* fields, paired with PciConfigDataRemaplimit.",
+    "join_candidates": [
+      {
+        "to": "PciConfigDataRemaplimit",
+        "why": "base/limit pair for the same Intel memory-remap register range in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'REMAPBASE' is a documented Intel chipset register name used in memory-map/firmware security analysis tooling."
+  },
+  {
+    "field": "PciConfigDataRemaplimit",
+    "description": "The raw value of the Intel 'REMAPLIMIT' memory-remap-limit PCI configuration-space register, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex memory-address value)",
+    "hunting_notes": "Defines the upper bound of the memory-remap region, paired with PciConfigDataRemapbase.",
+    "join_candidates": [
+      {
+        "to": "PciConfigDataRemapbase",
+        "why": "base/limit pair for the same Intel memory-remap register range in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'REMAPLIMIT' is a documented Intel chipset register name, paired with REMAPBASE."
+  },
+  {
+    "field": "PciConfigDataSmramc",
+    "description": "The raw value of the Intel 'SMRAMC' (System Management RAM Control) PCI configuration-space register, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "SMRAMC controls SMM memory (TSEG) visibility and includes the D_LCK (D-lock) bit that, once set, prevents further modification of SMM memory protection until reboot -- an unlocked SMRAM configuration is a critical firmware/SMM security weakness that firmware-security tooling (in the style of CHIPSEC) checks for explicitly.",
+    "join_candidates": [
+      {
+        "to": "PciConfigDataTsegmb",
+        "why": "SMRAMC controls access to the SMM memory region whose base is defined by TSEGMB, in the same firmware-analysis catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'SMRAMC' is a well-documented Intel PCH register name (System Management RAM Control) central to SMM lockdown/security assessment in firmware-security tooling."
+  },
+  {
+    "field": "PciConfigDataTom",
+    "description": "The raw value of the Intel 'TOM' (Top Of Memory) PCI configuration-space register, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex memory-address value)",
+    "hunting_notes": "Defines the top boundary of installed physical memory; used by firmware-security tooling to construct an accurate memory map for further analysis (e.g. of protected regions like SMRAM/TSEG).",
+    "join_candidates": [
+      {
+        "to": "PciConfigDataTouud",
+        "why": "sibling Intel memory-topology register-value fields in the same firmware-analysis catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'TOM' is a documented Intel chipset register name (Top Of Memory) used in memory-map/firmware security analysis tooling."
+  },
+  {
+    "field": "PciConfigDataTouud",
+    "description": "The raw value of the Intel 'TOUUD' (Top Of Upper Usable DRAM) PCI configuration-space register, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex memory-address value)",
+    "hunting_notes": "Defines the top of usable DRAM above 4GB; used alongside PciConfigDataTom/PciConfigDataRemapbase/Remaplimit to construct an accurate memory map for firmware-security analysis.",
+    "join_candidates": [
+      {
+        "to": "PciConfigDataTom",
+        "why": "sibling Intel memory-topology register-value fields in the same firmware-analysis catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'TOUUD' is a documented Intel chipset register name (Top Of Upper Usable DRAM)."
+  },
+  {
+    "field": "PciConfigDataTsegmb",
+    "description": "The raw value of the Intel 'TSEGMB' (TSEG Memory Base) PCI configuration-space register, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex memory-address value)",
+    "hunting_notes": "TSEGMB defines the base address of the protected SMM memory region (TSEG); this region's protection (governed by SMRAMC's lock bit) is a classic SMM-rootkit attack surface, so firmware-security tooling checks TSEG boundaries and lock state together.",
+    "join_candidates": [
+      {
+        "to": "PciConfigDataSmramc",
+        "why": "TSEGMB defines the SMM memory region whose protection is controlled by the SMRAMC register, in the same firmware-analysis catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'TSEGMB' is a well-documented Intel PCH register name (TSEG Memory Base) central to SMM security assessment in firmware-security tooling."
+  },
+  {
+    "field": "PendingUpdateIds",
+    "description": "Identifiers of software/OS updates pending installation on the host, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a list of update/KB identifiers)",
+    "hunting_notes": "Patch-management/asset-inventory field; a host with a large or long-standing list of pending updates is a weaker security posture worth flagging in vulnerability-management contexts, if populated.",
+    "join_candidates": [
+      {
+        "to": "UninstallPendingUpdateIds",
+        "why": "sibling update-management fields (pending install vs. pending uninstall) in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); name self-descriptive, paired with the sibling UninstallPendingUpdateIds field (this batch)."
+  },
+  {
+    "field": "ProcessAttributes",
+    "description": "Generic attribute flags associated with a process, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a bitmask or flag-name string)",
+    "hunting_notes": "Too generic to assess hunting value without event context or a decode table; likely process-security attributes (e.g. protection level, integrity level) similar in spirit to already-enriched process-context fields elsewhere in this KB.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); generic name gives no way to confirm the specific attributes represented."
+  },
+  {
+    "field": "RegBinaryValue",
+    "description": "The raw data of a registry value stored as REG_BINARY, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely hex-encoded binary data)",
+    "hunting_notes": "Would allow inspecting the raw content of a binary registry value (e.g. an ASEP entry's binary payload) if populated, complementing the already-enriched RegStringValue field elsewhere in this KB.",
+    "join_candidates": [
+      {
+        "to": "RegStringValue",
+        "why": "binary vs. string representations of a registry value, in the same registry-value field family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'REG_BINARY' is a standard Windows registry value type, and RegStringValue is an already-enriched sibling concept (batch_002) for the string-typed equivalent."
+  },
+  {
+    "field": "ResourceAttributes",
+    "description": "A flattened set of generic attributes (e.g. tags/key-value metadata) associated with a resource, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "flattened (key-value attribute set)",
+    "hunting_notes": "Too generic to assess specific hunting value without event context; likely cloud-resource tagging/metadata given the 'flattened' type shared with other cloud-security catalogue fields in this KB (e.g. OriginWebLocations, assessments).",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=flattened, 0 events observed in this corpus (catalogue-only field); generic name and flattened type suggest a cloud-resource metadata/tag set, but no event context confirms this."
+  },
+  {
+    "field": "RpcOpClassification",
+    "description": "A classification of the RPC operation (opnum) invoked, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a classification keyword)",
+    "hunting_notes": "Would classify RPC calls by sensitivity (e.g. flagging operations associated with known coercion/relay techniques such as MS-RPRN or MS-EFSRPC calls) if populated, complementing the already-enriched RpcOpNum field elsewhere in this KB.",
+    "join_candidates": [
+      {
+        "to": "RpcOpNum",
+        "why": "classification label for the same RPC operation number field already enriched elsewhere in this KB",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); name self-descriptive, and RpcOpNum is an already-enriched sibling concept (batch_001) for the raw operation-number field."
+  },
+  {
+    "field": "ScriptContentBytes",
+    "description": "Raw bytes of script content, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "command",
+    "data_format": "unknown (stored as match_only_text; likely raw or hex-encoded script content)",
+    "hunting_notes": "Would allow direct inspection of a script's raw byte content (e.g. before decoding/deobfuscation) if populated, complementing the already-enriched OriginalScriptContent field elsewhere in this KB.",
+    "join_candidates": [
+      {
+        "to": "OriginalScriptContent",
+        "why": "both would capture raw script content, though possibly at different processing stages (bytes vs. decoded text)",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); mirrors the already-enriched OriginalScriptContent field (batch_009) and the ExecutableBytes field (batch_014) naming pattern."
+  },
+  {
+    "field": "ServiceDelayedAutoStart",
+    "description": "Whether the Windows service is configured for delayed automatic start, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "bool",
+    "data_format": "unknown (stored as match_only_text; likely a stringified boolean)",
+    "hunting_notes": "Delayed-start configuration is a routine Windows service setting; low direct hunting value alone, but useful context alongside other service-modification fields (ServiceFailureActions, ServiceSecurity) if populated.",
+    "join_candidates": [
+      {
+        "to": "ServiceFailureActions",
+        "why": "sibling service-configuration fields already enriched elsewhere in this KB, if observed on the same event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'DelayedAutoStart' matches the standard Windows Service Control Manager SERVICE_CONFIG_DELAYED_AUTO_START_INFO concept."
+  },
+  {
+    "field": "ServiceDependOnService",
+    "description": "The name(s) of other services this service depends on, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a list of service names)",
+    "hunting_notes": "Service dependency chains can be abused to force-load a malicious service alongside a legitimate one, or to make a malicious service masquerade as depending on trusted system services; worth inspecting if populated alongside a service-modification event.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'DependOnService' matches the standard Windows Service Control Manager CreateService/ChangeServiceConfig dwDependencies concept."
+  },
+  {
+    "field": "ServicePackMajor",
+    "description": "The major service-pack version of the host's operating system, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "version",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Legacy Windows OS-version/patch-level asset-inventory field, largely superseded by build-number-based versioning on modern Windows; not a direct threat signal.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); 'Service Pack' is standard legacy Windows OS-versioning terminology."
+  },
+  {
+    "field": "SiteName",
+    "description": "The Active Directory Site name associated with the object/host described by this event, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "AD Sites represent physical/network topology groupings; useful for scoping identity-related hunting by network location if populated.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); 'Site' is standard Active Directory Sites and Services terminology."
+  },
+  {
+    "field": "SourceAccountSamAccountName",
+    "description": "The sAMAccountName of the source account involved in an identity-related event (e.g. an authentication or directory-access event), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "user_id",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Likely an Identity Protection module field identifying the account that initiated an action (e.g. a lateral-movement or authentication event); would pair with a corresponding target/destination account field if populated.",
+    "join_candidates": [
+      {
+        "to": "SamAccountName",
+        "why": "same AD attribute concept, scoped to a 'source' account role rather than the account being described directly",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); 'SamAccountName' matches the already-enriched SamAccountName field (batch_010) exactly, with a 'Source' qualifier indicating this scopes it to an originating account in a multi-party identity event."
+  },
+  {
+    "field": "SourceEndpointHostName",
+    "description": "The hostname of the source endpoint involved in an identity- or network-related event, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Likely an Identity Protection module field identifying the originating host in a multi-host event (e.g. lateral movement); would pair with a corresponding destination/target endpoint field if populated.",
+    "join_candidates": [
+      {
+        "to": "SourceEndpointNetworkTag",
+        "why": "sibling source-endpoint identity fields in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); name self-descriptive for a source-endpoint identification field."
+  },
+  {
+    "field": "SourceEndpointNetworkTag",
+    "description": "A network tag/label (e.g. a segmentation or grouping tag) of the source endpoint involved in an identity- or network-related event, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a short tag string)",
+    "hunting_notes": "Would help scope hunting by network segment/zone for the originating endpoint in a multi-host event, if populated.",
+    "join_candidates": [
+      {
+        "to": "SourceEndpointHostName",
+        "why": "sibling source-endpoint identity fields in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); generic 'NetworkTag' naming gives no way to confirm the specific tagging scheme."
+  },
+  {
+    "field": "SourceThreadModule",
+    "description": "The module associated with the start address of the source thread involved in a thread-injection or code-injection event, as defined in the field catalogue (not observed in this corpus), likely paired with TargetThreadModule.",
+    "semantic_role": "file_path",
+    "data_format": "unknown (stored as match_only_text; a module name/path)",
+    "hunting_notes": "Would identify which module the injecting thread (as opposed to the injected/target thread) executes from, if populated -- useful for attributing which process/module performed the injection.",
+    "join_candidates": [
+      {
+        "to": "TargetThreadModule",
+        "why": "source vs. target module for the same thread-injection activity, mirroring the already-enriched TargetThreadModule field",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); directly mirrors the already-enriched TargetThreadModule field (batch_011) on InjectedThread, with a 'Source' qualifier."
+  },
+  {
+    "field": "SpibarDataBfpr",
+    "description": "The raw value of the Intel SPI flash controller's 'BFPR' (BIOS Flash Primary Region) register, accessed via SPIBAR, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "Defines the base/limit of the BIOS flash region within the SPI flash chip; firmware-security tooling (e.g. CHIPSEC) uses this alongside the Protected Range (PR0-4) registers to verify BIOS write-protection coverage.",
+    "join_candidates": [
+      {
+        "to": "SpibarDataPr0",
+        "why": "BFPR defines the BIOS flash region that the Protected Range registers (PR0-4) are expected to write-protect, in the same SPI-controller register family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'SPIBAR' and 'BFPR' (BIOS Flash Primary Region) are documented Intel SPI flash controller register names used extensively in firmware-security tooling (e.g. CHIPSEC)."
+  },
+  {
+    "field": "SpibarDataFreg0",
+    "description": "The raw value of the Intel SPI flash controller's 'FREG0' (Flash Region 0, typically the Flash Descriptor region) register, accessed via SPIBAR, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "Flash Region registers (FREG0-4) define the base/limit of each region within the SPI flash chip (descriptor, BIOS, ME, GbE, platform data); firmware-security tooling cross-references these with the Protected Range registers to verify write-protection coverage.",
+    "join_candidates": [
+      {
+        "to": "SpibarDataFreg1",
+        "why": "sibling SPI flash-region definition registers in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'FREG' (Flash Region) is a documented Intel SPI flash controller register family used in firmware-security tooling."
+  },
+  {
+    "field": "SpibarDataFreg1",
+    "description": "The raw value of the Intel SPI flash controller's 'FREG1' (Flash Region 1, typically the BIOS region) register, accessed via SPIBAR, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "Defines the base/limit of the BIOS region within the SPI flash chip -- the region whose write-protection (via the PR0-4 registers) is most security-critical.",
+    "join_candidates": [
+      {
+        "to": "SpibarDataPr1",
+        "why": "the flash region this register defines and its corresponding Protected Range register, in the same SPI-controller register family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'FREG1' is part of the same documented Intel SPI flash controller register family as SpibarDataFreg0."
+  },
+  {
+    "field": "SpibarDataFreg2",
+    "description": "The raw value of the Intel SPI flash controller's 'FREG2' (Flash Region 2, typically the Management Engine region) register, accessed via SPIBAR, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "Defines the base/limit of the Intel ME region within the SPI flash chip.",
+    "join_candidates": [
+      {
+        "to": "SpibarDataFreg1",
+        "why": "sibling SPI flash-region definition registers in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'FREG2' is part of the same documented Intel SPI flash controller register family as SpibarDataFreg0/Freg1."
+  },
+  {
+    "field": "SpibarDataFreg3",
+    "description": "The raw value of the Intel SPI flash controller's 'FREG3' (Flash Region 3, typically the Gigabit Ethernet region) register, accessed via SPIBAR, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "Defines the base/limit of the GbE controller's region within the SPI flash chip.",
+    "join_candidates": [
+      {
+        "to": "SpibarDataFreg2",
+        "why": "sibling SPI flash-region definition registers in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'FREG3' is part of the same documented Intel SPI flash controller register family as SpibarDataFreg0-2."
+  },
+  {
+    "field": "SpibarDataFreg4",
+    "description": "The raw value of the Intel SPI flash controller's 'FREG4' (Flash Region 4, typically the platform data region) register, accessed via SPIBAR, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "Defines the base/limit of the platform data region within the SPI flash chip.",
+    "join_candidates": [
+      {
+        "to": "SpibarDataFreg3",
+        "why": "sibling SPI flash-region definition registers in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'FREG4' is part of the same documented Intel SPI flash controller register family as SpibarDataFreg0-3."
+  },
+  {
+    "field": "SpibarDataHsfs",
+    "description": "The raw value of the Intel SPI flash controller's 'HSFS' (Hardware Sequencing Flash Status) register, accessed via SPIBAR, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "HSFS reports SPI flash controller status, including flash-configuration-lock-down (FLOCKDN) state -- whether the SPI controller's protection registers can still be modified; a locked-down state is expected for a secure configuration.",
+    "join_candidates": [
+      {
+        "to": "SpibarDataPr0",
+        "why": "HSFS reports the lock state governing whether the Protected Range registers can still be changed, in the same SPI-controller register family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'HSFS' is a well-documented Intel SPI flash controller register name (Hardware Sequencing Flash Status) used in firmware-security tooling to check the FLOCKDN lock-down bit."
+  },
+  {
+    "field": "SpibarDataPr0",
+    "description": "The raw value of the Intel SPI flash controller's 'PR0' (Protected Range 0) register, accessed via SPIBAR, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "Protected Range registers (PR0-4) define which SPI flash address ranges are write- and/or read-protected; a Protected Range that fails to cover the BIOS region (or has no ranges configured at all) is a critical SPI-flash write-protection weakness that firmware-security tooling like CHIPSEC checks for explicitly.",
+    "join_candidates": [
+      {
+        "to": "SpibarDataPr1",
+        "why": "sibling Protected Range registers in the same SPI-controller register family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'PR0' (Protected Range 0) is a well-documented Intel SPI flash controller register central to BIOS write-protection assessment in firmware-security tooling."
+  },
+  {
+    "field": "SpibarDataPr1",
+    "description": "The raw value of the Intel SPI flash controller's 'PR1' (Protected Range 1) register, accessed via SPIBAR, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "See SpibarDataPr0 -- part of the same set of SPI flash write-protection range registers.",
+    "join_candidates": [
+      {
+        "to": "SpibarDataPr0",
+        "why": "sibling Protected Range registers in the same SPI-controller register family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); part of the same documented Intel SPI flash Protected Range register family as SpibarDataPr0."
+  },
+  {
+    "field": "SpibarDataPr2",
+    "description": "The raw value of the Intel SPI flash controller's 'PR2' (Protected Range 2) register, accessed via SPIBAR, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "See SpibarDataPr0 -- part of the same set of SPI flash write-protection range registers.",
+    "join_candidates": [
+      {
+        "to": "SpibarDataPr0",
+        "why": "sibling Protected Range registers in the same SPI-controller register family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); part of the same documented Intel SPI flash Protected Range register family as SpibarDataPr0."
+  },
+  {
+    "field": "SpibarDataPr3",
+    "description": "The raw value of the Intel SPI flash controller's 'PR3' (Protected Range 3) register, accessed via SPIBAR, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "See SpibarDataPr0 -- part of the same set of SPI flash write-protection range registers.",
+    "join_candidates": [
+      {
+        "to": "SpibarDataPr0",
+        "why": "sibling Protected Range registers in the same SPI-controller register family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); part of the same documented Intel SPI flash Protected Range register family as SpibarDataPr0."
+  },
+  {
+    "field": "SpibarDataPr4",
+    "description": "The raw value of the Intel SPI flash controller's 'PR4' (Protected Range 4) register, accessed via SPIBAR, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "See SpibarDataPr0 -- part of the same set of SPI flash write-protection range registers.",
+    "join_candidates": [
+      {
+        "to": "SpibarDataPr0",
+        "why": "sibling Protected Range registers in the same SPI-controller register family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); part of the same documented Intel SPI flash Protected Range register family as SpibarDataPr0."
+  },
+  {
+    "field": "SpibarDataVscc0",
+    "description": "The raw value of the Intel SPI flash controller's 'VSCC0' (Vendor Specific Component Capabilities 0) register, accessed via SPIBAR, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "Describes vendor-specific capabilities/erase-opcode support of the installed SPI flash chip; part of full SPI controller configuration assessment in firmware-security tooling.",
+    "join_candidates": [
+      {
+        "to": "SpibarDataVscc1",
+        "why": "sibling vendor-specific component capability registers in the same SPI-controller register family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); 'VSCC' is a documented Intel SPI flash controller register name used in firmware-security tooling."
+  },
+  {
+    "field": "SpibarDataVscc1",
+    "description": "The raw value of the Intel SPI flash controller's 'VSCC1' (Vendor Specific Component Capabilities 1) register, accessed via SPIBAR, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex register value)",
+    "hunting_notes": "See SpibarDataVscc0 -- part of the same vendor-specific SPI flash capability register set.",
+    "join_candidates": [
+      {
+        "to": "SpibarDataVscc0",
+        "why": "sibling vendor-specific component capability registers in the same SPI-controller register family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); part of the same documented Intel SPI flash controller register family as SpibarDataVscc0."
+  },
+  {
+    "field": "StorageUsageInfo",
+    "description": "A summary of storage/disk usage information for the host, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a serialized usage summary)",
+    "hunting_notes": "Asset/resource-inventory field, likely overlapping with the already-enriched DiskCapacity/UsedDiskSpace/AvailableDiskSpace concepts elsewhere in this KB; not a direct threat signal.",
+    "join_candidates": [
+      {
+        "to": "UsedDiskSpace",
+        "why": "would be a related aggregate disk-usage concept, if observed on a related resource-utilization event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); generic name gives no way to confirm its exact structure relative to the more specific disk-usage fields already enriched elsewhere in this KB."
+  },
+  {
+    "field": "UninstallPendingUpdateIds",
+    "description": "Identifiers of software/OS updates pending uninstallation on the host, as defined in the field catalogue (not observed in this corpus), paired with PendingUpdateIds.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a list of update/KB identifiers)",
+    "hunting_notes": "Patch-management/asset-inventory field; not a direct threat signal.",
+    "join_candidates": [
+      {
+        "to": "PendingUpdateIds",
+        "why": "sibling update-management fields (pending install vs. pending uninstall) in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, 0 events observed in this corpus (catalogue-only field); mirrors the already-enriched PendingUpdateIds field (this batch) as its uninstall counterpart."
+  },
+  {
+    "field": "UserDepartment",
+    "description": "The department attribute of a user account (e.g. from Active Directory), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Organizational-context field, likely from CrowdStrike's Identity Protection module; useful for scoping identity-risk hunting by business unit if populated.",
+    "join_candidates": [
+      {
+        "to": "UserTitle",
+        "why": "sibling AD user-attribute fields in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); 'Department' is a standard Active Directory user-object attribute name."
+  },
+  {
+    "field": "UserMapped",
+    "description": "Whether a raw user identifier (e.g. a SID) was successfully mapped/resolved to a known identity, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "bool",
+    "data_format": "boolean",
+    "hunting_notes": "Likely an Identity Protection module field; an unmapped identity on an otherwise-sensitive event could indicate a stale/orphaned SID or an identity outside the expected directory scope, if populated.",
+    "join_candidates": [
+      {
+        "to": "UserSid_readable",
+        "why": "sibling identity-resolution fields in the same catalogue family",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=boolean, 0 events observed in this corpus (catalogue-only field); name and type both suggest an identity-resolution success flag."
+  },
+  {
+    "field": "UserSid_readable",
+    "description": "A human-readable rendering of a user's SID (e.g. resolved to a domain\\username form), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "user_id",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Would provide a directly-readable identity for a SID that might otherwise require a separate lookup, if populated.",
+    "join_candidates": [
+      {
+        "to": "UserSid",
+        "why": "raw vs. human-readable renderings of the same user SID",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); '_readable' suffix clearly indicates a decoded form of the raw UserSid field used throughout this schema."
+  },
+  {
+    "field": "UserTitle",
+    "description": "The job title attribute of a user account (e.g. from Active Directory), as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Organizational-context field, likely from CrowdStrike's Identity Protection module; useful for identifying high-value targets (e.g. executives, IT admins) by title if populated.",
+    "join_candidates": [
+      {
+        "to": "UserDepartment",
+        "why": "sibling AD user-attribute fields in the same catalogue family",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); 'Title' is a standard Active Directory user-object attribute name."
+  },
+  {
+    "field": "assessments",
+    "description": "A flattened set of security assessment results (e.g. vulnerability or posture assessments) associated with a cloud asset, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "flattened (assessment result set)",
+    "hunting_notes": "Likely part of CrowdStrike Falcon Cloud Security's asset-assessment data model (the lowercase field-naming convention matches the CloudSecurityIOMEvaluation-family fields already enriched elsewhere in this KB); would summarize security posture findings for a cloud asset if populated.",
+    "join_candidates": [
+      {
+        "to": "cloud_asset_type",
+        "why": "both use the same lowercase cloud-security field-naming convention, likely from the same asset/finding data model",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=flattened, 0 events observed in this corpus (catalogue-only field); lowercase naming convention matches the CloudSecurityIOMEvaluation event's compliance.*/resource.*/threat.* fields already enriched in this KB (batch_012/batch_013), indicating the same Falcon Cloud Security data domain."
+  },
+  {
+    "field": "attack_types",
+    "description": "The type(s) of attack associated with a cloud security finding, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of attack-category strings)",
+    "hunting_notes": "Would categorize the kind of attack a given cloud misconfiguration/finding enables (e.g. privilege escalation, data exposure), complementing the already-enriched threat.tactic/.technique fields on CloudSecurityIOMEvaluation.",
+    "join_candidates": [
+      {
+        "to": "threat.tactic",
+        "why": "both would classify the adversary behavior a cloud finding relates to, in the same Falcon Cloud Security data domain",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); lowercase naming matches the CloudSecurityIOMEvaluation field family already enriched in this KB (batch_012/batch_013)."
+  },
+  {
+    "field": "aws_account_id",
+    "description": "The AWS account ID of the cloud resource associated with this record, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "identifier",
+    "data_format": "decimal string (12-digit AWS account ID)",
+    "hunting_notes": "Use to scope cloud-security hunting/reporting to a specific AWS account, complementing the already-enriched resource.accountId-style fields on CloudSecurityIOMEvaluation.",
+    "join_candidates": [
+      {
+        "to": "resource.cloudProvider",
+        "why": "both describe cloud-resource ownership/location in the same Falcon Cloud Security data domain",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field, no co-occurrence context to corroborate); 'aws_account_id' is an unambiguous, standard AWS identifier name, and the lowercase naming matches the already-enriched CloudSecurityIOMEvaluation field family (batch_012/batch_013)."
+  },
+  {
+    "field": "cis_benchmark_ids",
+    "description": "The CIS (Center for Internet Security) Benchmark identifiers a cloud security finding maps to, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of CIS benchmark control-ID strings)",
+    "hunting_notes": "Complements the already-enriched compliance.benchmarkNames field on CloudSecurityIOMEvaluation with the specific CIS control identifiers, useful for direct compliance-audit mapping.",
+    "join_candidates": [
+      {
+        "to": "compliance.benchmarkNames",
+        "why": "both map a finding to compliance benchmark identifiers, likely for the same Falcon Cloud Security finding data model",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field, no co-occurrence context to corroborate); 'CIS Benchmark' is standard, unambiguous compliance terminology, and this field's lowercase naming and domain match the already-enriched compliance.* fields (batch_012)."
+  },
+  {
+    "field": "cisa_benchmark_ids",
+    "description": "The CISA (Cybersecurity and Infrastructure Security Agency) benchmark identifiers a cloud security finding maps to, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of CISA benchmark control-ID strings)",
+    "hunting_notes": "Complements cis_benchmark_ids/compliance.* fields with CISA-specific cloud security benchmark mappings for compliance-audit purposes.",
+    "join_candidates": [
+      {
+        "to": "cis_benchmark_ids",
+        "why": "sibling compliance-benchmark-mapping fields (CISA vs. CIS) in the same Falcon Cloud Security finding data model",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field, no co-occurrence context to corroborate); 'CISA Benchmark' is standard, unambiguous compliance terminology, paired with cis_benchmark_ids (this batch)."
+  },
+  {
+    "field": "cloud_asset_type",
+    "description": "A type code classifying the kind of cloud asset described by this record, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "enum",
+    "data_format": "long integer (type code)",
+    "hunting_notes": "Would allow filtering cloud assets by type (e.g. compute instance, storage bucket, IAM role) in Falcon Cloud Security data if populated; the specific code-to-type mapping isn't confirmed by a decode table here.",
+    "join_candidates": [
+      {
+        "to": "resource.resourceType",
+        "why": "both classify the kind of cloud resource/asset, in the same Falcon Cloud Security data domain",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=long, 0 events observed in this corpus (catalogue-only field); lowercase naming and 'cloud asset' terminology match the CloudSecurityIOMEvaluation-family fields already enriched in this KB."
+  },
+  {
+    "field": "cloudplatform",
+    "description": "The cloud platform (e.g. AWS, Azure, GCP) of the asset described by this record, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "platform",
+    "data_format": "unknown (likely a short provider-name string)",
+    "hunting_notes": "Likely equivalent to the already-enriched resource.cloudProvider field on CloudSecurityIOMEvaluation, possibly used on a related/different cloud-asset-inventory record type.",
+    "join_candidates": [
+      {
+        "to": "resource.cloudProvider",
+        "why": "same cloud-provider concept, possibly on a different cloud-asset record type in the same Falcon Cloud Security data domain",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field); lowercase naming and semantic overlap with the already-enriched resource.cloudProvider field (batch_012) place this in the same Falcon Cloud Security data domain."
+  },
+  {
+    "field": "discoverer_aid",
+    "description": "The CrowdStrike agent ID (aid) of the sensor that discovered the cloud asset described by this record, as defined in the field catalogue (not observed in this corpus).",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely the standard CrowdStrike 'aid' hex agent-identifier format)",
+    "hunting_notes": "Links a cloud-asset discovery record back to the specific host/sensor that reported it, useful for pivoting between cloud-asset inventory and endpoint telemetry for the same host.",
+    "join_candidates": [
+      {
+        "to": "aid",
+        "why": "same CrowdStrike agent-identifier concept as the standard 'aid' field used throughout this schema, scoped here to the discovering sensor",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, 0 events observed in this corpus (catalogue-only field, no co-occurrence context to corroborate); 'aid' is CrowdStrike's standard, well-established agent-identifier field name used across this entire schema, and the lowercase naming matches the Falcon Cloud Security field family already enriched in this KB."
+  }
+]

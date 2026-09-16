@@ -1,0 +1,27 @@
+# OS PID -> CrowdStrike TargetProcessId.
+#
+# There is NO arithmetic that converts between them. Tested against 28 paired
+# documents: masking to the low 32 or 16 bits, shifting right 32, and modulo
+# ALL failed in every case. Translation is a lookup, never a calculation.
+#
+# The OS recycles PIDs, so a narrow time window is REQUIRED, not optional.
+# A busy Windows host reuses the same PID several times a day.
+
+index=`cs_index` sourcetype=crowdstrike:events:sensor
+  earliest=-1h latest=now
+  aid="PUT_AID_HERE" RawProcessId="PUT_OS_PID_HERE"
+  (event_simpleName=ProcessRollup2 OR event_simpleName=SyntheticProcessRollup2)
+| table _time aid TargetProcessId RawProcessId ImageFileName CommandLine ProcessStartTime ParentProcessId
+| sort _time
+
+# EXPECT MULTIPLE ROWS. That is normal, not an error.
+# Disambiguate:
+#   1. Match ImageFileName against the process you expect.
+#   2. Confirm ProcessStartTime PRECEDES the activity you are investigating.
+#      A process cannot cause an event that predates its own start.
+#   3. Still ambiguous? CommandLine arguments usually separate them.
+# Carry TargetProcessId forward -- that is what every other event joins on.
+#
+# Zero rows? Window too narrow, OR the process predates sensor install
+# (SyntheticProcessRollup2 covers already-running processes), OR wrong host,
+# OR aged out of retention.

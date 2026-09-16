@@ -1,0 +1,14 @@
+# Which FDR event types does THIS tenant actually emit?
+# The public catalogue lists 275. Your licensing, platform mix and sensor
+# versions decide which you really get. Run this first -- everything else
+# depends on knowing your real surface.
+
+index=`cs_index` sourcetype=crowdstrike:events:sensor earliest=-24h
+| stats count, dc(aid) as hosts, min(_time) as first, max(_time) as last
+        by event_simpleName
+| eval pct=round(count/1000,1)
+| sort - count
+| convert ctime(first) ctime(last)
+
+# Compare the result against kb/events.json (275 catalogued).
+# Events you receive that are NOT in the catalogue are worth adding to the KB.

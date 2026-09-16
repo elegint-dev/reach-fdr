@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Reach gallery</title>
+  <link rel="icon" href="data:,">
+  <link rel="stylesheet" href="./styles/tokens.css">
+  <link rel="stylesheet" href="./styles/base.css">
+  <link rel="stylesheet" href="./styles/components.css">
+  <style>
+    /* Gallery chrome only. Nothing here is part of the design system. */
+    .g-head {
+      padding: var(--sp-5) var(--sp-4) var(--sp-4);
+      border-bottom: 1px solid var(--line);
+    }
+    .g-head p { color: var(--fg-1); margin-top: var(--sp-2); }
+    .g-nav { display: flex; flex-wrap: wrap; gap: var(--sp-2) var(--sp-4); margin-top: var(--sp-3); font-size: var(--fs-2); }
+    .g-section { padding: var(--sp-5) var(--sp-4); border-bottom: 1px solid var(--line); }
+    .g-section > h2 { margin-bottom: var(--sp-1); }
+    .g-section > .g-desc { color: var(--fg-1); max-width: 72ch; margin-bottom: var(--sp-4); }
+    .g-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-4); }
+    .g-row--stacked { grid-template-columns: minmax(0, 1fr); }
+    @media (max-width: 1099px) { .g-row { grid-template-columns: minmax(0, 1fr); } }
+    .g-pane {
+      min-width: 0;
+      padding: var(--sp-4);
+      background: var(--bg-0);
+      color: var(--fg-0);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-2);
+    }
+    .g-pane > .g-label {
+      font-size: var(--fs-1);
+      color: var(--fg-2);
+      margin-bottom: var(--sp-3);
+    }
+    .g-stack { display: grid; gap: var(--sp-4); }
+    .g-stack > h4 { color: var(--fg-1); font-weight: 500; margin-top: var(--sp-2); }
+    .g-stack > h4:first-child { margin-top: 0; }
+    .g-inline { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
+    .g-spine .r-page { min-height: 0; max-width: none; padding-inline: var(--sp-4); }
+    .g-spine .r-bar { position: static; margin-inline: calc(-1 * var(--sp-4)); }
+    .g-spine .r-side { position: static; max-height: none; }
+    .g-spine .r-main { padding-block: var(--sp-4); }
+    .g-hold { display: flex; align-items: center; gap: var(--sp-3); flex-wrap: wrap; margin-bottom: var(--sp-3); }
+    .g-hold h1 { font-family: var(--font-mono); font-size: var(--fs-5); letter-spacing: 0; }
+    .g-pass { color: var(--trust-confirmed-fg); font-weight: 600; }
+    .g-fail { color: var(--hazard-fg); font-weight: 600; }
+    .g-swatch { display: inline-block; width: 12px; height: 12px; vertical-align: -1px; margin-right: 6px; border: 1px solid var(--line); }
+    .g-foot { padding: var(--sp-5) var(--sp-4); color: var(--fg-2); font-size: var(--fs-2); }
+  </style>
+</head>
+<body>
+  <header class="g-head">
+    <h1>Reach design system</h1>
+    <p>Every component in every state, dark and light side by side. This page is the acceptance surface for <code>app/styles</code> and <code>app/components</code>. Content is realistic FDR material; nothing here is fetched from the network.</p>
+    <nav class="g-nav" aria-label="Sections">
+      <a href="#spine">Spine</a>
+      <a href="#chip">Chip</a>
+      <a href="#omnibox">Omnibox</a>
+      <a href="#ledger">Ledger</a>
+      <a href="#drawer">Drawer</a>
+      <a href="#callout">Callout</a>
+      <a href="#step">Step</a>
+      <a href="#keycap">Keycap</a>
+      <a href="#table">Table</a>
+      <a href="#empty">Empty</a>
+      <a href="#meaning">Meaning</a>
+      <a href="#source-table">Source table</a>
+      <a href="#contrast">Contrast</a>
+    </nav>
+  </header>
+
+  <main id="gallery"></main>
+
+  <footer class="g-foot">
+    <p>Trust colours: teal confirmed, amber asserted, violet suggested, grey inferred, red hazard. One accent blue for focus and selection. Layer chips are monochrome; cost is band order and a glyph.</p>
+  </footer>
+
+  <script type="module">
+    import { h, frag } from "./components/h.js";
+    import { chip } from "./components/chip.js";
+    import { omnibox } from "./components/omnibox.js";
+    import { ledger } from "./components/ledger.js";
+    import { drawer } from "./components/drawer.js";
+    import { callout } from "./components/callout.js";
+    import { step } from "./components/step.js";
+    import { keycap } from "./components/keycap.js";
+    import { table } from "./components/table.js";
+    import { empty } from "./components/empty.js";
+    import { meaning } from "./components/meaning.js";
+    import { sourceTable } from "./components/sourceTable.js";
+
+    // ---- fixtures -------------------------------------------------------
+
+    const ASSERTED_SPL = [
+      "search index=`cs_index` sourcetype=crowdstrike:events:sensor earliest=$earliest$ latest=$latest$",
+      "  aid=\"$aid$\"",
+      "  ( (event_simpleName=LoginItemAdded ResponsiblePid=\"4711\")",
+      "    OR event_simpleName IN (\"ProcessRollup2\",\"SyntheticProcessRollup2\") )",
+      "| eval _pid = coalesce(ContextProcessId, TargetProcessId)",
+      "| where isnotnull(_pid)",
+      "| eval _hit = if(event_simpleName=\"LoginItemAdded\", 1, 0),",
+      "       _anchor = if(event_simpleName IN (\"ProcessRollup2\",\"SyntheticProcessRollup2\"), 1, 0)",
+      "| stats max(_hit) as matched, max(_anchor) as has_anchor,",
+      "        values(eval(if(_anchor=1, ImageFileName, null()))) as image,",
+      "        values(eval(if(_anchor=1, CommandLine, null()))) as command_line,",
+      "        min(_time) as first_seen, max(_time) as last_seen",
+      "        by aid, _pid",
+      "| where matched=1",
+      "| rename _pid as TargetProcessId",
+      "| convert ctime(first_seen) ctime(last_seen)",
+      "| sort - last_seen",
+    ].join("\n");
+
+    const ASSERTED_MACRO = [
+      "`cs_trace_process(\"ResponsiblePid\", \"4711\", \"$earliest$\")`",
+      "| search aid=\"$aid$\"",
+    ].join("\n");
+
+    const CONFIRMED_SPL = [
+      "search index=`cs_index` sourcetype=crowdstrike:events:sensor event_simpleName=DnsRequest",
+      "  DomainName=\"$value$\"",
+      "| lookup aidmaster aid OUTPUT ComputerName MachineDomain OU SiteName",
+      "| table _time aid ComputerName DomainName ContextProcessId",
+    ].join("\n");
+
+    const drawerParams = [
+      { name: "aid", label: "aid", placeholder: "32 hex characters", required: true, hint: "The sensor id. ComputerName is not stable; aid is." },
+      { name: "earliest", label: "earliest", value: "-24h", placeholder: "-24h", required: true },
+      { name: "latest", label: "latest", placeholder: "now", required: true },
+    ];
+
+    const hazardsForEdge = [
+      { level: "note", label: "Asserted", text: "This attribution comes from CrowdStrike's data model, not from the corpus. The SPL says so in its first line so it stays honest after you paste it." },
+    ];
+
+    const hazardsForPid = [
+      { level: "danger", text: "RawProcessId is the OS PID. PIDs are recycled: the same number names different processes over time. Every predicate on it is scoped by aid and a time window; the generator will not emit one otherwise." },
+      { level: "caution", text: "Expect more than one TargetProcessId back. Disambiguate on ImageFileName and first_seen before you go further." },
+    ];
+
+    function ledgerFixture(selectedId) {
+      return ledger({
+        selectedId,
+        caption: "Reach ledger for ResponsiblePid on LoginItemAdded",
+        bands: [
+          {
+            id: "here",
+            kind: "here",
+            note: "ResponsiblePid rides on two events. Pick one; its co-fields are grouped by role below the list.",
+            columns: ["event", "process handles", "CIM"],
+            rows: [
+              { id: "ev-LoginItemAdded", cells: [{ mono: "LoginItemAdded" }, h("span", { class: "g-inline" }, h("code", null, "ContextProcessId")), h("span", { class: "r-muted" }, "no CIM path")] },
+              { id: "ev-ConfigurationProfileModified", cells: [{ mono: "ConfigurationProfileModified" }, h("span", { class: "g-inline" }, h("code", null, "ContextProcessId")), h("span", { class: "r-muted" }, "no CIM path")] },
+            ],
+          },
+          {
+            id: "one-join",
+            kind: "one-join",
+            columns: ["target", "via", "scope", "cardinality", "basis"],
+            rows: [
+              {
+                id: "e_context_to_target",
+                cells: ["the process that caused this event", { mono: "ContextProcessId → TargetProcessId" }, "same aid", { mono: "n:1" }, chip({ kind: "trust", value: "asserted" })],
+              },
+              {
+                id: "e_aid_to_aidmaster",
+                cells: ["host inventory", { mono: "aid → aidmaster" }, "global", { mono: "n:1" }, chip({ kind: "trust", value: "confirmed" })],
+              },
+              {
+                id: "e_usersid_to_userinfo",
+                cells: ["user account", { mono: "UserSid → userinfo" }, "global", { mono: "n:1" }, chip({ kind: "trust", value: "confirmed" })],
+              },
+              {
+                id: "e_rawprocessid",
+                hazard: true,
+                cells: ["OS PID", { mono: "RawProcessId" }, "same aid and time window", { mono: "unsafe" }, chip({ kind: "hazard" })],
+              },
+            ],
+          },
+          {
+            id: "suggested",
+            kind: "suggested",
+            note: "Enrichment candidates. Structurally separate from the joins above; never merged.",
+            columns: ["candidate", "why", "basis"],
+            rows: [
+              {
+                id: "s_imagefilename",
+                cells: [{ mono: "ImageFileName" }, { text: "Same event carries the image of the responsible process; correlate on the same record before joining anywhere.", wrap: true }, chip({ kind: "trust", value: "suggested", confidence: "medium" })],
+              },
+            ],
+          },
+          {
+            id: "unreachable",
+            kind: "unreachable",
+            columns: ["what", "closest you can get", "basis"],
+            rows: [
+              {
+                id: "u_pidspace",
+                cells: [
+                  { text: "Which PID space ResponsiblePid is in. Nothing on disk says whether it is an OS PID or a Falcon process id.", wrap: true },
+                  { text: "Pivot through ContextProcessId on the same event instead; the row above does that.", wrap: true },
+                  chip({ kind: "trust", value: "inferred" }),
+                ],
+              },
+            ],
+          },
+        ],
+      });
+    }
+
+    function meaningFixture() {
+      return meaning({
+        description: "The process ID of the process responsible for the modification.",
+        hunting_notes: "Pair with ImageFileName on the same event to see who added the login item, then follow ContextProcessId for the full process record.",
+        source: "enrichment",
+        confidence: "high",
+        evidence: "Field appears only on ConfigurationProfileModified and LoginItemAdded (macOS). Name matches the *Pid convention used for OS-visible ids elsewhere in the schema, but the sample values exceed 32 bits, which points at a Falcon id. Ambiguous; stated as such.",
+      });
+    }
+
+    // ---- gallery plumbing -----------------------------------------------
+
+    const root = document.getElementById("gallery");
+
+    function section(id, title, desc, build, opts = {}) {
+      const row = h("div", { class: ["g-row", opts.stacked && "g-row--stacked"] });
+      for (const theme of ["dark", "light"]) {
+        const pane = h("div", { class: "g-pane", dataset: { theme } }, h("p", { class: "g-label" }, theme === "dark" ? "Dark (default)" : "Light"));
+        pane.appendChild(build(theme));
+        row.appendChild(pane);
+      }
+      root.appendChild(h("section", { id, class: "g-section" }, h("h2", null, title), h("p", { class: "g-desc" }, desc), row));
+    }
+
+    function stack(...parts) {
+      return h("div", { class: "g-stack" }, parts);
+    }
+
+    // ---- 0. the spine ---------------------------------------------------
+
+    section("spine", "The spine", "Omnibox on top, ledger in the middle, paste drawer on the right. The same three regions on every screen. Below 900px the drawer drops under the ledger. FIXTURE CONTENT: the rows here are illustrative so every state shows at once — LoginItemAdded carries neither UserSid nor RawProcessId, so the real page for this field has two ONE JOIN rows, not four. The data-derived surface is /#/f/ResponsiblePid.", () => {
+      const page = h("div", { class: "g-spine" },
+        h("div", { class: "r-page" },
+          h("div", { class: "r-bar" },
+            omnibox({ value: "ResponsiblePid", classified: null }),
+            h("div", { class: "r-keys" }, keycap({ key: "/", hint: "search" }), keycap({ key: "↑↓", hint: "rows" }), keycap({ key: "Enter", hint: "select" }), keycap({ key: "c", hint: "copy" }), keycap({ key: "?", hint: "keys" })),
+          ),
+          h("div", { class: "r-main" },
+            h("div", { class: "r-section" },
+              h("div", { class: "g-hold" }, h("h1", null, "ResponsiblePid"), chip({ kind: "layer", value: "raw_fdr" }), chip({ kind: "route", value: "one-hop" })),
+              meaningFixture(),
+            ),
+            h("div", { class: "r-section" }, ledgerFixture("e_context_to_target")),
+          ),
+          h("div", { class: "r-side" },
+            drawer({
+              state: "filled",
+              title: "The process that caused this event",
+              subtitle: "ContextProcessId → TargetProcessId on LoginItemAdded",
+              spl: { inline: ASSERTED_SPL, macro: ASSERTED_MACRO },
+              hazards: [{ level: "asserted", text: "On a non-process event, ContextProcessId identifies the process that caused it. Not corpus-validated." }, { level: "note", text: "Time bounds are on _time (index time); timestamp and ContextTimeStamp are sensor-side and differ." }],
+              params: drawerParams,
+              hazards: hazardsForEdge,
+            }),
+          ),
+        ),
+      );
+      return page;
+    }, { stacked: true });
+
+    // ---- 1. chip --------------------------------------------------------
+
+    section("chip", "Chip", "Only trust chips carry hue. Layer chips are an outlined numeral; route chips are a glyph and a word; hazard is red. Every chip has visible text.", () =>
+      stack(
+        h("h4", null, "Layer (monochrome)"),
+        h("div", { class: "g-inline" }, chip({ kind: "layer", value: "raw_fdr" }), chip({ kind: "layer", value: "ta_derived" }), chip({ kind: "layer", value: "cim" })),
+        h("h4", null, "Trust"),
+        h("div", { class: "g-inline" }, chip({ kind: "trust", value: "confirmed" }), chip({ kind: "trust", value: "asserted" }), chip({ kind: "trust", value: "suggested" }), chip({ kind: "trust", value: "inferred" })),
+        h("h4", null, "Hazard"),
+        h("div", { class: "g-inline" }, chip({ kind: "hazard" }), chip({ kind: "hazard", text: "recycled PID" })),
+        h("h4", null, "Route (position and a glyph; no hue)"),
+        h("div", { class: "g-inline" }, chip({ kind: "route", value: "here" }), chip({ kind: "route", value: "one-hop" }), chip({ kind: "route", value: "dead-end" })),
+        h("h4", null, "Confidence meter inside a trust chip"),
+        h("div", { class: "g-inline" }, chip({ kind: "trust", value: "suggested", confidence: "high" }), chip({ kind: "trust", value: "suggested", confidence: "medium" }), chip({ kind: "trust", value: "suggested", confidence: "low" })),
+        h("h4", null, "In running text"),
+        h("p", null, "On ", h("code", null, "DnsRequest"), " the attribution key is ", h("code", null, "ContextProcessId"), " ", chip({ kind: "trust", value: "asserted" }), " and the host join is ", h("code", null, "aid"), " ", chip({ kind: "trust", value: "confirmed" }), "."),
+      ),
+    );
+
+    // ---- 2. omnibox -----------------------------------------------------
+
+    section("omnibox", "Omnibox", "An input with role=combobox and a listbox of results. Idle, focused, results open, and value-classified. The spine owns the arrow keys; the box owns Enter and Esc.", () => {
+      const results = [
+        { id: "f:ContextProcessId", kind: "field", name: "ContextProcessId", hint: "L1 raw, process_id, on many events" },
+        { id: "f:ContextThreadId", kind: "field", name: "ContextThreadId", hint: "L1 raw, thread_id" },
+        { id: "e:ProcessRollup2", kind: "event", name: "ProcessRollup2", hint: "anchor event" },
+        { id: "c:process_id", kind: "CIM", name: "process_id", hint: "L3 CIM, fed by TargetProcessId and ContextProcessId" },
+      ];
+      const openBox = omnibox({ value: "Context", results, activeIndex: 0, state: "open" });
+      openBox.classList.add("r-omnibox--static");
+      const classified = omnibox({ value: "a3f1c2d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90", classified: { kind: "sha256", label: "SHA256 hash" }, results: [
+        { id: "v:sha256", kind: "value", name: "SHA256 hash", hint: "carried by SHA256HashData on ProcessRollup2 and file events; SHA256String on detections" },
+      ], activeIndex: 0 });
+      classified.classList.add("r-omnibox--static");
+      return stack(
+        h("h4", null, "Idle"),
+        omnibox({}),
+        h("h4", null, "Focused"),
+        omnibox({ state: "focused", value: "" }),
+        h("h4", null, "Results open"),
+        openBox,
+        h("h4", null, "Value classified"),
+        classified,
+      );
+    });
+
+    // ---- 3. ledger ------------------------------------------------------
+
+    section("ledger", "Ledger", "One band per cost tier, top to bottom: here, one join, suggested, not reachable. Each band is a real table with a caption and column headers. Rows are focusable and emit select on Enter or click. The RawProcessId row carries the hazard rule.", () => {
+      const l = ledgerFixture("e_aid_to_aidmaster");
+      const log = h("p", { class: "r-muted", "aria-live": "polite" }, "Select a row (click or Enter) to see the event it emits.");
+      l.addEventListener("select", (e) => { log.textContent = `select → ${e.detail.bandId} / ${e.detail.rowId}`; });
+      return stack(l, log, h("h4", null, "Empty band, with the reason stated"), ledger({ bands: [{ id: "here-empty", kind: "here", columns: ["field", "role"], empty: "Populated-first ordering is not available: the public corpus is sanitized fixtures with no fill rates and no cardinality. Fields are ordered by role, then name." }] }));
+    });
+
+    // ---- 4. drawer ------------------------------------------------------
+
+    section("drawer", "Drawer", "Empty, filled, copied, and error. The error state withholds the paste: an unscoped PID pivot renders a hazard and no SPL block. The first-line ASSERTED comment is set in the asserted hue so the paste carries its trust with it.", () =>
+      stack(
+        h("h4", null, "Empty"),
+        drawer({ state: "empty" }),
+        h("h4", null, "Filled (asserted edge, inline form, params missing)"),
+        drawer({ state: "filled", title: "The process that caused this event", subtitle: "ContextProcessId → TargetProcessId on LoginItemAdded", spl: { inline: ASSERTED_SPL, macro: ASSERTED_MACRO }, params: drawerParams, hazards: hazardsForEdge }),
+        h("h4", null, "Filled (confirmed edge, macro tab selected)"),
+        drawer({ state: "filled", form: "macro", title: "Host inventory", subtitle: "aid → aidmaster on DnsRequest", spl: { inline: CONFIRMED_SPL, macro: "`cs_host(\"$aid$\")`" }, params: [{ name: "value", label: "value", value: "evil.example.com", required: true }] }),
+        h("h4", null, "Copied"),
+        drawer({ state: "copied", title: "The process that caused this event", subtitle: "ContextProcessId → TargetProcessId on LoginItemAdded", spl: ASSERTED_SPL, params: drawerParams.map((p) => ({ ...p, value: p.name === "aid" ? "3f1c2d4e5f60718293a4b5c6d7e8f90a" : p.name === "latest" ? "now" : p.value })), hazards: hazardsForEdge }),
+        h("h4", null, "Error: unscoped PID"),
+        drawer({ state: "error", title: "OS PID → TargetProcessId", subtitle: "RawProcessId on ProcessRollup2", error: { code: "unscoped_pid", text: "A RawProcessId predicate needs aid, earliest and latest bound before any SPL is produced. Placeholders are not enough for this one: PIDs are recycled, and an unscoped search returns the wrong process with a straight face. Bind all three and the paste appears." }, params: drawerParams }),
+      ),
+    );
+
+    // ---- 5. callout -----------------------------------------------------
+
+    section("callout", "Callout", "Glyph, label, body. Why, expect and note are quiet; caution is heavier but monochrome so it cannot be mistaken for asserted amber; hazard is the only one with hue.", () =>
+      stack(
+        callout({ kind: "why", body: "ComputerName is not stable across the fleet and can be reused after a re-image. aid is assigned by the sensor and stays with it. Bind aid and the rest of the workflow is unambiguous." }),
+        callout({ kind: "expect", body: "One row per process that emitted the event in the window, with image, command line and first_seen. resolved=no means the creation event fell outside your window; widen earliest." }),
+        callout({ kind: "caution", body: "Three different timestamps ride on every sensor event. The time filter here is on _time (index time). timestamp and ContextTimeStamp are sensor-side and can differ by minutes." }),
+        callout({ kind: "hazard", body: "RawProcessId is recycled by the OS. Never join on it alone. This paste is scoped by aid and a time window, and the generator refuses to emit it any other way." }),
+        callout({ kind: "note", label: "No CIM path", body: [h("p", null, h("code", null, "LoginItemAdded"), " is not normalized by the TA. Reach it by ", h("code", null, "event_simpleName"), " only; there is no data model to search."), h("p", null, "This is one of the events in the CIM gap. The count comes from the manifest.")] }),
+      ),
+    );
+
+    // ---- 6. step --------------------------------------------------------
+
+    section("step", "Step", "A numbered workflow step: the number is information because the steps are a sequence. Required marker, input, why and help.", () =>
+      stack(
+        step({ n: 1, state: "done", title: "Bind the host", required: true, input: { name: "aid", label: "aid", value: "3f1c2d4e5f60718293a4b5c6d7e8f90a", required: true }, why: "PIDs only mean something on one host. Without aid the lookup returns every process with that number across the fleet." }),
+        step({ n: 2, state: "current", title: "Bind the window", required: true, input: [{ name: "earliest", label: "earliest", placeholder: "-24h", required: true }, { name: "latest", label: "latest", placeholder: "now", required: true }], why: "The OS reuses PIDs. A window narrows which incarnation you mean.", help: "Use the ticket's timestamp with an hour either side. If the process is long-lived, widen earliest until resolved=yes." }),
+        step({ n: 3, state: "todo", title: "Find the TargetProcessId candidates", input: { name: "pid", label: "pid", placeholder: "OS PID from the ticket", required: true, hint: "A 32-bit integer. Larger numbers are Falcon ids, not OS PIDs." }, expect: "Usually one row. More than one means the PID was recycled inside your window; pick by ImageFileName and first_seen." }),
+      ),
+    );
+
+    // ---- 7. keycap ------------------------------------------------------
+
+    section("keycap", "Keycap", "Inline kbd for the key map and hints.", () =>
+      stack(
+        h("div", { class: "g-inline" }, keycap({ key: "/" }), keycap({ key: "Esc" }), keycap({ key: "↑" }), keycap({ key: "↓" }), keycap({ key: "Enter" }), keycap({ key: "c" }), keycap({ key: "e" }), keycap({ key: "1" }), keycap({ key: "[" }), keycap({ key: "]" }), keycap({ key: "?" }), keycap({ key: "t" })),
+        h("div", { class: "g-inline" }, keycap({ key: "/", hint: "focus search" }), keycap({ key: "c", hint: "copy SPL" }), keycap({ key: "e", hint: "cycle event scope" }), keycap({ key: "?", hint: "key map" })),
+        h("p", null, "Press ", keycap({ key: "/" }), " to search, ", keycap({ key: "Enter" }), " on a row to fill the drawer, then ", keycap({ key: "c" }), " to copy the SPL."),
+      ),
+    );
+
+    // ---- 8. table -------------------------------------------------------
+
+    section("table", "Table", "A dense data table with zebra rows and a sticky header. Identifiers in mono.", () =>
+      stack(
+        table({
+          caption: "Fields on DnsRequest, by role",
+          captionVisible: true,
+          maxHeight: "260px",
+          columns: [{ key: "field", label: "field", mono: true }, { key: "role", label: "role" }, { key: "layer", label: "layer" }, { key: "route", label: "route" }],
+          rowId: (r) => r.field,
+          rows: [
+            { field: "ContextProcessId", role: "process_id", layer: chip({ kind: "layer", value: "raw_fdr" }), route: chip({ kind: "route", value: "one-hop" }) },
+            { field: "ContextThreadId", role: "thread_id", layer: chip({ kind: "layer", value: "raw_fdr" }), route: chip({ kind: "route", value: "one-hop" }) },
+            { field: "DomainName", role: "domain", layer: chip({ kind: "layer", value: "raw_fdr" }), route: chip({ kind: "route", value: "one-hop" }) },
+            { field: "RequestType", role: "enum", layer: chip({ kind: "layer", value: "raw_fdr" }), route: chip({ kind: "route", value: "one-hop" }) },
+            { field: "RequestType_meaning", role: "enum_label", layer: chip({ kind: "layer", value: "ta_derived" }), route: chip({ kind: "route", value: "dead-end" }) },
+            { field: "query", role: "domain", layer: chip({ kind: "layer", value: "cim" }), route: chip({ kind: "route", value: "dead-end" }) },
+            { field: "aid", role: "agent_id", layer: chip({ kind: "layer", value: "raw_fdr" }), route: chip({ kind: "route", value: "here" }) },
+            { field: "aid_computer_name", role: "identifier", layer: chip({ kind: "layer", value: "ta_derived" }), route: chip({ kind: "route", value: "dead-end" }) },
+            { field: "ContextTimeStamp", role: "timestamp", layer: chip({ kind: "layer", value: "raw_fdr" }), route: chip({ kind: "route", value: "here" }) },
+            { field: "timestamp", role: "timestamp", layer: chip({ kind: "layer", value: "raw_fdr" }), route: chip({ kind: "route", value: "here" }) },
+            { field: "TreeId", role: "tree_id", layer: chip({ kind: "layer", value: "raw_fdr" }), route: chip({ kind: "route", value: "one-hop" }) },
+            { field: "event_simpleName", role: "event_name", layer: chip({ kind: "layer", value: "raw_fdr" }), route: chip({ kind: "route", value: "here" }) },
+          ],
+        }),
+      ),
+    );
+
+    // ---- 9. empty -------------------------------------------------------
+
+    section("empty", "Empty", "The teach state: a title, one line, the first moves.", () =>
+      empty({
+        title: "What are you holding?",
+        line: "A field name, an event, a hash, a host, an OS PID from a ticket. Type it and Reach tells you what is already on the record, what is one join away and what that costs, and what you cannot get to.",
+        moves: [
+          { key: "/", text: "search anything: a field, an event, a CIM name, a value" },
+          { key: "1", text: "start from a host", href: "#/w/host" },
+          { key: "2", text: "start from an OS PID", href: "#/w/pid" },
+          { key: "3", text: "start from a detection", href: "#/w/detection" },
+          { key: "4", text: "start from an IOC", href: "#/v/" },
+        ],
+      }),
+    );
+
+    // ---- 10. meaning ----------------------------------------------------
+
+    section("meaning", "Meaning", "Description, a trust line naming the source, and the evidence behind a toggle. The TA variant shows the statement; the absent variant says so.", () =>
+      stack(
+        h("h4", null, "From enrichment (suggested, high)"),
+        meaningFixture(),
+        h("h4", null, "From the TA (confirmed, with the statement)"),
+        meaning({
+          description: "The CIM process id. On process events it is the process itself; on everything else it is the process that caused the event.",
+          source: "ta",
+          statement: "case(event_simpleName IN (\"InjectedThread\", \"WmiCreateProcess\", \"ServiceStarted\", \"ProcessRollup2\", \"SyntheticProcessRollup2\", \"CommandHistory\", \"ProcessBlocked\", \"PeVersionInfo\"), TargetProcessId, isnotnull(ContextProcessId), ContextProcessId, true(), null())",
+        }),
+        h("h4", null, "From a decode table (confirmed)"),
+        meaning({ description: "The DNS request type as the sensor saw it. 1 is A, 28 is AAAA, 16 is TXT.", source: "decode_table", data_format: "integer, decoded by RequestType_meaning" }),
+        h("h4", null, "From the name alone (inferred)"),
+        meaning({ description: "Probably a thread id, by the ThreadId suffix.", source: "name_convention" }),
+        h("h4", null, "Nothing on disk"),
+        meaning({ absent: true }),
+      ),
+    );
+
+    // ---- 11. source table -----------------------------------------------
+
+    section("source-table", "Source table", "The layer-3 → layer-1 walk-back: which raw field feeds a CIM or TA field on which events, with the statement that does it. The basis is the TA itself, so every row is confirmed.", () =>
+      sourceTable({
+        field: "process_id",
+        direction: "sources",
+        caption: "Where process_id comes from, by event",
+        rows: [
+          { cim_field: "process_id", raw_field: "TargetProcessId", via: "EVAL", sourcetype: "crowdstrike:events:sensor", events: ["ProcessRollup2", "SyntheticProcessRollup2", "InjectedThread", "WmiCreateProcess", "ServiceStarted", "CommandHistory", "ProcessBlocked", "PeVersionInfo"], statement: "case(event_simpleName IN (\"InjectedThread\", \"WmiCreateProcess\", \"ServiceStarted\", \"ProcessRollup2\", \"SyntheticProcessRollup2\", \"CommandHistory\", \"ProcessBlocked\", \"PeVersionInfo\"), TargetProcessId, isnotnull(ContextProcessId), ContextProcessId, true(), null())" },
+          { cim_field: "process_id", raw_field: "ContextProcessId", via: "EVAL", sourcetype: "crowdstrike:events:sensor", events: ["DnsRequest", "NetworkConnectIP4", "NetworkConnectIP6", "FileCreateInfo", "AsepKeyUpdate", "DirectoryCreate", "CriticalFileAccessed"], statement: "case(…, isnotnull(ContextProcessId), ContextProcessId, true(), null())" },
+          { cim_field: "process_name", raw_field: "ImageFileName", via: "EVAL", sourcetype: "crowdstrike:events:sensor", events: ["ProcessRollup2", "SyntheticProcessRollup2"], statement: "replace(ImageFileName, \"^.*[\\\\\\\\/]\", \"\")" },
+        ],
+      }),
+    );
+
+    // ---- 12. contrast table ---------------------------------------------
+
+    function lum(hex) {
+      const n = parseInt(hex.slice(1), 16);
+      const ch = (v) => { const c = v / 255; return c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4; };
+      return 0.2126 * ch((n >> 16) & 255) + 0.7152 * ch((n >> 8) & 255) + 0.0722 * ch(n & 255);
+    }
+    function contrast(a, b) {
+      const la = lum(a), lb = lum(b);
+      const [hi, lo] = la > lb ? [la, lb] : [lb, la];
+      return (hi + 0.05) / (lo + 0.05);
+    }
+    function toHex(css) {
+      const v = css.trim();
+      if (/^#[0-9a-f]{6}$/i.test(v)) return v.toLowerCase();
+      const m = /rgba?\((\d+)[,\s]+(\d+)[,\s]+(\d+)/.exec(v);
+      if (m) return "#" + [m[1], m[2], m[3]].map((x) => Number(x).toString(16).padStart(2, "0")).join("");
+      return v;
+    }
+
+    const NAMES = ["trust-confirmed", "trust-asserted", "trust-suggested", "trust-inferred", "hazard"];
+
+    section("contrast", "Contrast", "Computed in the browser from the tokens each pane actually resolves. Every trust foreground on bg-1 and on its own tinted background must reach 4.5:1. tests/contrast.test.js checks the same pairs from the file.", (theme) => {
+      const holder = h("div");
+      // Resolve after the pane is attached so custom properties inherit.
+      queueMicrotask(() => {
+        const cs = getComputedStyle(holder);
+        const tok = (n) => toHex(cs.getPropertyValue(`--${n}`));
+        const bg1 = tok("bg-1");
+        const rows = [];
+        let allPass = true;
+        for (const name of NAMES) {
+          const fg = tok(`${name}-fg`);
+          const own = tok(`${name}-bg`);
+          for (const [surface, bg] of [["bg-1", bg1], [`${name}-bg`, own]]) {
+            const r = contrast(fg, bg);
+            const pass = r >= 4.5;
+            allPass = allPass && pass;
+            rows.push({
+              pair: h("span", null, h("span", { class: "g-swatch", style: { background: fg } }), h("code", null, `${name}-fg`), " on ", h("span", { class: "g-swatch", style: { background: bg } }), h("code", null, surface)),
+              fg: { mono: fg },
+              bg: { mono: bg },
+              ratio: { text: `${r.toFixed(2)}:1`, align: "right" },
+              result: h("span", { class: pass ? "g-pass" : "g-fail" }, pass ? "PASS" : "FAIL"),
+            });
+          }
+        }
+        holder.appendChild(table({
+          caption: `${theme} theme, ${rows.length} pairs, ${allPass ? "all pass" : "FAILURES"} at 4.5:1`,
+          captionVisible: true,
+          columns: [{ key: "pair", label: "pair" }, { key: "fg", label: "fg" }, { key: "bg", label: "bg" }, { key: "ratio", label: "ratio", align: "right" }, { key: "result", label: "result" }],
+          rows,
+        }));
+        holder.dataset.contrast = allPass ? "pass" : "fail";
+      });
+      return holder;
+    });
+  </script>
+</body>
+</html>

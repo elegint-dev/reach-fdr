@@ -1,0 +1,15 @@
+# One process, its parent, and its children -- without a subsearch.
+# eventstats broadcasts the target's ParentProcessId across all rows so the
+# parent can be labelled in a single pass.
+
+index=`cs_index` sourcetype=crowdstrike:events:sensor earliest=-24h
+  aid="PUT_AID_HERE"
+  (event_simpleName=ProcessRollup2 OR event_simpleName=SyntheticProcessRollup2)
+| eval role = case( TargetProcessId="PUT_TPID_HERE", "self",
+                    ParentProcessId="PUT_TPID_HERE", "child",
+                    1=1, null() )
+| eventstats values(eval(if(role="self", ParentProcessId, null()))) as _self_parent
+| eval role = if(isnull(role) AND TargetProcessId=_self_parent, "parent", role)
+| where isnotnull(role)
+| table role TargetProcessId RawProcessId ParentProcessId ImageFileName CommandLine ProcessStartTime
+| sort role

@@ -1,0 +1,10 @@
+# The reverse trace: given a process, every event it generated.
+# ContextProcessId is the attribution key on non-process events.
+
+index=`cs_index` sourcetype=crowdstrike:events:sensor earliest=-24h
+  aid="PUT_AID_HERE"
+  (ContextProcessId="PUT_TPID_HERE" OR TargetProcessId="PUT_TPID_HERE")
+| table _time event_simpleName ContextProcessId TargetProcessId
+| sort _time
+
+# Equivalent macro: `cs_process_events("PUT_AID_HERE","PUT_TPID_HERE","-24h")`

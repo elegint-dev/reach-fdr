@@ -1,0 +1,704 @@
+[
+  {
+    "field": "ContentSha",
+    "description": "A hash of the DLP-scanned content associated with this cloud detection-summary event (likely the same content-hash concept as the sensor-side ContentSHA256HashData field, under a shorter cloud-side name).",
+    "semantic_role": "hash",
+    "data_format": "unknown (likely hex hash string)",
+    "hunting_notes": "Use to fingerprint the specific content that triggered a DLP detection, independent of file name.",
+    "join_candidates": [
+      {
+        "to": "ContentSHA256HashData",
+        "why": "same content-hashing concept for DLP-scanned data; ContentSHA256HashData is the equivalent sensor-side field name already enriched in this KB",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event Event_DataProtectionDetectionSummaryEvent (cloud-generated DLP summary); name follows the same 'Content' + hash naming family as the already-enriched ContentSHA256HashData (batch_002), but the shortened name and lack of an explicit algorithm suffix keep this at medium rather than high confidence."
+  },
+  {
+    "field": "ContextProcessTagsAsString",
+    "description": "A string-serialized set of tags describing the context process (the process performing the handle operation) recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (likely delimited list of tag labels)",
+    "hunting_notes": "If CrowdStrike's internal process-tag taxonomy is known (e.g. protected-process, system-process labels), this can help classify the acting process without a separate lookup; without that taxonomy it's only useful as an opaque string to diff between normal and anomalous handle operations.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, single event FalconProcessHandleOpDetectInfo; 'ContextProcess' and 'Tags' are both self-descriptive but no decode table or sibling field in this KB defines the tag vocabulary."
+  },
+  {
+    "field": "DBusDestination",
+    "description": "The D-Bus bus name the message recorded by this event was addressed to.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (D-Bus bus name, e.g. org.freedesktop.NetworkManager)",
+    "hunting_notes": "Use to identify which system/session service a D-Bus method call or signal targeted; unusual destinations (e.g. security or systemd management services) called from unexpected sender processes are worth investigating.",
+    "join_candidates": [
+      {
+        "to": "DBusSender",
+        "why": "sender/destination pair identifying the two endpoints of the same D-Bus message",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DBusMessage (Linux D-Bus IPC monitoring); 'Destination' is standard D-Bus wire-protocol terminology for the target bus name of a message."
+  },
+  {
+    "field": "DBusInterface",
+    "description": "The D-Bus interface name the message recorded by this event was sent on.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (D-Bus interface name, e.g. org.freedesktop.DBus.Properties)",
+    "hunting_notes": "Pair with DBusMember to see the exact method/signal invoked; interfaces tied to privilege-sensitive services (policykit, systemd, network management) are higher-value to monitor.",
+    "join_candidates": [
+      {
+        "to": "DBusMember",
+        "why": "interface/member pair identifying the specific method or signal invoked on the same D-Bus message",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DBusMessage; 'Interface' is standard D-Bus wire-protocol terminology."
+  },
+  {
+    "field": "DBusMember",
+    "description": "The specific D-Bus method or signal name invoked by the message recorded by this event.",
+    "semantic_role": "command",
+    "data_format": "UTF-8 string (D-Bus member name)",
+    "hunting_notes": "Primary field for identifying what action was requested over D-Bus; useful for spotting abuse of privileged system services (e.g. calling policy-management or user-management methods) from an unexpected process.",
+    "join_candidates": [
+      {
+        "to": "DBusInterface",
+        "why": "interface/member pair identifying the specific method or signal invoked on the same D-Bus message",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DBusMessage; 'Member' is standard D-Bus wire-protocol terminology for a method/signal name."
+  },
+  {
+    "field": "DBusMessageKind",
+    "description": "The D-Bus message type of the message recorded by this event (e.g. method_call, method_return, error, signal).",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a small integer or short string matching the D-Bus wire-protocol message-type values)",
+    "hunting_notes": "Use to distinguish outbound method calls from replies/signals when reconstructing an IPC interaction sequence.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event DBusMessage; 'MessageKind' maps to the D-Bus protocol's message-type concept, though this KB has no decode table confirming the exact value set used here."
+  },
+  {
+    "field": "DBusNumUnixFiles",
+    "description": "The number of Unix file descriptors passed alongside the D-Bus message recorded by this event.",
+    "semantic_role": "count",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "D-Bus messages that pass file descriptors are a mechanism for sharing sockets/pipes/handles between processes; an unexpected non-zero count on an otherwise simple call could indicate handle-passing abuse.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DBusMessage; 'NumUnixFiles' maps directly to the D-Bus protocol's UNIX_FDS auxiliary data feature."
+  },
+  {
+    "field": "DBusPayload",
+    "description": "The body/argument payload of the D-Bus message recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely serialized D-Bus message body)",
+    "hunting_notes": "The actual arguments passed to the method/signal named in DBusMember -- highest-value field for understanding what a suspicious D-Bus call actually did, when populated.",
+    "join_candidates": [
+      {
+        "to": "DBusMember",
+        "why": "payload is the argument data for the method/signal named in the sibling field on the same message",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event DBusMessage; name self-descriptive but this KB doesn't show the serialization format used for the payload."
+  },
+  {
+    "field": "DBusReplySerial",
+    "description": "The serial number of the D-Bus message that this message is a reply to.",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely integer, matches DBusSerial's value space)",
+    "hunting_notes": "Use to pair a method_return/error message back to its originating method_call by matching against that call's DBusSerial.",
+    "join_candidates": [
+      {
+        "to": "DBusSerial",
+        "why": "ReplySerial on a reply message matches the Serial value of the original call on the same D-Bus connection",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DBusMessage; 'ReplySerial' is standard D-Bus wire-protocol terminology for correlating replies to calls."
+  },
+  {
+    "field": "DBusSender",
+    "description": "The unique D-Bus bus name of the process that sent the message recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (D-Bus unique connection name, e.g. \":1.42\")",
+    "hunting_notes": "Identifies which process/connection originated a D-Bus call; pair with DBusDestination to see the full source-to-target relationship.",
+    "join_candidates": [
+      {
+        "to": "DBusDestination",
+        "why": "sender/destination pair identifying the two endpoints of the same D-Bus message",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank, single event DBusMessage; 'Sender' is standard D-Bus wire-protocol terminology."
+  },
+  {
+    "field": "DBusSerial",
+    "description": "The serial number of the D-Bus message recorded by this event, unique per sending connection.",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely integer)",
+    "hunting_notes": "Used together with DBusReplySerial on a later message to correlate a call with its reply.",
+    "join_candidates": [
+      {
+        "to": "DBusReplySerial",
+        "why": "a later reply message's ReplySerial will match this message's Serial",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DBusMessage; 'Serial' is standard D-Bus wire-protocol terminology."
+  },
+  {
+    "field": "DadTransmits",
+    "description": "The number of IPv6 Duplicate Address Detection (DAD) probe transmissions performed for the local IPv6 address recorded by this event.",
+    "semantic_role": "count",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Standard IPv6 stack configuration parameter, not typically a threat signal by itself; more relevant to network/asset configuration auditing.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; 'DadTransmits' is standard IPv6 networking terminology (RFC 4862 DupAddrDetectTransmits) for the number of DAD probes."
+  },
+  {
+    "field": "Data1",
+    "description": "A generic data value associated with the ASEP (autostart extensibility point) registry-value update recorded by this event; the specific meaning cannot be determined from the name alone.",
+    "semantic_role": "other",
+    "data_format": "unknown",
+    "hunting_notes": "Treat as opaque without further context; if AsepValueUpdate carries a multi-part registry value (e.g. a GUID's Data1/Data2/... components, or a generic key-value pair), this is one part of it, but that structure isn't confirmed in this KB.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, single event AsepValueUpdate; the generic name 'Data1' (rather than a descriptive registry-value name) and absence of visible sibling Data2/etc. fields in this KB prevent a confident reading."
+  },
+  {
+    "field": "DataDomains",
+    "description": "A list of data-category/domain classifications associated with the detection recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of category strings)",
+    "hunting_notes": "Likely useful for filtering/triaging detections by the type of data or detection domain involved, but the exact vocabulary of domains isn't defined in this KB.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, single event Event_EppDetectionSummaryEvent; name is plausible for several different readings (detection-technique domains vs. data-classification domains) and no decode table resolves which."
+  },
+  {
+    "field": "DataOriginsDerived",
+    "description": "A derived list of the origins/sources of the data involved in this data-egress event (e.g. clipboard, file, application).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of origin-category strings)",
+    "hunting_notes": "Use to see how the egressed data was originally obtained on the host before leaving, which can distinguish routine file transfers from more suspicious clipboard/screen-capture-sourced exfiltration.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event DataEgress; 'Derived' suggests a computed/inferred classification rather than a raw capture, and the DataEgress event is already established (via sibling fields in other batches) as a DLP data-movement event."
+  },
+  {
+    "field": "DataProtectionPolicyRuleAction",
+    "description": "The action taken by the data-loss-prevention policy rule that matched this data-egress event (e.g. allow, block, audit-only).",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a short action keyword)",
+    "hunting_notes": "Distinguishes egress events that were actually blocked from those merely logged/audited -- important for prioritizing which DLP alerts represent a completed data movement versus a prevented one.",
+    "join_candidates": [
+      {
+        "to": "DataProtectionUserNotified",
+        "why": "sibling DLP policy-response fields on the same DataEgress event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event DataEgress; name self-descriptive for a DLP policy rule's resulting action, though the specific action vocabulary isn't confirmed by a decode table."
+  },
+  {
+    "field": "DataProtectionUserNotified",
+    "description": "Whether the user was notified of the data-loss-prevention policy action taken for this data-egress event.",
+    "semantic_role": "bool",
+    "data_format": "unknown (stored as keyword; likely a stringified boolean)",
+    "hunting_notes": "Distinguishes silent DLP enforcement/logging from user-visible policy prompts -- relevant when assessing whether a user was aware their action was flagged.",
+    "join_candidates": [
+      {
+        "to": "DataProtectionPolicyRuleAction",
+        "why": "sibling DLP policy-response fields on the same DataEgress event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event DataEgress; name self-descriptive despite the keyword (string) storage type."
+  },
+  {
+    "field": "DataVolume",
+    "description": "The volume (amount) of data involved in the data-loss-prevention detection recorded by this event.",
+    "semantic_role": "size",
+    "data_format": "unknown (likely bytes)",
+    "hunting_notes": "Larger data volumes in a single DLP detection are a stronger signal of bulk exfiltration versus a small, routine transfer.",
+    "join_candidates": [
+      {
+        "to": "AnodeIndicators.DataVolumeIncreasePercentage",
+        "why": "raw data volume here likely underlies the percentage-increase anomaly metric on the same event family",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event Event_DataProtectionDetectionSummaryEvent; name self-descriptive and consistent with the event's confirmed DLP purpose (established via already-enriched AnodeIndicators.* siblings)."
+  },
+  {
+    "field": "Destination",
+    "description": "A nested container describing the destination of a data-egress DLP detection, currently holding a single child field, Destination.Channel.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference Destination.Channel directly for the actual egress channel value.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=nested, single event Event_DataProtectionDetectionSummaryEvent, whose only co-occurring child is Destination.Channel -- confirms a parent/child nested relationship, matching the container-field pattern already established elsewhere in this KB (AnodeIndicators, Policy, ContentPatterns)."
+  },
+  {
+    "field": "Destination.Channel",
+    "description": "The channel or medium (e.g. USB, cloud storage, email, network share) through which data was destined to leave, as recorded by this DLP detection.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a short channel-name string)",
+    "hunting_notes": "Primary field for understanding how data was being exfiltrated in a DLP detection (e.g. distinguishing removable-media egress from cloud-upload egress).",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event Event_DataProtectionDetectionSummaryEvent, sole child of the Destination container; name self-descriptive though the specific channel vocabulary isn't confirmed by a decode table."
+  },
+  {
+    "field": "DetectDescription",
+    "description": "A human-readable description of the detection recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Free-text summary useful for quick triage; pair with DetectName for the formal detection/pattern name.",
+    "join_candidates": [
+      {
+        "to": "DetectName",
+        "why": "sibling detection-description fields on the same Event_DetectionSummaryEvent",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event Event_DetectionSummaryEvent; name unambiguous."
+  },
+  {
+    "field": "DetectName",
+    "description": "The name of the detection pattern/rule that fired, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Primary field for identifying which detection logic triggered; use to group/filter detections by type across the fleet.",
+    "join_candidates": [
+      {
+        "to": "DetectDescription",
+        "why": "sibling detection-description fields on the same Event_DetectionSummaryEvent",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event Event_DetectionSummaryEvent; name unambiguous."
+  },
+  {
+    "field": "DeviceActiveConfigurationNumber",
+    "description": "The currently active USB configuration number (bConfigurationValue) selected on the connected USB device recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Mostly a device-inventory/fingerprinting attribute; low direct hunting value on its own.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DcUsbDeviceConnected; maps directly to the standard USB active-configuration concept."
+  },
+  {
+    "field": "DevicePropertyClassName",
+    "description": "The Windows device setup class name (e.g. \"USB\", \"HIDClass\") of the connected USB device recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a Windows device class name string)",
+    "hunting_notes": "A device presenting an unexpected class (e.g. HID/keyboard class on a device marketed as storage) can indicate a BadUSB-style disguised HID-injection device.",
+    "join_candidates": [
+      {
+        "to": "DevicePropertyManufacturer",
+        "why": "sibling Windows device-property fields describing the same connected USB device",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event DcUsbDeviceConnected; 'DeviceProperty*' naming matches Windows PnP/SetupAPI device-property terminology (DEVPKEY_Device_Class)."
+  },
+  {
+    "field": "DevicePropertyDeviceDescription",
+    "description": "The Windows device description string (from the device's property store) for the connected USB device recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Human-readable description useful for identifying the device type at a glance during triage.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event DcUsbDeviceConnected; maps to the Windows DEVPKEY_Device_DeviceDesc property."
+  },
+  {
+    "field": "DevicePropertyFriendlyName",
+    "description": "The Windows friendly/display name of the connected accessory device recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Human-readable device name, useful for quick identification of what accessory was connected.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event AccessoryConnected; maps to the Windows DEVPKEY_Device_FriendlyName property, consistent with the same DeviceProperty* naming family seen on DcUsbDeviceConnected."
+  },
+  {
+    "field": "DevicePropertyLocationInformation",
+    "description": "The Windows device location-information string (physical port/location) for the connected USB device recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; a Windows port/location description string)",
+    "hunting_notes": "Can help pinpoint which physical USB port a device was plugged into, useful when correlating with other physically-adjacent device activity.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event DcUsbDeviceConnected; maps to the Windows DEVPKEY_Device_LocationInfo property."
+  },
+  {
+    "field": "DevicePropertyManufacturer",
+    "description": "The manufacturer name (from the device's property store) of the connected USB device recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Cross-reference against known-good/known-bad device manufacturer lists for USB device inventory and BadUSB-style device tracking.",
+    "join_candidates": [
+      {
+        "to": "DevicePropertyClassName",
+        "why": "sibling Windows device-property fields describing the same connected USB device",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DcUsbDeviceConnected; maps to the Windows DEVPKEY_Device_Manufacturer property."
+  },
+  {
+    "field": "DiagnosticResultContext",
+    "description": "Contextual data describing the result of the sensor self-diagnostic check recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely structured/serialized text)",
+    "hunting_notes": "Sensor health/telemetry data rather than endpoint activity; useful for sensor-reliability investigations, not direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "DiagnosticTriggerContext",
+        "why": "sibling sensor self-diagnostic fields on the same SensorSelfDiagnosticTelemetry event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event SensorSelfDiagnosticTelemetry; name self-descriptive for internal sensor diagnostics."
+  },
+  {
+    "field": "DiagnosticTriggerContext",
+    "description": "Contextual data describing what triggered the sensor self-diagnostic check recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely structured/serialized text)",
+    "hunting_notes": "Sensor health/telemetry data rather than endpoint activity; useful for sensor-reliability investigations, not direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "DiagnosticResultContext",
+        "why": "sibling sensor self-diagnostic fields on the same SensorSelfDiagnosticTelemetry event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event SensorSelfDiagnosticTelemetry; name self-descriptive."
+  },
+  {
+    "field": "EndpointDescriptorAddress",
+    "description": "The USB endpoint address (bEndpointAddress, encoding endpoint number and transfer direction) from the endpoint descriptor recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely small integer/byte)",
+    "hunting_notes": "Part of full USB device fingerprinting; low direct hunting value alone.",
+    "join_candidates": [
+      {
+        "to": "EndpointDescriptorInterval",
+        "why": "sibling USB endpoint-descriptor fields describing the same endpoint on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DcUsbEndpointDescriptor; maps directly to the standard USB endpoint descriptor's bEndpointAddress field."
+  },
+  {
+    "field": "EndpointDescriptorInterval",
+    "description": "The polling interval (bInterval) from the USB endpoint descriptor recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Part of full USB device fingerprinting; a very short polling interval is typical of HID (keyboard/mouse) endpoints, useful when checking whether a device masquerading as storage also exposes a HID endpoint.",
+    "join_candidates": [
+      {
+        "to": "EndpointDescriptorAddress",
+        "why": "sibling USB endpoint-descriptor fields describing the same endpoint on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DcUsbEndpointDescriptor; maps directly to the standard USB endpoint descriptor's bInterval field."
+  },
+  {
+    "field": "EnvironmentVariablesString",
+    "description": "The environment variables of the process, serialized as a string, recorded by this user-substitution (su/sudo-style) event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (likely newline- or NUL-delimited KEY=VALUE list)",
+    "hunting_notes": "Environment variables can reveal LD_PRELOAD hijacking, unusual PATH manipulation, or credential/token leakage carried across a privilege-substitution boundary -- high value for su/sudo abuse investigations.",
+    "join_candidates": [
+      {
+        "to": "ExecutionShell",
+        "why": "sibling fields describing the same user-substitution execution context on ProcessSubstituteUser",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event ProcessSubstituteUser (a su/sudo-style privilege-substitution event); name unambiguous."
+  },
+  {
+    "field": "EtwProviders",
+    "description": "The set of ETW (Event Tracing for Windows) providers relevant to the sensor component recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of provider names or GUIDs)",
+    "hunting_notes": "Sensor telemetry-health field describing which OS event-tracing providers the sensor relies on; useful for diagnosing missing telemetry, not for direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "EtwProvidersEnabled",
+        "why": "sibling ETW-provider status fields on the same EtwComponentResponse event",
+        "confidence": "high"
+      },
+      {
+        "to": "EtwProvidersError",
+        "why": "sibling ETW-provider status fields on the same EtwComponentResponse event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event EtwComponentResponse; name self-descriptive."
+  },
+  {
+    "field": "EtwProvidersEnabled",
+    "description": "The subset of ETW providers that were successfully enabled, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of provider names or GUIDs)",
+    "hunting_notes": "Sensor telemetry-health field; a gap between EtwProviders and EtwProvidersEnabled indicates telemetry blind spots (e.g. from tampering or OS/version incompatibility) rather than endpoint threat activity.",
+    "join_candidates": [
+      {
+        "to": "EtwProviders",
+        "why": "sibling ETW-provider status fields on the same EtwComponentResponse event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event EtwComponentResponse; name self-descriptive."
+  },
+  {
+    "field": "EtwProvidersError",
+    "description": "The subset of ETW providers that reported an error (e.g. failed to register/enable), as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of provider names or GUIDs, possibly with error codes)",
+    "hunting_notes": "Errors enabling specific ETW providers could indicate deliberate tampering with sensor visibility (e.g. an attacker disabling or blocking a provider) as well as benign OS/driver issues -- worth correlating with other tamper-related telemetry before treating as malicious.",
+    "join_candidates": [
+      {
+        "to": "EtwProviders",
+        "why": "sibling ETW-provider status fields on the same EtwComponentResponse event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event EtwComponentResponse; name self-descriptive."
+  },
+  {
+    "field": "EventTimestamp",
+    "description": "The timestamp of the event, distinct from the generic corpus-wide 'timestamp' field, recorded on cloud-generated DLP detection-summary events.",
+    "semantic_role": "timestamp",
+    "data_format": "date (per fields.json type)",
+    "hunting_notes": "Use as the authoritative event time for this event type; check whether it matches or differs from the generic 'timestamp'/UTCTimestamp fields when both are present, since cloud-generated events sometimes carry a distinct generation time.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=date, single event Event_DataProtectionDetectionSummaryEvent; name and type both unambiguous for a timestamp role."
+  },
+  {
+    "field": "ExceptionAddress",
+    "description": "The memory address at which the exception (a Data Execution Prevention violation) occurred, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "hex string (memory address)",
+    "hunting_notes": "A DEP/NX violation address pointing into a data/stack/heap region rather than a legitimate code module is classic evidence of attempted shellcode execution from a non-executable memory region -- high value for exploit/memory-corruption hunting.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event UserExceptionDEP (Data Execution Prevention exception); name and event together unambiguous."
+  },
+  {
+    "field": "ExecutionShell",
+    "description": "The shell used to execute the command in the user-substitution context recorded by this event.",
+    "semantic_role": "file_path",
+    "data_format": "UTF-8 string (shell path, e.g. /bin/bash)",
+    "hunting_notes": "An unusual or non-standard shell (rather than the user's normal login shell) invoked during a su/sudo-style substitution can indicate a crafted privilege-escalation or persistence attempt.",
+    "join_candidates": [
+      {
+        "to": "EnvironmentVariablesString",
+        "why": "sibling fields describing the same user-substitution execution context on ProcessSubstituteUser",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event ProcessSubstituteUser; name unambiguous."
+  },
+  {
+    "field": "ExtendedAttributeName",
+    "description": "The name of the extended attribute (xattr) that was operated on, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (xattr name, e.g. com.apple.quarantine)",
+    "hunting_notes": "Removal or modification of security-relevant extended attributes -- most notably macOS's com.apple.quarantine (Gatekeeper's downloaded-file flag) -- is a well-known malware evasion technique; this field is the primary signal for that behavior.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FileExtendedAttrOperation; name and event together unambiguous."
+  },
+  {
+    "field": "Facility",
+    "description": "The syslog-style facility classification (e.g. kern, daemon, auth) of the error recorded by this event.",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a small integer or short keyword matching standard syslog facility codes)",
+    "hunting_notes": "Use to filter/group ErrorEvent records by subsystem (e.g. authentication-related errors vs. kernel errors) when triaging at scale.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event ErrorEvent; 'Facility' is standard syslog/logging terminology, though this KB has no decode table confirming the exact value set used here."
+  },
+  {
+    "field": "FeatureVector",
+    "description": "A machine-learning feature vector computed locally by the sensor and delivered to the cloud, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a serialized numeric vector)",
+    "hunting_notes": "Internal ML-model input data rather than directly interpretable endpoint activity; not useful for manual hunting without knowledge of the specific feature schema used by the local detection model.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=match_only_text, single event DeliverLocalFXToCloud (name suggests a local behavioral/ML detection engine, possibly CrowdStrike's 'FX', delivering data to the cloud); no decode table or documentation in this KB defines the vector's contents."
+  },
+  {
+    "field": "File.Extension",
+    "description": "The file extension of the egressed file, as recorded by this data-egress enrichment event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (e.g. \".docx\", \".zip\")",
+    "hunting_notes": "Use with File.FileTypeName/.FileTypeCategoryName to check whether the extension matches the file's actual detected type (a mismatch can indicate an attempt to disguise exfiltrated content).",
+    "join_candidates": [
+      {
+        "to": "File.FileTypeName",
+        "why": "sibling File.* fields describing the same egressed file's type on DataEgressEnriched",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank, single event DataEgressEnriched, sibling of AbsolutePath/FileTypeCategoryID/.../Name/NormalizedAbsolutePath within the File container; name unambiguous."
+  },
+  {
+    "field": "File.FileTypeCategoryID",
+    "description": "An identifier for the broad file-type category (e.g. archive, document, media) of the egressed file, paired with File.FileTypeCategoryName.",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely numeric or short code)",
+    "hunting_notes": "Use with File.FileTypeCategoryName to classify egressed files at a category level (broader than the specific FileTypeID/FileTypeName) for DLP triage.",
+    "join_candidates": [
+      {
+        "to": "File.FileTypeCategoryName",
+        "why": "ID/Name pair labeling the same file-type category",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event DataEgressEnriched, sibling of FileTypeCategoryName/FileTypeID/FileTypeName within the File container; standard ID/Name pairing pattern seen elsewhere in this KB."
+  },
+  {
+    "field": "File.FileTypeCategoryName",
+    "description": "The name of the broad file-type category (e.g. archive, document, media) of the egressed file, paired with File.FileTypeCategoryID.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Primary human-readable field for grouping egressed-file DLP detections by broad category (e.g. flagging archive or executable categories as higher risk).",
+    "join_candidates": [
+      {
+        "to": "File.FileTypeCategoryID",
+        "why": "ID/Name pair labeling the same file-type category",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event DataEgressEnriched, sibling of FileTypeCategoryID within the File container."
+  },
+  {
+    "field": "File.FileTypeDescription",
+    "description": "A human-readable description of the specific file type of the egressed file.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "More descriptive than FileTypeName alone; useful for quick triage without needing to look up a file-type ID.",
+    "join_candidates": [
+      {
+        "to": "File.FileTypeName",
+        "why": "sibling File.* fields describing the same egressed file's type on DataEgressEnriched",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event DataEgressEnriched, sibling of FileTypeID/FileTypeName/FileTypeCategoryName within the File container; name self-descriptive."
+  },
+  {
+    "field": "File.FileTypeID",
+    "description": "An identifier for the specific detected file type of the egressed file, paired with File.FileTypeName.",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely numeric or short code)",
+    "hunting_notes": "Use with File.FileTypeName/.FileTypeDescription to identify the exact detected file type independent of its extension or displayed name.",
+    "join_candidates": [
+      {
+        "to": "File.FileTypeName",
+        "why": "ID/Name pair labeling the same detected file type",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event DataEgressEnriched, sibling of FileTypeName/FileTypeDescription/FileTypeCategoryID within the File container; standard ID/Name pairing pattern."
+  },
+  {
+    "field": "File.FileTypeName",
+    "description": "The name of the specific detected file type (e.g. \"Microsoft Word Document\", \"ZIP archive\") of the egressed file, paired with File.FileTypeID.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Compare against File.Extension to spot files whose actual detected content type doesn't match their extension -- a common technique for disguising exfiltrated data.",
+    "join_candidates": [
+      {
+        "to": "File.FileTypeID",
+        "why": "ID/Name pair labeling the same detected file type",
+        "confidence": "high"
+      },
+      {
+        "to": "File.Extension",
+        "why": "mismatch between declared extension and detected file type can indicate disguised content",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event DataEgressEnriched, sibling of FileTypeID within the File container."
+  },
+  {
+    "field": "File.Identifier",
+    "description": "An identifier for the egressed file recorded by this event, distinct from its name/path (possibly a content- or catalog-based identifier).",
+    "semantic_role": "identifier",
+    "data_format": "unknown",
+    "hunting_notes": "If this is a content-derived identifier (e.g. a hash), it could be used to track the same file across multiple egress events even if renamed; that specific interpretation isn't confirmed here.",
+    "join_candidates": [
+      {
+        "to": "File.Name",
+        "why": "sibling File.* fields identifying the same egressed file on DataEgressEnriched",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type blank, single event DataEgressEnriched, sibling of Name/AbsolutePath within the File container; generic 'Identifier' name doesn't reveal whether this is a hash, catalog ID, or something else."
+  },
+  {
+    "field": "File.Name",
+    "description": "The file name (without full path) of the egressed file recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Pair with File.AbsolutePath/.NormalizedAbsolutePath for full location context, and with File.Extension/.FileTypeName for content-type verification.",
+    "join_candidates": [
+      {
+        "to": "File.Extension",
+        "why": "sibling File.* fields describing the same egressed file on DataEgressEnriched",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank, single event DataEgressEnriched, sibling of AbsolutePath/Extension/Identifier/NormalizedAbsolutePath within the File container; name unambiguous."
+  }
+]

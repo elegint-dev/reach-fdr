@@ -1,0 +1,252 @@
+[
+ {
+  "automatic_on": [],
+  "basis": "asserted",
+  "basis_ref": "DESIGN.md \u00a7The join graph (child ParentProcessId \u2192 parent TargetProcessId: process tree lineage); CrowdStrike data model, not corpus-validated (DESIGN.md \u00a7What still genuinely needs a real corpus)",
+  "cardinality": "n:1",
+  "dst": "TargetProcessId",
+  "dst_sourcetype": "crowdstrike:events:sensor",
+  "dst_table": null,
+  "hazard": null,
+  "id": "e_parent_to_target",
+  "kind": "process_lineage",
+  "mechanism": "query",
+  "note": "A child process's ParentProcessId equals the parent's TargetProcessId. This is the process-tree edge.",
+  "scope": [
+   "aid"
+  ],
+  "src": "ParentProcessId",
+  "src_sourcetype": "crowdstrike:events:sensor",
+  "target_label": "the parent process (its ProcessRollup2)",
+  "yields": []
+ },
+ {
+  "automatic_on": [],
+  "basis": "asserted",
+  "basis_ref": "DESIGN.md \u00a7The join graph (event ContextProcessId \u2192 process TargetProcessId: which process caused this event); CrowdStrike data model, not corpus-validated (public corpus samples ContextProcessId as 000000000000)",
+  "cardinality": "n:1",
+  "dst": "TargetProcessId",
+  "dst_sourcetype": "crowdstrike:events:sensor",
+  "dst_table": null,
+  "hazard": null,
+  "id": "e_context_to_target",
+  "kind": "causal_attribution",
+  "mechanism": "query",
+  "note": "On a non-process event (DnsRequest, file, registry...), ContextProcessId identifies the process that caused it. This is how you attribute activity to a process.",
+  "scope": [
+   "aid"
+  ],
+  "src": "ContextProcessId",
+  "src_sourcetype": "crowdstrike:events:sensor",
+  "target_label": "the process that caused this event",
+  "yields": []
+ },
+ {
+  "automatic_on": [],
+  "basis": "asserted",
+  "basis_ref": "DESIGN.md \u00a7The join graph (TreeId groups a whole detection/activity tree); FDR_REFERENCE.md \u00a73 (TreeId: process-tree correlation ID)",
+  "cardinality": "n:n",
+  "dst": "TreeId",
+  "dst_sourcetype": "crowdstrike:events:sensor",
+  "dst_table": null,
+  "hazard": null,
+  "id": "e_tree_grouping",
+  "kind": "tree_grouping",
+  "mechanism": "query",
+  "note": "Groups an entire related activity/detection tree.",
+  "scope": [
+   "aid"
+  ],
+  "src": "TreeId",
+  "src_sourcetype": "crowdstrike:events:sensor",
+  "target_label": "every event in the same activity tree",
+  "yields": []
+ },
+ {
+  "automatic_on": [],
+  "basis": "asserted",
+  "basis_ref": "DESIGN.md \u00a7The join graph (RawProcessId: the OS-visible PID; not unique over time, unsafe as a join key alone); curated/translations.json evidence (28 paired documents: no arithmetic converts RawProcessId to TargetProcessId)",
+  "cardinality": "unsafe",
+  "dst": null,
+  "dst_sourcetype": "crowdstrike:events:sensor",
+  "dst_table": null,
+  "hazard": {
+   "level": "danger",
+   "text": "RawProcessId is the OS PID and is recycled: without aid AND a tight time window this matches unrelated processes. Expect multiple rows; disambiguate on ImageFileName and ProcessStartTime, then carry TargetProcessId forward."
+  },
+  "id": "e_raw_pid",
+  "kind": "os_pid",
+  "mechanism": "query",
+  "note": "The OS-visible PID. NOT unique over time -- PIDs are recycled. Never join on this alone; always scope by aid AND a time window.",
+  "scope": [
+   "aid",
+   "time"
+  ],
+  "src": "RawProcessId",
+  "src_sourcetype": "crowdstrike:events:sensor",
+  "target_label": "TargetProcessId candidates on ProcessRollup2 / SyntheticProcessRollup2 for this OS PID (a lookup, never a direct join)",
+  "yields": []
+ },
+ {
+  "automatic_on": [
+   "crowdstrike:events:sensor"
+  ],
+  "basis": "confirmed_ta",
+  "basis_ref": "cim/fdr_to_cim_fields.csv LOOKUP rows aid_* (LOOKUP-crowdstrike_ta_host_resolution_for_security_events via crowdstrike_ta_combined_host_resolution_lookup); DESIGN.md \u00a7The enrichment joins; FDR_REFERENCE.md \u00a74 aidmaster",
+  "cardinality": "n:1",
+  "dst": "aidmaster.aid",
+  "dst_sourcetype": "crowdstrike:inventory:aidmaster",
+  "dst_table": {
+   "column": "aid",
+   "column_listed": true,
+   "label": "aidmaster (host inventory)",
+   "resolved_from": "public/ancillary_tables.csv",
+   "table": "aidmaster"
+  },
+  "hazard": null,
+  "id": "e_aid_to_aidmaster",
+  "kind": "host_enrichment",
+  "lookup_keys": [
+   "aid",
+   "host_res_aid"
+  ],
+  "mechanism": "search_time_lookup",
+  "note": "TA joins aid to aidmaster for hostname, domain, OU, site, OS, geo, gateway, MAC.",
+  "scope": [],
+  "src": "aid",
+  "src_sourcetype": "crowdstrike:events:sensor",
+  "target_label": "the host record (hostname, domain, OU, site, OS, geo, gateway, MAC)",
+  "yields": [
+   "aid_city",
+   "aid_computer_name",
+   "aid_continent",
+   "aid_country",
+   "aid_gateway_IP",
+   "aid_gateway_mac",
+   "aid_local_address_ip4",
+   "aid_mac",
+   "aid_machine_domain",
+   "aid_os_version",
+   "aid_ou",
+   "aid_site_name",
+   "aid_system_product_name"
+  ]
+ },
+ {
+  "automatic_on": [
+   "crowdstrike:events:external",
+   "crowdstrike:events:sensor"
+  ],
+  "basis": "confirmed_ta",
+  "basis_ref": "cim/fdr_to_cim_fields.csv LOOKUP rows appinfo_* (LOOKUP-crowdstrike_ta_appinfo_resolution_for_security_events via crowdstrike_ta_build_appinfo_resolution_lookup); DESIGN.md \u00a7The enrichment joins; FDR_REFERENCE.md \u00a74 appinfo",
+  "cardinality": "n:1",
+  "dst": "appinfo.SHA256HashData",
+  "dst_sourcetype": "crowdstrike:appinfo",
+  "dst_table": {
+   "column": "SHA256HashData",
+   "column_listed": false,
+   "label": "appinfo",
+   "resolved_from": "FDR_REFERENCE.md section 4 (appinfo: observed applications)",
+   "table": "appinfo"
+  },
+  "hazard": null,
+  "id": "e_sha256_to_appinfo",
+  "kind": "file_enrichment",
+  "lookup_keys": [
+   "SHA256HashData"
+  ],
+  "mechanism": "search_time_lookup",
+  "note": "TA joins to appinfo for company, file description/name/version, product name/version, detection count.",
+  "scope": [],
+  "src": "SHA256HashData",
+  "src_sourcetype": "crowdstrike:events:sensor",
+  "target_label": "the file record (company, file description/name/version, product, detection count)",
+  "yields": [
+   "SHA256HashData_meaning",
+   "appinfo_company_name",
+   "appinfo_detection_count",
+   "appinfo_file_description",
+   "appinfo_file_name",
+   "appinfo_file_version",
+   "appinfo_product_name",
+   "appinfo_product_version"
+  ]
+ },
+ {
+  "automatic_on": [
+   "crowdstrike:events:sensor"
+  ],
+  "basis": "confirmed_ta",
+  "basis_ref": "cim/fdr_to_cim_fields.csv LOOKUP rows userinfo_* (LOOKUP-crowdstrike_ta_userinfo_resolution_for_security_events via crowdstrike_ta_build_userinfo_resolution_lookup, keyed on UserSid); DESIGN.md \u00a7The enrichment joins; FDR_REFERENCE.md \u00a74 userinfo",
+  "cardinality": "n:1",
+  "dst": "userinfo.UserSid",
+  "dst_sourcetype": "crowdstrike:userinfo",
+  "dst_table": {
+   "column": "UserSid",
+   "column_listed": false,
+   "label": "userinfo / user map",
+   "resolved_from": "public/ancillary_tables.csv",
+   "table": "userinfo"
+  },
+  "hazard": null,
+  "id": "e_usersid_to_userinfo",
+  "kind": "user_enrichment",
+  "lookup_keys": [
+   "UserSid"
+  ],
+  "mechanism": "search_time_lookup",
+  "note": "TA joins to userinfo for account type, user, username.",
+  "scope": [],
+  "src": "UserSid",
+  "src_sourcetype": "crowdstrike:events:sensor",
+  "target_label": "the account record (account type, user, username)",
+  "yields": [
+   "UserSid_meaning",
+   "userinfo_account_type",
+   "userinfo_user",
+   "userinfo_user_name"
+  ]
+ },
+ {
+  "automatic_on": [],
+  "basis": "asserted",
+  "basis_ref": "cim/fdr_to_cim_fields.csv row 1: TA appinfo LOOKUP keyed on SHA256HashData on crowdstrike:events:external (the TA treats the detection-event hash as the same value space); kb/enrichment SHA256String join_candidates \u2192 SHA256HashData (confidence medium)",
+  "cardinality": "n:n",
+  "dst": "SHA256HashData",
+  "dst_sourcetype": "crowdstrike:events:sensor",
+  "dst_table": null,
+  "enrichment_concurs": {
+   "confidence": "medium",
+   "why": "same hash algorithm and value space as the sensor-side binary hash field, just on cloud detection-summary events"
+  },
+  "hazard": null,
+  "id": "e_sha256string_to_sha256hashdata",
+  "kind": "detection_handle",
+  "mechanism": "query",
+  "note": "SHA256String on a detection summary event is the same SHA256 value space as SHA256HashData on sensor telemetry; pivot on the hash to find every process and file event that touched the file.",
+  "scope": [],
+  "src": "SHA256String",
+  "src_sourcetype": "crowdstrike:events:external",
+  "target_label": "sensor events carrying the same file hash",
+  "yields": []
+ },
+ {
+  "automatic_on": [],
+  "basis": "asserted",
+  "basis_ref": "FDR_REFERENCE.md \u00a73 (aid: agent/sensor ID, unique per host install); AgentIdString is the detection summary event's string form of the same agent id",
+  "cardinality": "n:1",
+  "dst": "aid",
+  "dst_sourcetype": "crowdstrike:events:sensor",
+  "dst_table": null,
+  "hazard": null,
+  "id": "e_agentidstring_to_aid",
+  "kind": "detection_handle",
+  "mechanism": "query",
+  "note": "AgentIdString on a detection summary event is the host's aid as a string; pivot on it to reach every sensor event and the aidmaster host record.",
+  "scope": [],
+  "src": "AgentIdString",
+  "src_sourcetype": "crowdstrike:events:external",
+  "target_label": "the host (aid) the detection fired on",
+  "yields": []
+ }
+]

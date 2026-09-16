@@ -1,0 +1,702 @@
+[
+  {
+    "field": "AnodeIndicators.FileCategoryDistributions.ID",
+    "description": "Identifier for a specific file-category bucket within the AnodeIndicators.FileCategoryDistributions breakdown, pairing with .Name to label the category that .CurrentPercentage/.ExpectedPercentage/.IncreasePercentage refer to.",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely numeric or short code)",
+    "hunting_notes": "Use alongside FileCategoryDistributions.Name to know which file category (e.g. archives, documents) the current/expected/increase percentages describe.",
+    "join_candidates": [
+      {
+        "to": "AnodeIndicators.FileCategoryDistributions.Name",
+        "why": "ID/Name pair labeling the same file-category bucket",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, 1 event (Event_DataProtectionDetectionSummaryEvent), sibling of Name/CurrentPercentage/ExpectedPercentage/IncreasePercentage within AnodeIndicators.FileCategoryDistributions; already-enriched siblings CurrentPercentage/ExpectedPercentage (batch_004) established the parent struct as a file-category distribution comparison for a DLP anomaly."
+  },
+  {
+    "field": "AnodeIndicators.FileCategoryDistributions.IncreasePercentage",
+    "description": "The percentage increase of a given file category's share versus its expected baseline for a data-egress anomaly, i.e. a derived delta between CurrentPercentage and ExpectedPercentage.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely numeric percentage)",
+    "hunting_notes": "The magnitude of this delta is likely what drove the AnodeIndicators anomaly score for file-type mix; large values point at unusual file-category concentration in the egress.",
+    "join_candidates": [
+      {
+        "to": "AnodeIndicators.FileCategoryDistributions.CurrentPercentage",
+        "why": "increase is derived from current vs. expected for the same category",
+        "confidence": "medium"
+      },
+      {
+        "to": "AnodeIndicators.FileCategoryDistributions.ExpectedPercentage",
+        "why": "increase is derived from current vs. expected for the same category",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, 1 event, sibling of CurrentPercentage/ExpectedPercentage in the already-enriched FileCategoryDistributions struct; name matches the increase-percentage naming convention used elsewhere in AnodeIndicators.* (e.g. FileCountIncreasePercentage, DataVolumeIncreasePercentage)."
+  },
+  {
+    "field": "AnodeIndicators.FileCategoryDistributions.Name",
+    "description": "The name of the file category (e.g. an archive, document, or media type bucket) this distribution entry describes, paired with .ID.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (likely a short category label)",
+    "hunting_notes": "Read together with CurrentPercentage/ExpectedPercentage/IncreasePercentage to see which specific file type drove a data-egress anomaly.",
+    "join_candidates": [
+      {
+        "to": "AnodeIndicators.FileCategoryDistributions.ID",
+        "why": "ID/Name pair labeling the same file-category bucket",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "Same struct as ID/CurrentPercentage/ExpectedPercentage; Name-sibling-to-ID is CrowdStrike's standard ID/Name pairing pattern seen elsewhere in this KB (e.g. Policy.ID/Policy.Name)."
+  },
+  {
+    "field": "AnodeIndicators.FileCountIncreasePercentage",
+    "description": "The percentage increase in the number of files involved in this data-egress event versus the behavioral baseline, as computed by the Anode anomaly-detection subsystem.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely numeric percentage)",
+    "hunting_notes": "A high value indicates an unusually large batch of files leaving in one egress event compared to the user/host's normal pattern -- a core signal for bulk-exfiltration detection.",
+    "join_candidates": [
+      {
+        "to": "AnodeIndicators.DataVolumeIncreasePercentage",
+        "why": "sibling anomaly-magnitude metric for the same egress event (file count vs. data volume)",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, 1 event (Event_DataProtectionDetectionSummaryEvent), direct child of AnodeIndicators alongside already-enriched DataVolumeIncreasePercentage/Destination/Detected/Entity/Explanation/FileCategoryDistributions (batch_004) -- name is self-descriptive and matches the container's confirmed DLP-anomaly purpose."
+  },
+  {
+    "field": "AnodeIndicators.Name",
+    "description": "The name/label of the specific behavioral anomaly indicator that fired within the Anode subsystem for this data-egress detection.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Identifies which specific anomaly heuristic (e.g. file-count spike, file-category-mix spike, data-volume spike) triggered, distinct from AnodeIndicators.Type which likely classifies the indicator's category.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type blank, 1 event, direct child of AnodeIndicators alongside Type/Score/Explanation -- standard Name/Type/Score triple pattern for a labeled indicator object."
+  },
+  {
+    "field": "AnodeIndicators.Score",
+    "description": "A numeric anomaly score for the AnodeIndicators indicator, quantifying how anomalous the underlying behavior (file count/volume/category mix) was assessed to be.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely numeric score)",
+    "hunting_notes": "Higher scores should correlate with higher-confidence data-egress anomalies; useful for triage/sorting DLP detections by severity of the underlying behavioral signal.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type blank, 1 event, direct child of AnodeIndicators alongside Name/Type/Explanation/Detected -- 'Score' is a standard scoring-field name and the surrounding fields (Detected, Explanation) confirm this is a per-indicator anomaly assessment."
+  },
+  {
+    "field": "ApiReturnValue",
+    "description": "The return value/status code of the API call recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer or hex status code)",
+    "hunting_notes": "On RegisterRawInputDevicesEtw this indicates whether a process's raw-input-device registration succeeded; a failure return alongside an otherwise stealthy call pattern (e.g. keylogging via raw HID input) could be notable, but the exact success/failure encoding isn't confirmed.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, single event RegisterRawInputDevicesEtw (Windows ETW telemetry for the RegisterRawInputDevices API, used for raw HID/keyboard input capture); name is self-descriptive but the value's encoding (Win32 BOOL vs. HRESULT vs. other) can't be confirmed from this KB."
+  },
+  {
+    "field": "ApplicationName",
+    "description": "The name of the application/shell whose command history is captured by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Distinguishes which shell or app (e.g. bash, PowerShell, a specific terminal app) the accompanying CommandHistory/CommandSequence entries came from.",
+    "join_candidates": [
+      {
+        "to": "CommandHistory",
+        "why": "same CommandHistory event; ApplicationName scopes which app the recorded commands belong to",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event CommandHistory, co-occurring with CommandHistory/CommandSequence/CommandCountMax -- name is self-descriptive for a command-history-capture event."
+  },
+  {
+    "field": "AssemblyName",
+    "description": "The name of the .NET assembly that was reflectively loaded, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (.NET assembly name)",
+    "hunting_notes": "Reflective .NET module loading is a common in-memory execution/evasion technique (loading an assembly from a byte array rather than disk); an unusual or unsigned AssemblyName here is a stronger signal than a normal disk-based module load.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event ReflectiveDotnetModuleLoad -- event name and field name together unambiguously describe a reflectively-loaded .NET assembly's name."
+  },
+  {
+    "field": "AuthenticodeHashDataSHA1",
+    "description": "The SHA1 hash extracted from the Authenticode signature data of the module/file described by this event.",
+    "semantic_role": "hash",
+    "data_format": "hex string (SHA1, 40 hex chars)",
+    "hunting_notes": "Compare against known-good/known-bad Authenticode signature hash lists; distinct from a plain file-content SHA1 since it's specifically the signature blob's hash. Pair with the module's own content hash fields when both are present.",
+    "join_candidates": [
+      {
+        "to": "AuthenticodeHashDataSHA256",
+        "why": "same certificate/signature data hashed with a different algorithm on ModuleCertificateInfo-family events",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event ModuleCertificateInfo2; name explicitly identifies both the hash algorithm (SHA1) and the source data (Authenticode hash data), and AuthenticodeHashDataSHA256 is an already-enriched sibling field (batch_002)."
+  },
+  {
+    "field": "AvailableDiskSpace",
+    "description": "The amount of disk space available on the host at the time of this resource-utilization sample.",
+    "semantic_role": "size",
+    "data_format": "unknown (likely bytes, despite keyword type)",
+    "hunting_notes": "Track alongside AverageCpuUsage/AverageUsedRam on ResourceUtilization events to spot hosts under resource pressure, which can indicate cryptomining, mass file staging, or a runaway process.",
+    "join_candidates": [
+      {
+        "to": "AverageCpuUsage",
+        "why": "sibling resource-utilization metric on the same event",
+        "confidence": "medium"
+      },
+      {
+        "to": "AverageUsedRam",
+        "why": "sibling resource-utilization metric on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword (numeric value likely stored as string), single event ResourceUtilization, co-occurring with AverageCpuUsage/AverageUsedRam -- name is self-descriptive within a host resource-metrics event."
+  },
+  {
+    "field": "AverageCpuUsage",
+    "description": "The average CPU utilization sampled over the ResourceUtilization event's reporting interval.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a percentage, despite keyword type)",
+    "hunting_notes": "Sustained high values across many hosts/timestamps can indicate cryptomining or brute-force/scanning activity; useful as a coarse anomaly baseline rather than a detection signal on its own.",
+    "join_candidates": [
+      {
+        "to": "AverageUsedRam",
+        "why": "sibling resource-utilization metric on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event ResourceUtilization; name is self-descriptive and matches AverageUsedRam/AvailableDiskSpace siblings."
+  },
+  {
+    "field": "AverageUsedRam",
+    "description": "The average amount of RAM used on the host, sampled over the ResourceUtilization event's reporting interval.",
+    "semantic_role": "size",
+    "data_format": "unknown (likely bytes or a percentage, despite keyword type)",
+    "hunting_notes": "Same use as AverageCpuUsage -- baseline host resource pressure, not a direct detection signal on its own.",
+    "join_candidates": [
+      {
+        "to": "AverageCpuUsage",
+        "why": "sibling resource-utilization metric on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event ResourceUtilization; name self-descriptive."
+  },
+  {
+    "field": "AwsPrivateIPAddress",
+    "description": "The private IP address of the AWS EC2 instance described by this event.",
+    "semantic_role": "ip",
+    "data_format": "IPv4 (or IPv6) string",
+    "hunting_notes": "Use to correlate cloud-instance identity with network telemetry (e.g. matching against connection events) inside the VPC, where public IPs may not be visible.",
+    "join_candidates": [
+      {
+        "to": "AwsRegion",
+        "why": "sibling AWS instance-metadata field on the same event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event AwsEc2Instance; field name is unambiguous and matches the standard 'private IP' cloud-metadata convention."
+  },
+  {
+    "field": "AwsRegion",
+    "description": "The AWS region the EC2 instance described by this event is running in.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (AWS region code, e.g. us-east-1)",
+    "hunting_notes": "Useful for scoping investigations by cloud region and for spotting instances running in unexpected/unauthorized regions.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event AwsEc2Instance; name is an unambiguous, standard AWS metadata field."
+  },
+  {
+    "field": "AzureIpConfigurationName",
+    "description": "The name of the Azure IP configuration resource associated with this event's network interface.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (Azure resource name)",
+    "hunting_notes": "An Azure-specific resource-naming field; use to pivot into Azure resource inventory/tagging data rather than as a hunting signal by itself.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event AzureIpConfiguration; name maps directly to the Azure 'IP configuration' networking resource type."
+  },
+  {
+    "field": "AzureVMName",
+    "description": "The name of the Azure virtual machine described by this event.",
+    "semantic_role": "identifier",
+    "data_format": "UTF-8 string (Azure resource name)",
+    "hunting_notes": "Use to correlate Falcon telemetry with Azure resource inventory/tagging for the same VM.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event AzureVirtualMachine; name is unambiguous."
+  },
+  {
+    "field": "BaseModuleName",
+    "description": "The name of the base/host module involved in the hooking activity recorded by this event.",
+    "semantic_role": "file_path",
+    "data_format": "UTF-8 string (module/file name)",
+    "hunting_notes": "On XumdHookEvent this likely names the module that was hooked (as opposed to the hooking module); ideally pair with any hooking-module/target-address fields to fully characterize the hook, but this KB doesn't expose XumdHookEvent's full field set for confirmation.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, single event XumdHookEvent -- the event name itself ('Xumd', meaning unconfirmed in this KB) and the lack of other visible co-occurring fields prevent a fully confident read of what 'base' distinguishes here."
+  },
+  {
+    "field": "BiosChanged",
+    "description": "Indicates whether the system BIOS was detected as changed, as measured via TPM Platform Configuration Register (PCR) values.",
+    "semantic_role": "bool",
+    "data_format": "unknown (stored as match_only_text; likely a stringified boolean)",
+    "hunting_notes": "A changed/true value on TcgPcrInfo can indicate a firmware update, a bootkit, or tampering with boot-time measurements -- pair with ChangedPcrBitmap to see which specific PCR registers changed.",
+    "join_candidates": [
+      {
+        "to": "ChangedPcrBitmap",
+        "why": "both describe which/whether PCR-measured boot components changed on the same TcgPcrInfo event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event TcgPcrInfo (TPM PCR measurement event), co-occurring with ChangedPcrBitmap; name is self-descriptive though the text-typed storage of what should be a boolean is unexplained."
+  },
+  {
+    "field": "BluetoothDeviceAddress",
+    "description": "The hardware (MAC) address of the Bluetooth device involved in this connection event.",
+    "semantic_role": "mac",
+    "data_format": "MAC address (colon- or hyphen-delimited hex; exact delimiter unconfirmed)",
+    "hunting_notes": "Useful for tracking/fingerprinting specific Bluetooth peripherals across hosts, e.g. to spot a known-bad or unauthorized device connecting to multiple machines.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DcBluetoothDeviceConnected; name unambiguous."
+  },
+  {
+    "field": "BootArgs",
+    "description": "The boot-time argument string recorded for the host. On HostInfo, CrowdStrike's own CIM mapping extracts the host's serial number from this string by splitting on '=' and taking the last segment, indicating BootArgs there contains a key=value token (e.g. a '...serial=<value>' style boot argument).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (delimited key=value boot-argument string)",
+    "hunting_notes": "On HostInfo this is the documented source of the CIM 'serial' field -- useful when a dedicated serial-number field isn't present. Unusual/unexpected boot arguments (e.g. debug/recovery flags) could indicate a manipulated boot environment, though that reading isn't confirmed here.",
+    "join_candidates": [
+      {
+        "to": "serial",
+        "why": "CrowdStrike's own CIM eval computes the CIM 'serial' field from BootArgs on HostInfo by taking the value after the last '='",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "fdr-to-CIM mapping for the CIM field 'serial': case(event_simpleName=\"HostInfo\", mvindex(split(BootArgs, \"=\"), -1), ...) -- directly shows BootArgs' structure and its use as a serial-number source on HostInfo; appears on 2 events (HostInfo, OsVersionInfo), type=keyword."
+  },
+  {
+    "field": "BrowserExtensionArchitecture",
+    "description": "The CPU/binary architecture (e.g. x86, x64) associated with the installed browser extension recorded by this event.",
+    "semantic_role": "platform",
+    "data_format": "unknown (likely a short arch string, e.g. \"x64\")",
+    "hunting_notes": "Rarely a hunting signal by itself; more useful for inventory/compatibility context alongside BrowserName/BrowserExtensionName.",
+    "join_candidates": [
+      {
+        "to": "BrowserExtensionName",
+        "why": "sibling fields on the same InstalledBrowserExtension record",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type blank, single event InstalledBrowserExtension; 'architecture' is an unusual attribute for a browser extension (extensions are typically architecture-independent), so the exact meaning (host arch vs. a native-messaging helper's arch) can't be confirmed from name and event alone."
+  },
+  {
+    "field": "BrowserExtensionInstalledTimestamp",
+    "description": "The timestamp at which the browser extension recorded by this event was installed.",
+    "semantic_role": "timestamp",
+    "data_format": "unknown (likely epoch; type not recorded in this KB)",
+    "hunting_notes": "Compare against the event's own ingestion timestamp to spot extensions installed long before being observed, or cluster installs across hosts to spot a mass/scripted extension push.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type blank, single event InstalledBrowserExtension; name is unambiguous for a timestamp role even though this KB's automatic classifier left it unclassified (likely due to the blank type field)."
+  },
+  {
+    "field": "BrowserExtensionName",
+    "description": "The name of the installed browser extension recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Primary field for identifying which extension was installed; cross-reference against known-malicious extension name/ID lists.",
+    "join_candidates": [
+      {
+        "to": "BrowserName",
+        "why": "sibling fields identifying the extension and its host browser on the same InstalledBrowserExtension event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank, single event InstalledBrowserExtension; name unambiguous."
+  },
+  {
+    "field": "BrowserExtensionStatusEnabled",
+    "description": "Whether the installed browser extension is currently enabled.",
+    "semantic_role": "bool",
+    "data_format": "unknown (stored as keyword; likely a stringified boolean)",
+    "hunting_notes": "A disabled-but-installed extension can indicate a persistence mechanism staged for later re-enable, or leftover from a removed threat; worth checking against BrowserExtensionInstalledTimestamp for recency.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event InstalledBrowserExtension; name is self-descriptive for a boolean status despite the keyword (string) storage type."
+  },
+  {
+    "field": "BrowserName",
+    "description": "The name of the browser (e.g. Chrome, Firefox, Edge) that the installed extension belongs to.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Scope extension-related hunting/inventory queries by browser.",
+    "join_candidates": [
+      {
+        "to": "BrowserExtensionName",
+        "why": "identifies which browser hosts the extension named in the sibling field",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event InstalledBrowserExtension; name unambiguous."
+  },
+  {
+    "field": "BrowserProfileName",
+    "description": "The name of the browser profile (e.g. \"Default\", \"Profile 1\") under which the extension is installed.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Multi-profile browsers can hide malicious extensions in a non-default profile; this field lets a hunter scope to the specific profile.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event InstalledBrowserExtension; name unambiguous."
+  },
+  {
+    "field": "BundleID",
+    "description": "The bundle identifier (e.g. com.vendor.product) of the macOS kernel extension (kext) loaded, as recorded by this event.",
+    "semantic_role": "identifier",
+    "data_format": "reverse-DNS string (macOS bundle ID)",
+    "hunting_notes": "Compare against Apple's/vendor's known-good kext bundle IDs; an unrecognized or spoofed-looking bundle ID (e.g. mimicking a system identifier) on a KextLoad event is a strong signal given how tightly Apple restricts third-party kexts.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event KextLoad (macOS kernel extension load); 'BundleID' is the standard macOS terminology for this identifier."
+  },
+  {
+    "field": "CNAMERecords",
+    "description": "The CNAME records returned in the DNS response for the request recorded by this event.",
+    "semantic_role": "domain",
+    "data_format": "UTF-8 string (one or more domain names)",
+    "hunting_notes": "CNAME chains are commonly used by malware C2/CDN-fronting infrastructure and by phishing kits riding legitimate CDNs; unusual or long CNAME chains, or CNAMEs to newly-registered/low-reputation domains, are worth flagging.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DnsRequest; name unambiguous."
+  },
+  {
+    "field": "CertificateIssuer",
+    "description": "The issuer (certificate authority) of the code-signing certificate used to sign the driver loaded in this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (X.509 issuer distinguished name)",
+    "hunting_notes": "Compare against expected/trusted CA issuers; self-signed or unusual issuers on kernel drivers are a strong signal given how tightly Windows restricts unsigned/improperly-signed driver loading.",
+    "join_candidates": [
+      {
+        "to": "CertificatePublisher",
+        "why": "sibling code-signing certificate fields on the same DriverLoad event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DriverLoad; name unambiguous, standard Authenticode terminology."
+  },
+  {
+    "field": "CertificatePublisher",
+    "description": "The publisher (subject) named in the code-signing certificate used to sign the driver loaded in this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (X.509 subject/publisher name)",
+    "hunting_notes": "Primary field for identifying who signed a loaded driver; cross-reference against known-good vendor lists and watch for publisher names that mimic legitimate vendors.",
+    "join_candidates": [
+      {
+        "to": "CertificateIssuer",
+        "why": "sibling code-signing certificate fields on the same DriverLoad event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DriverLoad; name unambiguous."
+  },
+  {
+    "field": "CertificateSignatureHashAlgorithm",
+    "description": "The hash algorithm (e.g. SHA1, SHA256) used in the code-signing certificate's signature for the driver loaded in this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (algorithm name)",
+    "hunting_notes": "A driver still signed with a weak/deprecated algorithm (e.g. SHA1) can indicate an old, unmaintained, or deliberately downgraded signature -- worth flagging alongside CertificateIssuer/Publisher.",
+    "join_candidates": [
+      {
+        "to": "CertificateIssuer",
+        "why": "sibling code-signing certificate fields on the same DriverLoad event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DriverLoad; name unambiguous."
+  },
+  {
+    "field": "ChangedPcrBitmap",
+    "description": "A bitmap indicating which TPM Platform Configuration Registers (PCRs) changed value, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a bitmask string, e.g. hex or binary)",
+    "hunting_notes": "Individual bit positions map to specific PCR indices (which in turn map to specific boot-measurement stages -- firmware, bootloader, OS loader, etc.); which bits changed can help localize where in the boot chain a change occurred, though the exact bit-to-PCR mapping isn't documented in this KB.",
+    "join_candidates": [
+      {
+        "to": "BiosChanged",
+        "why": "both describe changed boot-measurement state on the same TcgPcrInfo event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event TcgPcrInfo; name self-descriptive for a bitmap of changed PCRs."
+  },
+  {
+    "field": "ChannelVersionRequired",
+    "description": "The minimum/required content-channel version recorded by this event, part of CrowdStrike's channel-file update mechanism.",
+    "semantic_role": "version",
+    "data_format": "unknown (likely integer version number)",
+    "hunting_notes": "More useful for sensor-content/version auditing than direct threat hunting; a mismatch could explain missing detections tied to newer channel content.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event ChannelVersionRequired (event name matches field name exactly); 'channel' is CrowdStrike's term for its detection-content update files."
+  },
+  {
+    "field": "ChasisManufacturer",
+    "description": "The manufacturer of the host's hardware chassis, as reported at agent startup (misspelling of \"Chassis\" preserved from the source schema).",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (vendor name, likely from SMBIOS)",
+    "hunting_notes": "Useful for asset/hardware inventory and for spotting VM/virtualization chassis vendors (e.g. \"QEMU\", \"VMware\") when investigating whether a host is physical or virtual.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event AgentOnline; name (despite the typo) is unambiguous and matches standard SMBIOS chassis-manufacturer semantics."
+  },
+  {
+    "field": "ClientProcessStartKey",
+    "description": "A CrowdStrike process-start-key identifier for the client process associated with the service-stop event.",
+    "semantic_role": "identifier",
+    "data_format": "hex/composite identifier (CrowdStrike ProcessStartKey format)",
+    "hunting_notes": "Use to pivot from a ServiceStopped event to the specific process instance (by start key, which is unique per process launch, unlike a recycled OS PID) that requested/performed the stop.",
+    "join_candidates": [
+      {
+        "to": "ProcessStartKey",
+        "why": "same CrowdStrike process-start-key identifier family, used to join to the originating process's full lineage",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event ServiceStopped; 'ProcessStartKey' is an already-enriched field in this KB (batch_004) documented as CrowdStrike's stable per-launch process identifier, and 'Client...StartKey' here follows that same naming convention for the process that acted as client to the stopped service."
+  },
+  {
+    "field": "CloudIndicator",
+    "description": "A boolean flag indicating whether the host/endpoint associated with this detection is a cloud workload.",
+    "semantic_role": "bool",
+    "data_format": "boolean",
+    "hunting_notes": "Use to scope detection triage/response playbooks differently for cloud workloads (e.g. ephemeral instances, different containment options) versus traditional endpoints.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=boolean, single event Event_EppDetectionSummaryEvent; name unambiguous and type confirms boolean."
+  },
+  {
+    "field": "CommandCountMax",
+    "description": "The maximum number of commands retained/tracked in the command-history buffer represented by this event.",
+    "semantic_role": "count",
+    "data_format": "unknown (stored as match_only_text; likely an integer)",
+    "hunting_notes": "Defines the capacity of the CommandHistory/CommandSequence buffer; relevant mainly for understanding whether older commands may have rolled off before capture, not a direct hunting signal.",
+    "join_candidates": [
+      {
+        "to": "CommandSequence",
+        "why": "CommandCountMax bounds the CommandSequence numbering on the same CommandHistory event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event CommandHistory, co-occurring with CommandHistory/CommandSequence/ApplicationName; name self-descriptive."
+  },
+  {
+    "field": "CommandHistory",
+    "description": "The recorded shell/application command-line history content for this event.",
+    "semantic_role": "command",
+    "data_format": "UTF-8 text (likely one or more command lines)",
+    "hunting_notes": "Direct evidence of commands a user or process executed in an interactive shell -- high value for reconstructing attacker/operator activity when process-level command-line logging alone misses interactively-typed commands.",
+    "join_candidates": [
+      {
+        "to": "ApplicationName",
+        "why": "scopes which shell/app produced this command history on the same event",
+        "confidence": "medium"
+      },
+      {
+        "to": "CommandSequence",
+        "why": "orders the entries within this command history on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event CommandHistory (event name matches field name); co-occurs with ApplicationName/CommandSequence/CommandCountMax, all consistent with a shell-history-capture event."
+  },
+  {
+    "field": "CommandSequence",
+    "description": "The sequence number/ordering of an individual command within the CommandHistory captured by this event.",
+    "semantic_role": "count",
+    "data_format": "unknown (likely integer sequence number)",
+    "hunting_notes": "Use to reconstruct the order commands were entered when a CommandHistory event contains multiple entries.",
+    "join_candidates": [
+      {
+        "to": "CommandHistory",
+        "why": "orders the entries within this command-history event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event CommandHistory; name self-descriptive."
+  },
+  {
+    "field": "ConfigStateData",
+    "description": "Raw/serialized configuration-state payload data carried by this event.",
+    "semantic_role": "other",
+    "data_format": "text (serialized payload, format unspecified)",
+    "hunting_notes": "Likely internal sensor/policy configuration state rather than endpoint activity; low direct hunting value unless the specific configuration keys within the payload are known.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=text, single event ConfigStateUpdate (event name matches field name); no decode table or sibling fields in this KB reveal the payload's internal structure."
+  },
+  {
+    "field": "ConfigurationDescriptorMaxPowerDraw",
+    "description": "The maximum power draw value declared in the USB configuration descriptor of the device recorded by this event (the USB spec's bMaxPower field).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer, USB spec units of 2mA)",
+    "hunting_notes": "Primarily a USB device-inventory/fingerprinting attribute; combined with other DcUsbConfigurationDescriptor fields it can help fingerprint a specific USB device model, useful for tracking a known-bad USB device across hosts.",
+    "join_candidates": [
+      {
+        "to": "ConfigurationDescriptorNumInterfaces",
+        "why": "sibling USB configuration-descriptor fields describing the same device on the same event",
+        "confidence": "medium"
+      },
+      {
+        "to": "ConfigurationDescriptorValue",
+        "why": "sibling USB configuration-descriptor fields describing the same device on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DcUsbConfigurationDescriptor; field name maps directly to the standard USB configuration descriptor's bMaxPower field."
+  },
+  {
+    "field": "ConfigurationDescriptorNumInterfaces",
+    "description": "The number of interfaces declared in the USB configuration descriptor of the device recorded by this event (the USB spec's bNumInterfaces field).",
+    "semantic_role": "count",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Devices presenting an unusual number of interfaces (e.g. a USB device that also enumerates as a HID/keyboard interface) is a classic BadUSB/HID-injection pattern worth flagging.",
+    "join_candidates": [
+      {
+        "to": "ConfigurationDescriptorMaxPowerDraw",
+        "why": "sibling USB configuration-descriptor fields describing the same device on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DcUsbConfigurationDescriptor; maps directly to the standard USB bNumInterfaces field."
+  },
+  {
+    "field": "ConfigurationDescriptorValue",
+    "description": "The configuration value (selector index) declared in the USB configuration descriptor of the device recorded by this event (the USB spec's bConfigurationValue field).",
+    "semantic_role": "other",
+    "data_format": "unknown (likely small integer)",
+    "hunting_notes": "Low direct hunting value on its own; useful as part of full USB device fingerprinting alongside the other ConfigurationDescriptor.* fields.",
+    "join_candidates": [
+      {
+        "to": "ConfigurationDescriptorNumInterfaces",
+        "why": "sibling USB configuration-descriptor fields describing the same device on the same event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DcUsbConfigurationDescriptor; maps directly to the standard USB bConfigurationValue field."
+  },
+  {
+    "field": "ContentDiff",
+    "description": "A nested container holding details of a content diff (e.g. whether the file exists and its resulting hash) for a file-integrity-monitoring match.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference the ContentDiff.* child fields directly for the actual exists/hash values.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank (nested/object), single event Event_FileIntegrityMonitorRuleMatchedEnriched, co-occurring set is exactly its two children ContentDiff.Exists and ContentDiff.SHA256 -- confirms parent/child nested relationship, matching the pattern already established for other container fields in this KB (e.g. AnodeIndicators, Policy)."
+  },
+  {
+    "field": "ContentDiff.Exists",
+    "description": "Whether the file (or the post-change content it represents) exists at the time this FIM event's content diff was captured.",
+    "semantic_role": "bool",
+    "data_format": "boolean",
+    "hunting_notes": "Distinguishes a file-integrity match where content was modified (exists=true, new hash present) from one where the file was deleted (exists=false).",
+    "join_candidates": [
+      {
+        "to": "ContentDiff.SHA256",
+        "why": "pairs existence with the resulting content hash for the same FIM match",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=boolean, single event Event_FileIntegrityMonitorRuleMatchedEnriched, sibling of ContentDiff.SHA256; name and type unambiguous."
+  },
+  {
+    "field": "ContentDiff.SHA256",
+    "description": "The SHA256 hash of the file content after the change, as captured for this file-integrity-monitoring match.",
+    "semantic_role": "hash",
+    "data_format": "hex string (SHA256, 64 hex chars)",
+    "hunting_notes": "Compare against known-good/known-bad file hashes, or against a prior baseline hash for the same file path, to assess whether a monitored file's change is expected or malicious.",
+    "join_candidates": [
+      {
+        "to": "ContentDiff.Exists",
+        "why": "pairs the resulting content hash with whether the file exists for the same FIM match",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type blank but named SHA256, single event Event_FileIntegrityMonitorRuleMatchedEnriched, sibling of ContentDiff.Exists; name unambiguous."
+  },
+  {
+    "field": "ContentPatterns",
+    "description": "A nested container of matched data-loss-prevention content-pattern details (ContentPatterns.ID, .Name, .ConfidenceLevel, .MatchCount) on a DLP detection event.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference the ContentPatterns.* child fields directly for the actual pattern identity and match strength.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank (nested/object), single event Event_DataProtectionDetectionSummaryEvent, co-occurring set is exactly its four children (ConfidenceLevel, ID, MatchCount, Name) -- confirms parent/child nested relationship, matching the pattern already established for AnodeIndicators/Policy/MitreAttack in this KB."
+  },
+  {
+    "field": "ContentPatterns.ID",
+    "description": "The identifier of the matched DLP content pattern (e.g. a specific sensitive-data pattern/rule), paired with .Name.",
+    "semantic_role": "identifier",
+    "data_format": "unknown (likely numeric or short code)",
+    "hunting_notes": "Use with ContentPatterns.Name/.ConfidenceLevel/.MatchCount to know exactly which sensitive-data pattern matched and how strongly.",
+    "join_candidates": [
+      {
+        "to": "ContentPatterns.Name",
+        "why": "ID/Name pair labeling the same matched content pattern",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event Event_DataProtectionDetectionSummaryEvent, sibling of Name/ConfidenceLevel/MatchCount within ContentPatterns -- standard ID/Name pairing pattern seen elsewhere in this KB."
+  },
+  {
+    "field": "ContentPatterns.Name",
+    "description": "The name of the matched DLP content pattern (e.g. a sensitive-data type such as credit-card or SSN pattern), paired with .ID.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Primary human-readable field for identifying what kind of sensitive content matched in a DLP detection.",
+    "join_candidates": [
+      {
+        "to": "ContentPatterns.ID",
+        "why": "ID/Name pair labeling the same matched content pattern",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event Event_DataProtectionDetectionSummaryEvent, sibling of ID within ContentPatterns."
+  }
+]

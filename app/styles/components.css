@@ -1,0 +1,1593 @@
+/* Reach — components (ARCHITECTURE §4.2). One block per component.
+ * Class names: r-<component>, r-<component>__part, r-<component>--variant.
+ *
+ * Hue appears in exactly three places: trust chips, hazard treatments, and
+ * the accent on interaction state. Everything else is graphite.
+ */
+
+/* ---- shared: fields --------------------------------------------------- */
+
+.r-field {
+  display: grid;
+  gap: var(--sp-1);
+}
+
+.r-field__label {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  font-size: var(--fs-1);
+  color: var(--fg-1);
+}
+
+.r-field__label code {
+  color: var(--fg-0);
+}
+
+.r-field__req,
+.r-step__req {
+  font-size: var(--fs-1);
+  color: var(--fg-2);
+}
+
+.r-field__req::before,
+.r-step__req::before {
+  content: "\2022\00a0";
+}
+
+.r-field__input {
+  width: 100%;
+  min-width: 0;
+  padding: var(--sp-1) var(--sp-2);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2);
+  line-height: 1.6;
+  color: var(--fg-0);
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-1);
+}
+
+.r-field__input::placeholder {
+  color: var(--fg-2);
+}
+
+.r-field__input:focus-visible {
+  border-color: var(--accent);
+  outline-offset: 0;
+}
+
+.r-field__hint {
+  font-size: var(--fs-1);
+  color: var(--fg-2);
+}
+
+/* ---- chip ------------------------------------------------------------- */
+/* Trust chips are filled with their tint; layer and route chips are
+ * outline-only so grey `inferred` never reads as a layer chip. */
+
+.r-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4em;
+  height: 20px;
+  padding-inline: 0.5em;
+  font-family: var(--font-mono);
+  font-size: var(--fs-1);
+  line-height: 1;
+  white-space: nowrap;
+  vertical-align: middle;
+  border-radius: var(--radius-1);
+  border: 1px solid transparent;
+}
+
+.r-chip--layer {
+  color: var(--layer-fg);
+  background: transparent;
+  border-color: var(--line);
+  padding-left: 0;
+  overflow: hidden;
+}
+
+.r-chip__n {
+  display: inline-grid;
+  place-items: center;
+  align-self: stretch;
+  padding-inline: 0.45em;
+  font-weight: 700;
+  color: var(--layer-fg);
+  background: var(--layer-bg);
+  border-right: 1px solid var(--line);
+}
+
+.r-chip--route {
+  color: var(--fg-1);
+  border-color: var(--line);
+}
+
+.r-chip__glyph {
+  font-weight: 700;
+}
+
+.r-chip--trust,
+.r-chip--hazard {
+  font-weight: 600;
+}
+
+.r-chip--confirmed {
+  color: var(--trust-confirmed-fg);
+  background: var(--trust-confirmed-bg);
+  border-color: color-mix(in srgb, var(--trust-confirmed-fg) 35%, transparent);
+}
+
+.r-chip--asserted {
+  color: var(--trust-asserted-fg);
+  background: var(--trust-asserted-bg);
+  border-color: color-mix(in srgb, var(--trust-asserted-fg) 35%, transparent);
+}
+
+.r-chip--suggested {
+  color: var(--trust-suggested-fg);
+  background: var(--trust-suggested-bg);
+  border-color: color-mix(in srgb, var(--trust-suggested-fg) 35%, transparent);
+}
+
+.r-chip--inferred {
+  color: var(--trust-inferred-fg);
+  background: var(--trust-inferred-bg);
+  border-color: color-mix(in srgb, var(--trust-inferred-fg) 35%, transparent);
+}
+
+.r-chip--hazard {
+  color: var(--hazard-fg);
+  background: var(--hazard-bg);
+  border-color: color-mix(in srgb, var(--hazard-fg) 45%, transparent);
+}
+
+/* confidence meter: three segments, same hue as the tier */
+
+.r-meter {
+  display: inline-flex;
+  gap: 2px;
+  margin-left: 0.15em;
+}
+
+.r-meter i {
+  display: block;
+  width: 5px;
+  height: 9px;
+  border: 1px solid currentColor;
+  border-radius: 1px;
+  opacity: 0.45;
+}
+
+.r-meter i.is-on {
+  background: currentColor;
+  opacity: 1;
+}
+
+.r-chip__conf {
+  font-weight: 400;
+}
+
+/* ---- keycap ----------------------------------------------------------- */
+
+.r-keyhint {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--fg-1);
+  font-size: var(--fs-1);
+}
+
+/* ---- omnibox ---------------------------------------------------------- */
+
+.r-omnibox {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.r-omnibox__field {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-height: 38px;
+  padding-inline: var(--sp-3);
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+}
+
+.r-omnibox--focused .r-omnibox__field,
+.r-omnibox:focus-within .r-omnibox__field {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+.r-omnibox__hint kbd {
+  color: var(--fg-2);
+}
+
+.r-omnibox:focus-within .r-omnibox__hint,
+.r-omnibox--focused .r-omnibox__hint {
+  visibility: hidden;
+}
+
+.r-omnibox__input {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 36px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-3);
+  background: transparent;
+  border: 0;
+  color: var(--fg-0);
+}
+
+.r-omnibox__input::placeholder {
+  font-family: var(--font-sans);
+  color: var(--fg-2);
+}
+
+.r-omnibox__input:focus {
+  outline: none;
+}
+
+.r-omnibox__classified {
+  display: inline-flex;
+  align-items: center;
+  height: 22px;
+  padding-inline: var(--sp-2);
+  font-size: var(--fs-1);
+  color: var(--fg-1);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-1);
+  white-space: nowrap;
+}
+
+.r-omnibox__classified::before {
+  content: "looks like";
+  margin-right: 0.4em;
+  color: var(--fg-2);
+}
+
+.r-omnibox__list {
+  display: none;
+  position: absolute;
+  z-index: 30;
+  inset-inline: 0;
+  top: calc(100% + 4px);
+  max-height: 50vh;
+  overflow-y: auto;
+  margin: 0;
+  padding: var(--sp-1) 0;
+  list-style: none;
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+  box-shadow: 0 12px 32px -12px rgb(0 0 0 / 0.6);
+}
+
+.r-omnibox--open .r-omnibox__list {
+  display: block;
+}
+
+/* gallery shows the list in flow */
+.r-omnibox--static .r-omnibox__list {
+  position: static;
+  box-shadow: none;
+  margin-top: var(--sp-1);
+}
+
+.r-omnibox__option {
+  display: grid;
+  grid-template-columns: 6.5em minmax(0, 1fr);
+  column-gap: var(--sp-3);
+  align-items: baseline;
+  padding: var(--sp-1) var(--sp-3);
+  cursor: pointer;
+}
+
+.r-omnibox__option[aria-selected="true"] {
+  background: var(--accent-bg);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.r-omnibox__option:hover {
+  background: var(--bg-3);
+}
+
+.r-omnibox__optkind {
+  font-size: var(--fs-1);
+  color: var(--fg-2);
+}
+
+.r-omnibox__optname {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2);
+  color: var(--fg-0);
+  overflow-wrap: anywhere;
+}
+
+.r-omnibox__opthint {
+  grid-column: 2;
+  font-size: var(--fs-1);
+  color: var(--fg-1);
+}
+
+/* ---- ledger ----------------------------------------------------------- */
+
+.r-ledger {
+  display: grid;
+  gap: var(--sp-5);
+}
+
+.r-ledger__band {
+  min-width: 0;
+}
+
+.r-ledger__head {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-2);
+  font-size: var(--fs-4);
+  font-weight: 600;
+}
+
+.r-ledger__glyph {
+  display: inline-grid;
+  place-items: center;
+  width: 1.4em;
+  font-family: var(--font-mono);
+  font-weight: 400;
+  color: var(--fg-1);
+}
+
+.r-ledger__count {
+  font-family: var(--font-mono);
+  font-size: var(--fs-1);
+  font-weight: 400;
+  color: var(--fg-2);
+}
+
+.r-ledger__note {
+  margin: 0 0 var(--sp-2) calc(1.4em + var(--sp-2));
+  font-size: var(--fs-2);
+  color: var(--fg-1);
+}
+
+.r-ledger__scroll {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+}
+
+.r-ledger__table {
+  width: 100%;
+  font-size: var(--fs-2);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+
+.r-ledger__table th,
+.r-ledger__table td {
+  padding: var(--sp-2) var(--sp-2);
+  text-align: left;
+  vertical-align: top;
+}
+
+.r-ledger__table th {
+  font-size: var(--fs-1);
+  font-weight: 500;
+  color: var(--fg-2);
+  white-space: nowrap;
+  border-bottom: 1px solid var(--line);
+}
+
+.r-ledger__table td {
+  border-bottom: 1px solid color-mix(in srgb, var(--line) 60%, transparent);
+}
+
+.r-ledger__table tr:last-child td {
+  border-bottom: 0;
+}
+
+.r-ledger__table code {
+  white-space: nowrap;
+}
+
+.r-ledger__wrap code {
+  white-space: normal;
+}
+
+.r-ledger__row {
+  cursor: pointer;
+  box-shadow: inset 3px 0 0 transparent;
+}
+
+.r-ledger__row:hover {
+  background: var(--bg-3);
+}
+
+.r-ledger__row:focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: -2px;
+}
+
+.r-ledger__row.is-selected {
+  background: var(--accent-bg);
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.r-ledger__row--hazard {
+  box-shadow: inset 3px 0 0 var(--hazard-fg);
+}
+
+.r-ledger__row--hazard .r-ledger__lead {
+  color: var(--hazard-fg);
+}
+
+.r-ledger__row--disabled {
+  cursor: default;
+  color: var(--fg-1);
+}
+
+.r-ledger__empty td {
+  padding-block: var(--sp-3);
+  color: var(--fg-2);
+  font-style: normal;
+}
+
+/* Band-specific: the unreachable band is prose-heavy; give the lead cell room. */
+
+.r-ledger__band--unreachable .r-ledger__lead {
+  min-width: 18em;
+  color: var(--fg-1);
+}
+
+/* ---- drawer ----------------------------------------------------------- */
+
+.r-drawer {
+  display: grid;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+  min-width: 0;
+}
+
+.r-drawer > * {
+  /* Grid items default to min-width:auto, which sizes them to their content --
+     long SPL lines and monospace subtitles then overrun the panel instead of
+     wrapping inside it. */
+  min-width: 0;
+}
+
+.r-drawer__head {
+  display: grid;
+  gap: var(--sp-1);
+  min-width: 0;
+}
+
+.r-drawer__kicker {
+  font-size: var(--fs-1);
+  color: var(--fg-2);
+}
+
+.r-drawer__title {
+  font-size: var(--fs-4);
+  font-weight: 600;
+  line-height: var(--lh-tight);
+}
+
+.r-drawer__sub {
+  font-family: var(--font-mono);
+  font-size: var(--fs-1);
+  color: var(--fg-1);
+  overflow-wrap: anywhere;
+}
+
+.r-drawer--empty .r-drawer__title:empty,
+.r-drawer--empty .r-drawer__sub:empty {
+  display: none;
+}
+
+.r-drawer__empty p {
+  color: var(--fg-1);
+}
+
+.r-drawer__body {
+  display: grid;
+  gap: var(--sp-4);
+  min-width: 0;
+}
+
+.r-drawer__body > * {
+  min-width: 0;
+}
+
+.r-drawer__body[hidden],
+.r-drawer__empty[hidden],
+.r-drawer__error[hidden],
+.r-drawer__params[hidden],
+.r-drawer__hazards[hidden] {
+  display: none;
+}
+
+.r-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.r-tabs__tab {
+  padding: var(--sp-1) var(--sp-3) var(--sp-2);
+  margin-bottom: -1px;
+  font-size: var(--fs-2);
+  color: var(--fg-1);
+  border-bottom: 2px solid transparent;
+  border-radius: var(--radius-1) var(--radius-1) 0 0;
+}
+
+.r-tabs__tab:hover {
+  color: var(--fg-0);
+}
+
+.r-tabs__tab[aria-selected="true"] {
+  color: var(--fg-0);
+  border-bottom-color: var(--accent);
+}
+
+.r-spl {
+  margin: 0;
+  padding: var(--sp-3);
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-1);
+  font-size: var(--fs-2);
+  line-height: 1.55;
+  color: var(--fg-0);
+  max-height: 60vh;
+  overflow: auto;
+  /* Soft-wrap rather than scroll sideways. This block is the product's
+     deliverable -- the hunter must be able to read every line, including the
+     ASSERTED and hazard comments, before they paste it. A hanging indent keeps
+     a wrapped line visibly subordinate to the pipeline step it belongs to. */
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  padding-left: calc(var(--sp-3) + 2ch);
+  text-indent: -2ch;
+}
+
+.r-spl-wrap {
+  position: relative;
+}
+
+.r-spl__copy {
+  position: absolute;
+  top: var(--sp-2);
+  right: var(--sp-2);
+  padding: 2px var(--sp-2);
+  font-family: var(--font-sans);
+  font-size: var(--fs-1);
+  color: var(--fg-0);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-1);
+  opacity: 0;
+  transition: opacity 120ms;
+  cursor: pointer;
+}
+
+.r-spl-wrap:hover .r-spl__copy,
+.r-spl-wrap:focus-within .r-spl__copy {
+  opacity: 1;
+}
+
+.r-spl__copy:hover {
+  background: var(--bg-3);
+}
+
+.r-spl__copy:focus-visible {
+  opacity: 1;
+}
+
+@media (hover: none) {
+  .r-spl__copy {
+    opacity: 1;
+  }
+}
+
+.r-spl__param {
+  color: inherit;
+  background: transparent;
+  border-bottom: 1px dashed var(--fg-1);
+  padding-bottom: 1px;
+}
+
+.r-drawer__params {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.r-drawer__hazards {
+  display: grid;
+  gap: var(--sp-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.r-drawer__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+.r-drawer__copy {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  height: 32px;
+  padding-inline: var(--sp-3);
+  font-weight: 600;
+  color: var(--bg-0);
+  background: var(--fg-0);
+  border-radius: var(--radius-1);
+}
+
+.r-drawer__copy kbd {
+  color: inherit;
+  background: transparent;
+  border-color: color-mix(in srgb, var(--bg-0) 45%, transparent);
+}
+
+.r-drawer__copy:hover {
+  background: var(--fg-1);
+}
+
+.r-drawer--copied .r-drawer__copy {
+  color: var(--fg-0);
+  background: transparent;
+  box-shadow: inset 0 0 0 1px var(--fg-0);
+}
+
+.r-drawer__status {
+  font-size: var(--fs-1);
+  color: var(--fg-1);
+}
+
+.r-drawer--error .r-drawer__head {
+  opacity: 0.85;
+}
+
+/* ---- callout ---------------------------------------------------------- */
+
+.r-callout {
+  display: grid;
+  grid-template-columns: 1.2em minmax(0, 1fr);
+  grid-template-areas:
+    "glyph label"
+    "glyph body";
+  column-gap: var(--sp-2);
+  row-gap: 2px;
+  padding: var(--sp-2) var(--sp-3);
+  font-size: var(--fs-2);
+  color: var(--fg-1);
+  background: var(--bg-2);
+  border-left: 2px solid var(--fg-2);
+  border-radius: 0 var(--radius-1) var(--radius-1) 0;
+}
+
+.r-callout__glyph {
+  grid-area: glyph;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  color: var(--fg-1);
+  line-height: var(--lh-body);
+}
+
+.r-callout__label {
+  grid-area: label;
+  font-weight: 600;
+  color: var(--fg-0);
+}
+
+.r-callout__body {
+  grid-area: body;
+}
+
+.r-callout__body p {
+  max-width: 64ch;
+}
+
+.r-callout__body p + p {
+  margin-top: var(--sp-1);
+}
+
+.r-callout--why {
+  border-left-style: dotted;
+}
+
+.r-callout--expect {
+  border-left-style: dashed;
+}
+
+.r-callout--caution {
+  border-left-width: 4px;
+  border-left-color: var(--fg-0);
+}
+
+.r-callout--caution .r-callout__glyph {
+  color: var(--fg-0);
+}
+
+.r-callout--hazard {
+  color: var(--fg-0);
+  background: var(--hazard-bg);
+  border-left-width: 4px;
+  border-left-color: var(--hazard-fg);
+}
+
+.r-callout--hazard .r-callout__glyph,
+.r-callout--hazard .r-callout__label {
+  color: var(--hazard-fg);
+}
+
+.r-callout--note {
+  background: transparent;
+  border-left-color: var(--line);
+}
+
+.r-callout--asserted {
+  color: var(--fg-0);
+  background: var(--trust-asserted-bg);
+  border-left-width: 4px;
+  border-left-color: var(--trust-asserted-fg);
+}
+
+.r-callout--asserted .r-callout__glyph,
+.r-callout--asserted .r-callout__label {
+  color: var(--trust-asserted-fg);
+}
+
+/* ---- step ------------------------------------------------------------- */
+
+.r-step {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  column-gap: var(--sp-3);
+  padding-block: var(--sp-4);
+  border-top: 1px solid var(--line);
+}
+
+.r-step__head {
+  display: contents;
+}
+
+.r-step__n {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2);
+  font-weight: 700;
+  color: var(--fg-1);
+  border: 1px solid var(--line);
+  border-radius: 50%;
+}
+
+.r-step--current .r-step__n {
+  color: var(--bg-0);
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.r-step--done .r-step__n {
+  color: var(--fg-2);
+}
+
+.r-step--done .r-step__n::before {
+  content: "\2713";
+}
+
+.r-step--done .r-step__n {
+  font-size: 0;
+}
+
+.r-step--done .r-step__n::before {
+  font-size: var(--fs-2);
+}
+
+.r-step__title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--sp-2);
+  min-height: 28px;
+  font-size: var(--fs-4);
+  line-height: 28px;
+}
+
+.r-step__body {
+  grid-column: 2;
+  display: grid;
+  gap: var(--sp-3);
+  margin-top: var(--sp-2);
+}
+
+.r-step__inputs {
+  display: grid;
+  gap: var(--sp-3);
+  max-width: 36em;
+}
+
+/* ---- table ------------------------------------------------------------ */
+
+.r-table-wrap {
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-1);
+}
+
+.r-table {
+  width: 100%;
+  font-size: var(--fs-2);
+}
+
+.r-table th,
+.r-table td {
+  padding: var(--sp-1) var(--sp-2);
+  text-align: left;
+  vertical-align: top;
+}
+
+.r-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  font-size: var(--fs-1);
+  font-weight: 500;
+  color: var(--fg-2);
+  background: var(--bg-2);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+}
+
+.r-table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--bg-2) 55%, transparent);
+}
+
+.r-table tbody tr:hover {
+  background: var(--bg-3);
+}
+
+.r-table__right {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.r-table__mono {
+  font-family: var(--font-mono);
+}
+
+.r-table code {
+  white-space: nowrap;
+}
+
+/* ---- source table ----------------------------------------------------- */
+
+.r-source-table {
+  width: 100%;
+  font-size: var(--fs-2);
+}
+
+.r-source-table caption {
+  padding: var(--sp-2);
+  text-align: left;
+  font-size: var(--fs-1);
+  color: var(--fg-1);
+  caption-side: top;
+}
+
+.r-source-table th,
+.r-source-table td {
+  padding: var(--sp-2);
+  text-align: left;
+  vertical-align: top;
+  border-top: 1px solid var(--line);
+}
+
+.r-source-table th {
+  font-size: var(--fs-1);
+  font-weight: 500;
+  color: var(--fg-2);
+  background: var(--bg-2);
+  white-space: nowrap;
+}
+
+.r-source-table__via {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  white-space: nowrap;
+}
+
+.r-source-table__st {
+  margin-top: var(--sp-1);
+  font-size: var(--fs-1);
+}
+
+.r-source-table__events code,
+.r-source-table__all code {
+  white-space: nowrap;
+}
+
+.r-source-table__more summary {
+  cursor: pointer;
+}
+
+.r-source-table__all {
+  margin-top: var(--sp-1);
+  line-height: 1.8;
+}
+
+.r-source-table__stmt {
+  min-width: 22em;
+}
+
+.r-source-table__stmt pre {
+  margin: 0;
+  padding: var(--sp-2);
+  max-width: 44em;
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-1);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+/* ---- empty ------------------------------------------------------------ */
+
+.r-empty {
+  display: grid;
+  gap: var(--sp-3);
+  padding-block: var(--sp-6);
+}
+
+.r-empty__title {
+  font-size: var(--fs-6);
+  letter-spacing: -0.015em;
+}
+
+.r-empty__line {
+  max-width: 60ch;
+  font-size: var(--fs-4);
+  color: var(--fg-1);
+}
+
+.r-empty__moves {
+  display: grid;
+  gap: var(--sp-2);
+  margin: var(--sp-2) 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.r-empty__moves li {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+}
+
+.r-empty__moves kbd {
+  min-width: 2em;
+}
+
+/* ---- meaning ---------------------------------------------------------- */
+
+.r-meaning {
+  display: grid;
+  gap: var(--sp-2);
+}
+
+.r-meaning__desc {
+  font-size: var(--fs-4);
+  line-height: 1.5;
+  max-width: 64ch;
+}
+
+.r-meaning__notes {
+  color: var(--fg-1);
+}
+
+.r-meaning__trust {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+  font-size: var(--fs-2);
+  color: var(--fg-1);
+}
+
+.r-meaning__statement {
+  margin: 0;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--bg-0);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-1);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.r-meaning__evidence {
+  font-size: var(--fs-2);
+  color: var(--fg-1);
+}
+
+.r-meaning__evidence summary {
+  cursor: pointer;
+  width: max-content;
+  color: var(--fg-0);
+}
+
+.r-meaning__evidence[open] summary {
+  margin-bottom: var(--sp-1);
+}
+
+.r-meaning__evidence p {
+  padding-left: var(--sp-3);
+  border-left: 2px solid var(--line);
+}
+
+/* ---- key-hint bar (used in the omnibox bar) --------------------------- */
+
+.r-keys {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  align-items: center;
+}
+
+@media (max-width: 899px) {
+  .r-keys {
+    display: none;
+  }
+}
+
+/* ===========================================================================
+ * Spine additions (app/views/*). Same r-<component> convention; no new hue,
+ * no new token — trust colours and the accent are the only colours here.
+ * ======================================================================== */
+
+/* ---- drawer: the error state still needs its inputs ---------------------
+ * generate() throws `unscoped_pid` until aid and the window are bound. That is
+ * the feature, so the escape route — the parameter inputs — has to stay on
+ * screen; only the SPL, its tabs and the copy button go away. */
+
+.r-drawer--error .r-drawer__body {
+  display: block;
+}
+
+.r-drawer--error .r-tabs,
+.r-drawer--error .r-drawer__panel,
+.r-drawer--error .r-drawer__actions {
+  display: none;
+}
+
+/* ---- boot failure ------------------------------------------------------- */
+
+.r-bootfail {
+  max-width: 68ch;
+  margin: var(--sp-7) auto;
+  padding: var(--sp-5);
+  background: var(--bg-1);
+  border: 1px solid var(--hazard-fg);
+  border-left-width: 3px;
+  border-radius: var(--radius-2);
+}
+
+.r-bootfail h1 {
+  font-size: var(--fs-5);
+  margin-bottom: var(--sp-3);
+}
+
+.r-bootfail p {
+  margin-bottom: var(--sp-3);
+}
+
+.r-bootfail__cmd {
+  padding: var(--sp-3);
+  background: var(--bg-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+  margin-bottom: var(--sp-3);
+  white-space: pre-wrap;
+}
+
+/* ---- skip link ---------------------------------------------------------- */
+
+.r-skip {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  z-index: 40;
+  padding: var(--sp-2) var(--sp-3);
+  background: var(--bg-2);
+  border: 1px solid var(--accent);
+}
+
+.r-skip:focus {
+  left: var(--sp-3);
+  top: var(--sp-2);
+}
+
+/* ---- what you hold (page header) ---------------------------------------- */
+
+.r-hold__head {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-2);
+}
+
+.r-hold__name {
+  font-family: var(--font-mono);
+  font-size: var(--fs-5);
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.r-hold__role {
+  color: var(--fg-1);
+  margin-bottom: var(--sp-3);
+}
+
+.r-hold .r-callout,
+.r-hold .r-meaning {
+  margin-top: var(--sp-3);
+}
+
+/* ---- small text utilities ----------------------------------------------- */
+
+.r-inline {
+  display: inline;
+  overflow-wrap: anywhere;
+}
+
+.r-list {
+  max-width: 72ch;
+  color: var(--fg-1);
+}
+
+.r-list li + li {
+  margin-top: var(--sp-2);
+}
+
+.r-idlink {
+  text-decoration: none;
+}
+
+.r-idlink code {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--accent) 40%, transparent);
+  text-underline-offset: 0.15em;
+}
+
+.r-idlink:hover code {
+  text-decoration-color: var(--accent);
+}
+
+/* ---- co-fields / fields by role ----------------------------------------- */
+
+.r-cofields {
+  padding: var(--sp-4) 0 var(--sp-2);
+  border-top: 1px dashed var(--line);
+  margin-top: var(--sp-3);
+}
+
+.r-cofields > h4 {
+  margin-bottom: var(--sp-2);
+}
+
+.r-cofields__note {
+  font-size: var(--fs-1);
+  max-width: 78ch;
+  margin-bottom: var(--sp-3);
+}
+
+.r-rolelist {
+  display: grid;
+  gap: var(--sp-3);
+}
+
+.r-rolelist__group {
+  display: grid;
+  grid-template-columns: 12ch minmax(0, 1fr);
+  gap: var(--sp-3);
+  align-items: baseline;
+}
+
+.r-rolelist__role {
+  font-family: var(--font-mono);
+  font-size: var(--fs-1);
+  color: var(--fg-2);
+  text-align: right;
+  font-weight: 500;
+}
+
+.r-rolelist__fields {
+  max-width: none;
+  line-height: 1.9;
+}
+
+@media (max-width: 599px) {
+  .r-rolelist__group {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-1);
+  }
+
+  .r-rolelist__role {
+    text-align: left;
+  }
+}
+
+/* ---- ledger row sub-line ------------------------------------------------ */
+
+.r-ledger__sub {
+  font-size: var(--fs-1);
+  margin-top: var(--sp-1);
+  max-width: 60ch;
+}
+
+/* ---- start cards -------------------------------------------------------- */
+
+.r-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: var(--sp-3);
+  margin-bottom: var(--sp-4);
+}
+
+.r-card {
+  display: grid;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+  text-decoration: none;
+  color: inherit;
+}
+
+.r-card:hover {
+  background: var(--bg-2);
+  border-color: var(--accent);
+}
+
+.r-card__title {
+  font-weight: 600;
+  font-size: var(--fs-4);
+}
+
+.r-card__line {
+  color: var(--fg-1);
+  font-size: var(--fs-2);
+}
+
+.r-card__count {
+  color: var(--fg-2);
+  font-size: var(--fs-1);
+  font-family: var(--font-mono);
+}
+
+/* ---- the live example on the start screen ------------------------------- */
+
+.r-teaser__head {
+  margin-bottom: var(--sp-3);
+}
+
+.r-teaser__body {
+  padding: var(--sp-4);
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+  max-height: 720px;
+  overflow: hidden;
+  position: relative;
+}
+
+.r-teaser__body::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 96px;
+  background: linear-gradient(to bottom, transparent, var(--bg-1));
+  pointer-events: none;
+}
+
+/* ---- details blocks (decode table, same-role, why-no-formula) ----------- */
+
+.r-decode,
+.r-samerole {
+  margin-top: var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+  padding: var(--sp-3);
+  background: var(--bg-1);
+}
+
+.r-decode summary,
+.r-samerole summary {
+  cursor: pointer;
+  color: var(--fg-1);
+  font-size: var(--fs-2);
+}
+
+.r-decode[open] summary,
+.r-samerole[open] summary {
+  margin-bottom: var(--sp-3);
+}
+
+.r-decode__list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: var(--sp-1) var(--sp-4);
+  list-style: none;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+  font-size: var(--fs-2);
+}
+
+.r-decode__list code {
+  color: var(--fg-0);
+  margin-right: var(--sp-2);
+}
+
+/* ---- workflow: gate, results, troubleshooting, chain -------------------- */
+
+.r-gate {
+  margin-top: var(--sp-3);
+  padding: var(--sp-3);
+  border: 1px solid var(--hazard-fg);
+  border-radius: var(--radius-2);
+  background: var(--hazard-bg);
+}
+
+.r-gate__ask {
+  margin-bottom: var(--sp-3);
+}
+
+.r-gate__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+
+.r-gate__btn,
+.r-result__btn {
+  padding: var(--sp-2) var(--sp-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+  background: var(--bg-1);
+  color: var(--fg-0);
+  font-size: var(--fs-2);
+}
+
+.r-gate__btn:hover,
+.r-result__btn:hover {
+  border-color: var(--accent);
+}
+
+.r-gate__btn[aria-pressed="true"],
+.r-result__btn[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent-bg);
+  color: var(--fg-0);
+}
+
+.r-result__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-3);
+}
+
+.r-result__note {
+  color: var(--fg-1);
+  margin-bottom: var(--sp-3);
+}
+
+.r-trouble {
+  margin-bottom: var(--sp-4);
+}
+
+.r-trouble h4 {
+  margin-bottom: var(--sp-2);
+}
+
+.r-chain__link {
+  font-weight: 600;
+}
+
+/* ---- key map overlay ---------------------------------------------------- */
+
+.r-keymap {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--sp-4);
+  background: color-mix(in srgb, var(--bg-0) 78%, transparent);
+}
+
+.r-keymap__panel {
+  width: min(560px, 100%);
+  max-height: 80vh;
+  overflow-y: auto;
+  padding: var(--sp-5);
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+  box-shadow: var(--shadow-drawer);
+}
+
+.r-keymap__panel h2 {
+  margin-bottom: var(--sp-4);
+}
+
+.r-keymap__list {
+  list-style: none;
+  padding: 0;
+  display: grid;
+  gap: var(--sp-2);
+  margin-bottom: var(--sp-4);
+}
+
+.r-keymap__list li {
+  display: grid;
+  grid-template-columns: 6ch minmax(0, 1fr);
+  align-items: baseline;
+  gap: var(--sp-3);
+}
+
+.r-keymap__label {
+  color: var(--fg-1);
+}
+
+.r-keymap__close {
+  margin-top: var(--sp-4);
+  padding: var(--sp-2) var(--sp-4);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+  background: var(--bg-2);
+}
+
+.r-keymap__close:hover {
+  border-color: var(--accent);
+}
+
+/* ---- start lede --------------------------------------------------------- */
+
+.r-lede__name {
+  font-size: var(--fs-6);
+  letter-spacing: -0.02em;
+}
+
+.r-lede__line {
+  color: var(--fg-1);
+  font-size: var(--fs-4);
+  margin: var(--sp-2) 0 var(--sp-5);
+  max-width: 62ch;
+}
+
+/* A field on 176 events would otherwise push the rest of the ledger off the
+ * page. The event list scrolls; the bands below it stay reachable. */
+
+.r-ledger__band--here .r-ledger__scroll {
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+/* Co-fields can run to 70 names on a rich event; the band below has to stay
+ * reachable, so the list scrolls and the heading and its note do not. */
+
+.r-cofields .r-rolelist {
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+/* ---- ledger: automatic band ------------------------------------------- */
+/* Cost is position: this band sits between HERE and ONE JOIN because it is
+   free where the TA's stanza fires, but only there. No hue of its own. */
+
+.r-ledger__band--automatic .r-ledger__glyph {
+  color: var(--fg-1);
+}
+
+.r-ledger__yields {
+  font-size: var(--fs-1);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+
+/* ---- convert widgets ---------------------------------------------------- */
+
+.r-convert {
+  display: grid;
+  gap: var(--sp-2);
+  margin-block: var(--sp-3);
+  padding: var(--sp-3);
+  background: var(--bg-1);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-2);
+  max-width: 36em;
+}
+
+.r-convert__in {
+  font-family: var(--font-mono);
+}
+
+.r-convert__out {
+  display: block;
+  min-height: 1.4em;
+  font-size: var(--fs-2);
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+.r-convert__miss {
+  color: var(--fg-1);
+}
+
+.r-convert__note {
+  font-size: var(--fs-1);
+  margin: 0;
+}
+
+/* ---- drawer: run in Splunk -------------------------------------------- */
+
+.r-drawer__run {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: var(--sp-1) var(--sp-3);
+  font-size: var(--fs-2);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  border-radius: var(--radius-1);
+  text-decoration: none;
+}
+
+.r-drawer__run:hover {
+  background: var(--accent-bg);
+}
+
+.r-drawer__runcfg {
+  font-size: var(--fs-1);
+  color: var(--fg-1);
+}
+
+.r-drawer__runcfg summary {
+  cursor: pointer;
+}
+
+.r-drawer__runcfg p {
+  margin-block: var(--sp-1);
+}
+
+.r-drawer__base {
+  font-family: var(--font-mono);
+  font-size: var(--fs-1);
+}

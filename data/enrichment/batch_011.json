@@ -1,0 +1,750 @@
+[
+  {
+    "field": "SecurityInformationLinux",
+    "description": "Linux security-relevant information (e.g. an SELinux/AppArmor security context or security-descriptor-style data) associated with the monitored object in this file-integrity-monitoring event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a security-context string)",
+    "hunting_notes": "If this carries an SELinux/AppArmor label, a change here alongside NewUnixPermissions/NewFileAttributesLinux would indicate a broader security-context change on the monitored file, not just a permissions change.",
+    "join_candidates": [
+      {
+        "to": "NewUnixPermissions",
+        "why": "sibling security-relevant metadata fields on the same FileIntegrityMonitorRuleMatched event",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "low",
+    "evidence": "type=keyword, single event FileIntegrityMonitorRuleMatched, sibling of ObjectName/NewUnixPermissions/RegType; the generic 'SecurityInformation' + 'Linux' naming doesn't specify exactly which Linux security mechanism (DAC permissions vs. MAC labels vs. capabilities) it captures."
+  },
+  {
+    "field": "SensorGroupingTags",
+    "description": "Administrator-assigned grouping tags used to organize this host's sensor within the Falcon console (CrowdStrike's 'Falcon Grouping Tags' feature), as reported at agent startup.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (delimited list of tag labels)",
+    "hunting_notes": "Useful for scoping hunts to a specific business unit, environment, or asset class as defined by the organization's own tagging scheme, though the tag vocabulary is customer-defined rather than fixed.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event AgentOnline; 'Sensor Grouping Tags' is a documented, named CrowdStrike Falcon console feature for host organization/tagging."
+  },
+  {
+    "field": "SensorStateBitMap",
+    "description": "A bitmap of internal sensor state/feature-enablement flags, as reported by this sensor heartbeat event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a bitmask, integer or hex string)",
+    "hunting_notes": "Sensor health/telemetry field describing which sensor capabilities are active; useful for diagnosing sensor coverage gaps (e.g. a disabled feature bit) rather than direct endpoint threat activity.",
+    "join_candidates": [],
+    "confidence": "low",
+    "evidence": "type=keyword, single event SensorHeartbeat; name self-descriptive as an internal state bitmap, but no decode table in this KB defines the individual bit meanings."
+  },
+  {
+    "field": "SerialNumber",
+    "description": "The serial number of the connected accessory device, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Useful for tracking/fingerprinting a specific physical accessory across hosts, e.g. to spot a known-bad or unauthorized device connecting to multiple machines.",
+    "join_candidates": [
+      {
+        "to": "DevicePropertyFriendlyName",
+        "why": "sibling device-identity fields on the same AccessoryConnected event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event AccessoryConnected; name unambiguous."
+  },
+  {
+    "field": "ServiceAccessPropertiesEtw",
+    "description": "The access properties/rights requested in the directory-replication service call captured by this DCSync-detection event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a permission/access-mask string)",
+    "hunting_notes": "In a real DCSync-style attack this would reflect the specific replication rights requested (e.g. DS-Replication-Get-Changes / DS-Replication-Get-Changes-All), which is strong corroborating evidence alongside ObjectNameEtw/ObjectTypeEtw for confirming a credential-dumping attempt against Active Directory.",
+    "join_candidates": [
+      {
+        "to": "ObjectTypeEtw",
+        "why": "sibling ETW-captured request-detail fields on the same DCSyncAttempted event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event DCSyncAttempted, sibling of the already-enriched ObjectNameEtw/ObjectTypeEtw fields (batch_009); 'Etw' suffix and event context both point to captured directory-replication access-rights data."
+  },
+  {
+    "field": "ServiceDescription",
+    "description": "The description string of the Windows service whose binary was modified, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Attackers sometimes reuse or slightly alter a legitimate-looking service description to disguise a hijacked service; compare against the service's expected description.",
+    "join_candidates": [
+      {
+        "to": "ServiceSecurity",
+        "why": "sibling service-modification-detail fields on the same ModifyServiceBinary event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event ModifyServiceBinary; name unambiguous."
+  },
+  {
+    "field": "ServiceFailureActions",
+    "description": "The configured failure-recovery actions (e.g. restart the service) for the Windows service, as recorded by this service-binary-modification event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a serialized action list, e.g. Windows SC_ACTION structures)",
+    "hunting_notes": "Configuring a service to auto-restart on failure is a known persistence-hardening technique for a malicious service (ensuring it keeps running even if killed); check this alongside the modified service binary path.",
+    "join_candidates": [
+      {
+        "to": "ServiceDescription",
+        "why": "sibling service-modification-detail fields on the same ModifyServiceBinary event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event ModifyServiceBinary; 'ServiceFailureActions' maps to the standard Windows Service Control Manager concept (ChangeServiceConfig2's SERVICE_FAILURE_ACTIONS)."
+  },
+  {
+    "field": "ServiceSecurity",
+    "description": "The security descriptor/ACL of the Windows service, as recorded by this service-binary-modification event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a serialized or SDDL-style security descriptor)",
+    "hunting_notes": "A weakened service ACL (e.g. granting broad control rights to non-admin users) can enable later unauthorized start/stop/reconfiguration of the service -- a known privilege-escalation/persistence technique worth flagging alongside the binary-path change itself.",
+    "join_candidates": [
+      {
+        "to": "ServiceDescription",
+        "why": "sibling service-modification-detail fields on the same ModifyServiceBinary event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event ModifyServiceBinary; name self-descriptive for the service's security descriptor."
+  },
+  {
+    "field": "SessionPatternIdList",
+    "description": "A list of detection pattern IDs associated with the session in which the DNS request recorded by this event occurred.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of pattern-ID values)",
+    "hunting_notes": "Lets a hunter see whether other detections have fired within the same session as a flagged DNS request, useful for building a broader picture of session-level suspicious activity.",
+    "join_candidates": [
+      {
+        "to": "ParentProcessPatternIdList",
+        "why": "same pattern-ID identifier space as other *PatternIdList fields in this KB, scoped to a session rather than a process lineage",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event DNSRequestDetectInfo; name self-descriptive, following the same PatternIdList naming convention as the already-enriched ParentProcessPatternIdList/GrandparentProcessPatternIdList fields (batch_007/batch_009)."
+  },
+  {
+    "field": "ShannonEntropy",
+    "description": "The calculated Shannon entropy of the file's content, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a floating-point value, typically 0-8 bits/byte)",
+    "hunting_notes": "High entropy is a standard indicator of encrypted, compressed, or packed content -- this event (FileWrittenWithEntropyHigh) specifically flags files whose entropy crossed a threshold, which is a common ransomware and packed-malware detection heuristic.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FileWrittenWithEntropyHigh (event name matches concept); 'Shannon entropy' is a standard, well-defined information-theory measure used broadly in malware/ransomware detection."
+  },
+  {
+    "field": "ShareName",
+    "description": "The name of the network share whose security settings were modified, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Identifies which SMB share was targeted; weakening the security on a sensitive share (e.g. widening access to Everyone) is a common lateral-movement/persistence enabler.",
+    "join_candidates": [
+      {
+        "to": "ShareSecurity",
+        "why": "sibling share-security fields on the same NetShareSecurityModify event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event NetShareSecurityModify (event name matches concept); name unambiguous."
+  },
+  {
+    "field": "ShareSecurity",
+    "description": "The modified security settings of the network share, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a human-readable or serialized security-descriptor summary)",
+    "hunting_notes": "Use alongside ShareSecuritySddl (the precise SDDL form) to assess whether the share's access was widened (e.g. to Everyone/Guest) in a way that enables unauthorized access.",
+    "join_candidates": [
+      {
+        "to": "ShareSecuritySddl",
+        "why": "human-readable vs. SDDL representations of the same share security change on the same NetShareSecurityModify event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event NetShareSecurityModify, sibling of ShareSecuritySddl; name self-descriptive though its exact representation (vs. the SDDL sibling) isn't confirmed."
+  },
+  {
+    "field": "ShareSecuritySddl",
+    "description": "The Security Descriptor Definition Language (SDDL) string representation of the network share's modified security descriptor, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "SDDL string",
+    "hunting_notes": "The precise, parseable form of the share's ACL -- decode the SDDL to check exactly which principals (e.g. Everyone, Authenticated Users) were granted access and with what rights.",
+    "join_candidates": [
+      {
+        "to": "ShareSecurity",
+        "why": "SDDL vs. human-readable representations of the same share security change on the same NetShareSecurityModify event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event NetShareSecurityModify; 'Sddl' explicitly names the standard Windows Security Descriptor Definition Language format."
+  },
+  {
+    "field": "SignalEndTimestamp",
+    "description": "The timestamp marking the end of the signal window that produced this automated lead.",
+    "semantic_role": "timestamp",
+    "data_format": "date (per fields.json type)",
+    "hunting_notes": "Use with SignalStartTimestamp to bound the time window of activity that generated this lead when pulling related raw telemetry.",
+    "join_candidates": [
+      {
+        "to": "SignalStartTimestamp",
+        "why": "start/end pair bounding the same lead's signal window on the same Event_AutomatedLeadSummaryEvent",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=date, single event Event_AutomatedLeadSummaryEvent, sibling of SignalStartTimestamp/SignalUpdatedTimestamp/Score/LeadId; name and type unambiguous."
+  },
+  {
+    "field": "SignalStartTimestamp",
+    "description": "The timestamp marking the start of the signal window that produced this automated lead.",
+    "semantic_role": "timestamp",
+    "data_format": "date (per fields.json type)",
+    "hunting_notes": "Use with SignalEndTimestamp to bound the time window of activity that generated this lead when pulling related raw telemetry.",
+    "join_candidates": [
+      {
+        "to": "SignalEndTimestamp",
+        "why": "start/end pair bounding the same lead's signal window on the same Event_AutomatedLeadSummaryEvent",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=date, single event Event_AutomatedLeadSummaryEvent, sibling of SignalEndTimestamp; name and type unambiguous."
+  },
+  {
+    "field": "SignalUpdatedTimestamp",
+    "description": "The timestamp at which the signal underlying this automated lead was last updated.",
+    "semantic_role": "timestamp",
+    "data_format": "date (per fields.json type)",
+    "hunting_notes": "Useful for tracking whether a lead's underlying signal is still actively accumulating evidence (recently updated) versus stale.",
+    "join_candidates": [
+      {
+        "to": "SignalStartTimestamp",
+        "why": "sibling signal-lifecycle timestamp fields on the same Event_AutomatedLeadSummaryEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=date, single event Event_AutomatedLeadSummaryEvent; name and type unambiguous."
+  },
+  {
+    "field": "SkipAsSource",
+    "description": "Whether this IPv6 address is flagged to be skipped when the OS automatically selects a source address for outbound connections, as recorded by this event.",
+    "semantic_role": "bool",
+    "data_format": "unknown (stored as keyword; likely a stringified boolean)",
+    "hunting_notes": "Standard Windows IPv6 address configuration property; useful for network configuration auditing rather than direct threat hunting.",
+    "join_candidates": [],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event LocalIpAddressIP6; 'SkipAsSource' matches the exact Windows `New-NetIPAddress`/`Get-NetIPAddress` property name for this concept."
+  },
+  {
+    "field": "SmbClientName",
+    "description": "The name of the SMB client connecting to this SMB server, as recorded by this audit event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (hostname)",
+    "hunting_notes": "Identifies the source host of an SMB connection captured via ETW auditing; useful for lateral-movement investigation (e.g. identifying which host accessed a share or performed SMB-based reconnaissance).",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event SmbServerV1AuditEtw; name unambiguous."
+  },
+  {
+    "field": "SourceCommandLine",
+    "description": "The full command line of the source process that attempted the tampering recorded by this event.",
+    "semantic_role": "command",
+    "data_format": "UTF-8 string (wildcard-analyzed text)",
+    "hunting_notes": "This event (SensorTampering) is a high-priority self-protection alert -- SourceCommandLine is the single most valuable field for identifying exactly which process (and with what arguments) attempted to interfere with the sensor.",
+    "join_candidates": [
+      {
+        "to": "ResourceName",
+        "why": "the attacking command line and the specific sensor resource it targeted on the same SensorTampering event",
+        "confidence": "high"
+      },
+      {
+        "to": "TamperingAction",
+        "why": "the attacking command line and the specific tampering action performed on the same SensorTampering event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=wildcard, single event SensorTampering, sibling of the already-enriched ResourceName field (batch_010); name unambiguous."
+  },
+  {
+    "field": "SourceProducts",
+    "description": "The security product(s) that were the source of the detection recorded by this event, in a consolidated/multi-product detection summary.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of product-name strings)",
+    "hunting_notes": "Use with SourceVendors to identify which underlying product/module actually generated a given Event_EppDetectionSummaryEvent record when detections from multiple sources are consolidated into one summary format.",
+    "join_candidates": [
+      {
+        "to": "SourceVendors",
+        "why": "product/vendor pair identifying the same detection source on the same event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event Event_EppDetectionSummaryEvent, sibling of SourceVendors; name self-descriptive."
+  },
+  {
+    "field": "SourceVendors",
+    "description": "The vendor(s) of the security product(s) that were the source of the detection recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely a list of vendor-name strings)",
+    "hunting_notes": "Use with SourceProducts to identify which vendor's detection engine generated a given detection when detections from multiple sources are consolidated.",
+    "join_candidates": [
+      {
+        "to": "SourceProducts",
+        "why": "product/vendor pair identifying the same detection source on the same event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event Event_EppDetectionSummaryEvent, sibling of SourceProducts; name self-descriptive."
+  },
+  {
+    "field": "SubjectDomainNameEtw",
+    "description": "The domain name of the subject account making the directory-replication request captured by this DCSync-detection event.",
+    "semantic_role": "domain",
+    "data_format": "unknown (stored as match_only_text; a domain name string)",
+    "hunting_notes": "Identifies which domain the requesting account belongs to for a suspected DCSync attempt; combine with ObjectNameEtw/ObjectTypeEtw to fully characterize the request (who asked, from which domain, for what).",
+    "join_candidates": [
+      {
+        "to": "ObjectNameEtw",
+        "why": "sibling ETW-captured fields describing the same DCSync request on the same DCSyncAttempted event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=match_only_text, single event DCSyncAttempted, sibling of already-enriched ObjectNameEtw/ObjectTypeEtw (batch_009); 'Etw' suffix consistent with those fields."
+  },
+  {
+    "field": "SuffixOrigin",
+    "description": "The origin (e.g. manual, DHCP, random/privacy) of the interface-identifier suffix portion of the IPv6 address, as recorded by this event, paired with PrefixOrigin.",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a short keyword matching Windows netsh SuffixOrigin values: Manual, WellKnown, Dhcp, LinkLayerAddress, Random, Other)",
+    "hunting_notes": "A 'Random' suffix origin indicates IPv6 privacy-extension address randomization is in use; useful when correlating a host's rotating IPv6 addresses back to a single physical device over time.",
+    "join_candidates": [
+      {
+        "to": "PrefixOrigin",
+        "why": "prefix/suffix origin pair describing how the same IPv6 address was formed on the same LocalIpAddressIP6 event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event LocalIpAddressIP6, sibling of the already-enriched PrefixOrigin field (batch_010); 'SuffixOrigin' matches the standard Windows IPv6 addressing concept exposed via `Get-NetIPAddress`."
+  },
+  {
+    "field": "Suppression",
+    "description": "A nested container indicating whether this file-integrity-monitoring match was suppressed from alerting, currently with a single child field, Suppression.Suppressed.",
+    "semantic_role": "other",
+    "data_format": "nested/object",
+    "hunting_notes": "Reference Suppression.Suppressed directly; a suppressed match means the underlying file change occurred but was filtered from active alerting (e.g. by a noise-reduction rule), which is important context when reconciling FIM data completeness.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank, single event Event_FileIntegrityMonitorRuleMatchedEnriched, whose only co-occurring child is Suppression.Suppressed -- confirms a parent/child nested relationship, matching the container-field pattern established elsewhere in this KB."
+  },
+  {
+    "field": "Suppression.Suppressed",
+    "description": "Whether this file-integrity-monitoring match was suppressed from alerting.",
+    "semantic_role": "bool",
+    "data_format": "boolean",
+    "hunting_notes": "A true value means this underlying file-change event occurred but was intentionally filtered from active alerting; useful when auditing for gaps between raw FIM activity and what analysts actually saw as alerts.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=boolean, single event Event_FileIntegrityMonitorRuleMatchedEnriched, sole child of the Suppression container; name and type unambiguous."
+  },
+  {
+    "field": "SymbolicLinkName",
+    "description": "The name/path of the symbolic link created, as recorded by this event.",
+    "semantic_role": "file_path",
+    "data_format": "UTF-8 string (file path)",
+    "hunting_notes": "Pair with SymbolicLinkTarget to see the full link relationship; this event (SuspiciousCreateSymbolicLink) already flags the creation as suspicious, so inspect both the link location and its target for privilege-escalation/TOCTOU-style symlink attacks.",
+    "join_candidates": [
+      {
+        "to": "SymbolicLinkTarget",
+        "why": "link name and its target path for the same symbolic-link creation on the same event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event SuspiciousCreateSymbolicLink (event name matches concept); name unambiguous."
+  },
+  {
+    "field": "SymbolicLinkTarget",
+    "description": "The target path the symbolic link created by this event points to.",
+    "semantic_role": "file_path",
+    "data_format": "UTF-8 string (file path)",
+    "hunting_notes": "A symlink pointing at a sensitive system file/directory (e.g. to trick a privileged process into operating on an unintended file) is the classic symlink-attack pattern this event is designed to flag; inspect the target for such sensitive paths.",
+    "join_candidates": [
+      {
+        "to": "SymbolicLinkName",
+        "why": "link name and its target path for the same symbolic-link creation on the same event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event SuspiciousCreateSymbolicLink; name unambiguous."
+  },
+  {
+    "field": "SystemManufacturer",
+    "description": "The manufacturer of the host's overall system (from the SMBIOS System Information block), as reported at agent startup, distinct from the motherboard-level MoboManufacturer.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (vendor name)",
+    "hunting_notes": "Hardware asset-inventory field; useful for spotting VM/virtualization system vendors (e.g. \"VMware, Inc.\", \"QEMU\") when assessing whether a host is physical or virtual.",
+    "join_candidates": [
+      {
+        "to": "SystemProductName",
+        "why": "sibling system-identification fields on the same AgentOnline event",
+        "confidence": "high"
+      },
+      {
+        "to": "MoboManufacturer",
+        "why": "related but distinct hardware-manufacturer fields (system vs. motherboard) on the same AgentOnline event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event AgentOnline, alongside already-enriched MoboManufacturer/ChasisManufacturer (batch_005/batch_008); 'SystemManufacturer' maps to the standard SMBIOS System Information structure's Manufacturer field, distinct from the Base Board (motherboard) structure."
+  },
+  {
+    "field": "SystemProductName",
+    "description": "The product name/model of the host's overall system (from the SMBIOS System Information block), as reported at agent startup.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Hardware asset-inventory field, useful alongside SystemManufacturer for precise hardware identification and for spotting VM product names (e.g. \"VMware Virtual Platform\").",
+    "join_candidates": [
+      {
+        "to": "SystemManufacturer",
+        "why": "sibling system-identification fields on the same AgentOnline event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event AgentOnline; maps to the standard SMBIOS System Information structure's Product Name field."
+  },
+  {
+    "field": "SystemSerialNumber",
+    "description": "The serial number of the host's overall system (from the SMBIOS System Information block), as reported at agent startup.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Hardware asset-tracking field; also useful for confirming whether a host is a VM (many hypervisors populate this with a recognizable placeholder pattern).",
+    "join_candidates": [
+      {
+        "to": "SystemManufacturer",
+        "why": "sibling system-identification fields on the same AgentOnline event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event AgentOnline; maps to the standard SMBIOS System Information structure's Serial Number field."
+  },
+  {
+    "field": "SystemdUnitName",
+    "description": "The name of the systemd unit (service) created, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string (systemd unit name, e.g. \"foo.service\")",
+    "hunting_notes": "systemd services are a common Linux persistence mechanism; an unexpected new unit (especially one with a legitimate-looking name mimicking a system service) is worth investigating alongside SystemdUnitProperties.",
+    "join_candidates": [
+      {
+        "to": "SystemdUnitProperties",
+        "why": "sibling fields describing the same created systemd unit on the same SystemdServiceCreated event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event SystemdServiceCreated (event name matches concept); name unambiguous."
+  },
+  {
+    "field": "SystemdUnitProperties",
+    "description": "The configuration properties of the systemd unit created, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as wildcard; likely serialized unit-file key=value properties, e.g. ExecStart, User, WantedBy)",
+    "hunting_notes": "Inspect for the ExecStart command (the actual program/script the persistence mechanism will run) and the User/privilege the unit runs as -- the highest-value field for understanding what a new systemd persistence unit actually does.",
+    "join_candidates": [
+      {
+        "to": "SystemdUnitName",
+        "why": "sibling fields describing the same created systemd unit on the same SystemdServiceCreated event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=wildcard, single event SystemdServiceCreated; name self-descriptive though the exact serialization of the unit's properties isn't confirmed in this KB."
+  },
+  {
+    "field": "TamperingAction",
+    "description": "The specific action/type of tampering attempted against the sensor, as recorded by this event.",
+    "semantic_role": "enum",
+    "data_format": "unknown (likely a short action keyword, e.g. process-kill, file-delete, registry-modify)",
+    "hunting_notes": "Primary field for classifying exactly what kind of anti-sensor tampering was attempted (e.g. attempting to kill the sensor process, delete its files, or modify its registry configuration); use alongside SourceCommandLine/ResourceName for the full picture.",
+    "join_candidates": [
+      {
+        "to": "SourceCommandLine",
+        "why": "sibling tampering-detail fields on the same SensorTampering event",
+        "confidence": "high"
+      },
+      {
+        "to": "ResourceName",
+        "why": "sibling tampering-detail fields on the same SensorTampering event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event SensorTampering, sibling of already-enriched ResourceName/SourceCommandLine (batch_010/this batch); name unambiguous for a tampering-classification field."
+  },
+  {
+    "field": "TargetDirectoryName",
+    "description": "The name/path of the directory created, as recorded by this event.",
+    "semantic_role": "file_path",
+    "data_format": "UTF-8 string (directory path)",
+    "hunting_notes": "Primary field for identifying which directory was created; useful for spotting staging directories in unusual/hidden locations (e.g. temp folders, deeply nested paths) used to drop tooling or exfiltration data.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank, single event DirectoryCreate (event name matches concept); name unambiguous."
+  },
+  {
+    "field": "TargetProcessCommandLine",
+    "description": "The command line of the target process whose handle was operated on, as recorded by this event.",
+    "semantic_role": "command",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Handle operations against a security-sensitive target process (e.g. lsass.exe, an EDR/AV process) are a classic credential-dumping or defense-evasion precursor; the command line here identifies exactly which running instance was targeted.",
+    "join_candidates": [
+      {
+        "to": "TargetProcessImageFileName",
+        "why": "sibling target-process-identity fields describing the same handle-operation target on FalconProcessHandleOpDetectInfo",
+        "confidence": "medium"
+      },
+      {
+        "to": "TargetProcessId",
+        "why": "sibling target-process-identity fields describing the same handle-operation target on FalconProcessHandleOpDetectInfo",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event FalconProcessHandleOpDetectInfo (confirmed field list includes TargetProcessCommandLine, TargetProcessId, TargetProcessImageFileName); name unambiguous."
+  },
+  {
+    "field": "TargetThreadModule",
+    "description": "The module (e.g. a DLL) associated with the start address of the injected thread, as recorded by this event.",
+    "semantic_role": "file_path",
+    "data_format": "UTF-8 string (module name/path)",
+    "hunting_notes": "Identifies which loaded module the injected thread's entry point falls within -- a thread starting in an unexpected or unusual module (or one not normally used for threading, like a data-only DLL) is a strong process-injection indicator.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event InjectedThread (event name matches concept); name unambiguous for thread-injection detection."
+  },
+  {
+    "field": "TaskExecCommand",
+    "description": "The executable command/path configured to run for a scheduled task, as recorded by this event.",
+    "semantic_role": "command",
+    "data_format": "UTF-8 string (command/path, per the CIM eval split on path separators)",
+    "hunting_notes": "CrowdStrike's own CIM mapping uses this field (via path-splitting) to derive the CIM 'service'/'service_exec'/'service_name'/'service_path' fields for scheduled-task events, alongside the analogous service-creation events -- treat TaskExecCommand as the authoritative source of what a scheduled task actually runs, key for spotting malicious or LOLBin-abusing scheduled tasks.",
+    "join_candidates": [
+      {
+        "to": "TaskXml",
+        "why": "TaskExecCommand is likely extracted from or summarizes the full task definition also captured in TaskXml on related scheduled-task events",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "fdr-to-CIM mapping for 'service'/'service_exec'/'service_name'/'service_path': multiple case() evals reference TaskExecCommand directly for event_simpleName=\"ScheduledTaskRegistered\", splitting it on path separators to derive the executable name -- confirms this field holds the task's command/path; appears on 2 events (ScheduledTaskModified, ScheduledTaskRegistered), cim_reachable=true."
+  },
+  {
+    "field": "ThreadStartBytes",
+    "description": "The raw bytes at the start address of the injected thread in the target Java process, as recorded by this event.",
+    "semantic_role": "other",
+    "data_format": "unknown (stored as match_only_text; likely a hex-encoded byte sequence)",
+    "hunting_notes": "Directly captures the beginning of injected code (potential shellcode) at the thread's entry point -- very high value for identifying the specific injected payload in a Java-process thread-injection attack, which can be a precursor to further code execution within the JVM.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=match_only_text, single event JavaInjectedThread (event name matches concept); name self-descriptive."
+  },
+  {
+    "field": "ThreatgraphIndicators",
+    "description": "A nested list of ThreatGraph indicators (CrowdStrike's graph-based threat-correlation data) supporting the automated lead recorded by this event, each entry carrying identity, host, pattern-disposition, and timing details.",
+    "semantic_role": "other",
+    "data_format": "nested/object (array of indicator records)",
+    "hunting_notes": "Reference the ThreatgraphIndicators.* child fields directly; this is the underlying evidence graph that produced the automated lead, useful for pivoting to the specific hosts/processes/patterns involved.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type blank (nested), single event Event_AutomatedLeadSummaryEvent, whose co-occurring children are exactly its ten ThreatgraphIndicators.* fields (Description, DisplayName, HostId, Hostname, IndicatorId, PatternDisposition, PatternId, ProcessId, SignalAssociationTimestamp, TemplateInstanceId) -- confirms a parent/child nested relationship, matching the container-field pattern established elsewhere in this KB; 'ThreatGraph' is CrowdStrike's publicly documented graph-database threat-correlation technology."
+  },
+  {
+    "field": "ThreatgraphIndicators.Description",
+    "description": "A human-readable description of the ThreatGraph indicator entry supporting this automated lead.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Quick-triage summary of what this specific piece of graph evidence represents.",
+    "join_candidates": [
+      {
+        "to": "ThreatgraphIndicators.DisplayName",
+        "why": "sibling human-readable fields describing the same indicator on the same Event_AutomatedLeadSummaryEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event Event_AutomatedLeadSummaryEvent, sibling within the already-established ThreatgraphIndicators container (this batch); name unambiguous."
+  },
+  {
+    "field": "ThreatgraphIndicators.DisplayName",
+    "description": "The display name of the ThreatGraph indicator entry supporting this automated lead.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Human-readable label for this piece of graph evidence, useful for quick identification in a lead's evidence list.",
+    "join_candidates": [
+      {
+        "to": "ThreatgraphIndicators.Description",
+        "why": "sibling human-readable fields describing the same indicator on the same Event_AutomatedLeadSummaryEvent",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event Event_AutomatedLeadSummaryEvent, sibling within the ThreatgraphIndicators container; name unambiguous."
+  },
+  {
+    "field": "ThreatgraphIndicators.Hostname",
+    "description": "The hostname of the host associated with this ThreatGraph indicator entry supporting the automated lead.",
+    "semantic_role": "other",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Use to identify which host(s) contributed evidence to a multi-host automated lead (e.g. a lateral-movement lead spanning several hosts), pairing with ThreatgraphIndicators.HostId for the stable identifier.",
+    "join_candidates": [
+      {
+        "to": "ThreatgraphIndicators.HostId",
+        "why": "hostname/host-ID pair for the same indicator entry on the same Event_AutomatedLeadSummaryEvent",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event Event_AutomatedLeadSummaryEvent, sibling within the ThreatgraphIndicators container; name unambiguous."
+  },
+  {
+    "field": "ThreatgraphIndicators.SignalAssociationTimestamp",
+    "description": "The timestamp at which this ThreatGraph indicator was associated with the signal underlying the automated lead.",
+    "semantic_role": "timestamp",
+    "data_format": "date (per fields.json type)",
+    "hunting_notes": "Use to build a timeline of when each piece of graph evidence was linked into the lead, useful for understanding how the lead's evidence accumulated over time.",
+    "join_candidates": [
+      {
+        "to": "SignalUpdatedTimestamp",
+        "why": "indicator-level association timestamp vs. the lead-level signal-updated timestamp on the same Event_AutomatedLeadSummaryEvent",
+        "confidence": "low"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=date, single event Event_AutomatedLeadSummaryEvent, sibling within the ThreatgraphIndicators container; name and type unambiguous."
+  },
+  {
+    "field": "TotalDiskSpace",
+    "description": "The total disk space capacity of the host, as recorded by this event.",
+    "semantic_role": "size",
+    "data_format": "unknown (likely bytes, despite keyword type)",
+    "hunting_notes": "Hardware/asset-inventory field; use with UsedDiskSpace/AvailableDiskSpace to compute utilization ratios for capacity planning rather than direct threat hunting.",
+    "join_candidates": [
+      {
+        "to": "NumberOfDiskDrives",
+        "why": "sibling disk-inventory fields on the same DiskCapacity event",
+        "confidence": "medium"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event DiskCapacity, sibling of the already-enriched NumberOfDiskDrives field (batch_009); name unambiguous."
+  },
+  {
+    "field": "TransmitLinkSpeed",
+    "description": "The transmit link speed of the network interface, as recorded by this event, paired with ReceiveLinkSpeed.",
+    "semantic_role": "other",
+    "data_format": "unknown (likely integer, bits per second)",
+    "hunting_notes": "Hardware/network configuration attribute; not a direct threat signal.",
+    "join_candidates": [
+      {
+        "to": "ReceiveLinkSpeed",
+        "why": "transmit/receive pair for the same network interface's link speed on the same LocalIpAddressIP6 event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword, single event LocalIpAddressIP6, sibling of the already-enriched ReceiveLinkSpeed field (batch_010); name unambiguous."
+  },
+  {
+    "field": "USN",
+    "description": "The NTFS Update Sequence Number (USN) recorded for the file modification captured by this event.",
+    "semantic_role": "identifier",
+    "data_format": "decimal string (NTFS USN Journal sequence number)",
+    "hunting_notes": "USN Journal entries are a well-known NTFS forensic artifact that can reveal file-modification history even when other logging is absent; use to correlate this event against USN Journal records recovered separately during deeper forensic analysis.",
+    "join_candidates": [],
+    "confidence": "high",
+    "evidence": "type=keyword, single event CriticalFileModified; 'USN' is standard, well-documented NTFS Update Sequence Number Journal terminology."
+  },
+  {
+    "field": "UsedDiskSpace",
+    "description": "The amount of disk space used on the host, sampled over the ResourceUtilization event's reporting interval.",
+    "semantic_role": "size",
+    "data_format": "unknown (likely bytes, despite keyword type)",
+    "hunting_notes": "Track alongside AvailableDiskSpace to compute utilization; a rapid drop in available space (rising UsedDiskSpace) can indicate mass file staging ahead of exfiltration or a ransomware encryption run writing large volumes of new/modified files.",
+    "join_candidates": [
+      {
+        "to": "AvailableDiskSpace",
+        "why": "sibling disk-utilization fields on the same ResourceUtilization event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "high",
+    "evidence": "type=keyword, single event ResourceUtilization, sibling of the already-enriched AvailableDiskSpace field (batch_005); name unambiguous."
+  },
+  {
+    "field": "User",
+    "description": "A container-like field holding user-identity information for this file-integrity-monitoring match, with child fields User.ID and User.Name.",
+    "semantic_role": "other",
+    "data_format": "nested/object (though recorded as keyword type in this KB)",
+    "hunting_notes": "Reference User.ID/User.Name directly for the actual user identity associated with the FIM match.",
+    "join_candidates": [
+      {
+        "to": "User.Name",
+        "why": "parent field for the User.ID/User.Name child fields on the same Event_FileIntegrityMonitorRuleMatchedEnriched event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type=keyword (not blank/nested like most other container fields in this KB), single event Event_FileIntegrityMonitorRuleMatchedEnriched, whose co-occurring children are exactly User.ID and User.Name -- the child-field structure matches the container pattern seen elsewhere (Host, Policy, Suppression) even though its recorded type differs from those, which is noted rather than resolved."
+  },
+  {
+    "field": "User.ID",
+    "description": "The identifier (e.g. a SID or UID) of the user associated with this file-integrity-monitoring match.",
+    "semantic_role": "user_id",
+    "data_format": "unknown (likely a SID string on Windows or a UID on Linux/Mac)",
+    "hunting_notes": "Use with User.Name to identify which user account is associated with the monitored file change.",
+    "join_candidates": [
+      {
+        "to": "User.Name",
+        "why": "ID/Name pair identifying the same user on the same Event_FileIntegrityMonitorRuleMatchedEnriched event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event Event_FileIntegrityMonitorRuleMatchedEnriched, sibling of User.Name within the User container; standard ID/Name pairing pattern seen elsewhere in this KB."
+  },
+  {
+    "field": "User.Name",
+    "description": "The username of the user associated with this file-integrity-monitoring match.",
+    "semantic_role": "user_id",
+    "data_format": "UTF-8 string",
+    "hunting_notes": "Primary human-readable field identifying who (or what account context) is associated with the monitored file change.",
+    "join_candidates": [
+      {
+        "to": "User.ID",
+        "why": "ID/Name pair identifying the same user on the same Event_FileIntegrityMonitorRuleMatchedEnriched event",
+        "confidence": "high"
+      }
+    ],
+    "confidence": "medium",
+    "evidence": "type blank, single event Event_FileIntegrityMonitorRuleMatchedEnriched, sibling of User.ID within the User container."
+  }
+]
